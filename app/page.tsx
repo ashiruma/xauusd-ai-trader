@@ -20,7 +20,6 @@ export default function HomePage() {
             {/* Left Column: Mission, Value Proposition, and Trust Signals */}
             <div>
               <div className="section-eyebrow">
-                <span className="dot-indicator" />
                 <span>Velarion Markets &bull; Spot Gold (XAUUSD)</span>
               </div>
 
@@ -322,16 +321,7 @@ export default function HomePage() {
       {/* ============================================================== */}
       <section style={{ padding: '48px 0' }}>
         <div className="container-main">
-          <div style={{
-            background: 'var(--bg-surface-1)',
-            border: '1px solid var(--border-accent)',
-            borderRadius: 'var(--radius-lg)',
-            padding: '36px',
-            display: 'grid',
-            gridTemplateColumns: '1fr 340px',
-            gap: '36px',
-            alignItems: 'center'
-          }}>
+          <div className="calc-teaser-card calc-teaser-grid">
             <div>
               <span className="section-eyebrow">Interactive Compounding Tool</span>
               <h2 style={{ fontSize: '24px', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '12px', letterSpacing: '-0.3px' }}>
@@ -433,16 +423,7 @@ export default function HomePage() {
       {/* ============================================================== */}
       <section style={{ padding: '48px 0 80px' }}>
         <div className="container-main">
-          <div style={{
-            background: 'var(--bg-surface-1)',
-            border: '1px solid var(--border-default)',
-            borderRadius: 'var(--radius-lg)',
-            padding: '36px',
-            display: 'grid',
-            gridTemplateColumns: '1fr 360px',
-            gap: '36px',
-            alignItems: 'center'
-          }}>
+          <div className="broker-card broker-card-grid">
             <div>
               <span className="status-badge status-completed" style={{ marginBottom: '12px' }}>
                 OFFICIAL BROKER PARTNERSHIP

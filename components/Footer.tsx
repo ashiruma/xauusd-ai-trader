@@ -19,25 +19,18 @@ export default function Footer() {
         }}>
           {/* Brand Col */}
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
-              <div style={{
-                width: '26px',
-                height: '26px',
-                background: 'linear-gradient(135deg, #E6BB59, #B88E30)',
-                color: '#080D18',
-                fontWeight: 800,
-                fontSize: '14px',
-                borderRadius: '3px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-              }}>
-                V
-              </div>
+            <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px', textDecoration: 'none' }}>
+              <img
+                src="/velarion_emblem_dark.png"
+                alt="Velarion Markets"
+                width="26"
+                height="26"
+                style={{ width: '26px', height: '26px', objectFit: 'contain', display: 'block' }}
+              />
               <strong style={{ fontSize: '15px', color: 'var(--text-primary)', letterSpacing: '0.5px' }}>
                 VELARION MARKETS
               </strong>
-            </div>
+            </Link>
             <p style={{ fontSize: '12.5px', color: 'var(--text-secondary)', lineHeight: 1.6 }}>
               Institutional algorithmic spot gold execution architecture and 30-lesson interactive Forex curriculum, subsidized through our regulated JustMarkets partnership.
             </p>
