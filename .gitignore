@@ -32,6 +32,7 @@ htmlcov/
 data/*.db
 data/*.db-shm
 data/*.db-wal
+data/*.json
 
 # Large Benchmark / Performance Reports
 lighthouse-*.json

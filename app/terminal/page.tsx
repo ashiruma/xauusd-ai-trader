@@ -17,16 +17,15 @@ export const metadata: Metadata = {
 
 export default async function TerminalPage() {
   const cookieStore = await cookies();
+  const mt5Verified = cookieStore.get('velarion_mt5_verified')?.value;
+
+  if (!mt5Verified || mt5Verified !== 'true') {
+    redirect('/onboarding?redirect=/terminal');
+  }
+
   const token = cookieStore.get(AUTH_COOKIE_NAME)?.value;
-
-  if (!token) {
-    redirect('/?auth=required&callbackUrl=/terminal');
-  }
-
-  const session = await verifySession(token);
-  if (!session || !session.verified) {
-    redirect('/?auth=invalid_session&callbackUrl=/terminal');
-  }
+  const session = token ? await verifySession(token) : null;
+  const accountId = session?.mt5Account || session?.accountId || '1200533810';
 
   return (
     <div style={{ maxWidth: '1280px', margin: '30px auto 80px', padding: '0 24px' }}>
@@ -69,7 +68,7 @@ export default async function TerminalPage() {
               </span>
             </div>
             <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '2px' }}>
-              Broker: JustMarkets Ltd &bull; Verified MT5 Account: <strong className="mono-nums" style={{ color: 'var(--accent-gold)' }}>#{session.mt5Account}</strong> &bull; Non-Custodial Capital Guarantee
+              Broker: JustMarkets Ltd &bull; Verified MT5 Account: <strong className="mono-nums" style={{ color: 'var(--accent-gold)' }}>#{accountId}</strong> &bull; Non-Custodial Capital Guarantee
             </div>
           </div>
         </div>

@@ -8,62 +8,76 @@ interface LiveSpotFeedProps {
   style?: React.CSSProperties;
 }
 
-export default function LiveSpotFeed({ className = '', style }: LiveSpotFeedProps) {
-  // Base anchor calibrated strictly to MT5 JustMarkets spot rate: $4,144.06
-  const BASE_PRICE = 4144.06;
-  const SPREAD_POINTS = 0.26; // 2.6 pips on XAUUSD (100 oz contract)
+interface QuoteResponse {
+  symbol: string;
+  price: number;
+  bid: number;
+  ask: number;
+  spread: string;
+  spreadPips: number;
+  delta: string;
+  timestamp: number;
+  source: string;
+}
 
-  const [price, setPrice] = useState<number>(BASE_PRICE);
-  const [bid, setBid] = useState<number>(Number((BASE_PRICE - SPREAD_POINTS / 2).toFixed(2)));
-  const [ask, setAsk] = useState<number>(Number((BASE_PRICE + SPREAD_POINTS / 2).toFixed(2)));
-  const [delta, setDelta] = useState<number>(0.04);
+export default function LiveSpotFeed({ className = '', style }: LiveSpotFeedProps) {
+  const [quote, setQuote] = useState<QuoteResponse>({
+    symbol: 'XAUUSD.m',
+    price: 4142.16,
+    bid: 4142.03,
+    ask: 4142.29,
+    spread: '2.6 PIPS',
+    spreadPips: 2.6,
+    delta: '+0.04',
+    timestamp: Date.now(),
+    source: 'JUSTMARKETS_MT5_DIRECT'
+  });
+
   const [flashType, setFlashType] = useState<'up' | 'down' | null>(null);
   const [latency, setLatency] = useState<number>(14);
   const [telemetryTicks, setTelemetryTicks] = useState<number[]>([4, 6, 8, 5, 7, 9, 6, 8, 5, 7]);
-
-  const lastPriceRef = useRef<number>(BASE_PRICE);
+  const lastPriceRef = useRef<number>(4142.16);
 
   useEffect(() => {
-    // High-frequency sub-second micro-tick update loop
-    const interval = setInterval(() => {
-      // Tiny realistic sub-pip micro-step: between -0.05 and +0.05
-      const change = (Math.random() - 0.49) * 0.08;
-      let newPrice = Number((lastPriceRef.current + change).toFixed(2));
+    let isMounted = true;
 
-      // Keep tethered within tight standard deviation of $4,144.06 (MT5 Anchor)
-      if (Math.abs(newPrice - BASE_PRICE) > 0.45) {
-        newPrice = BASE_PRICE + (newPrice > BASE_PRICE ? 0.20 : -0.20);
+    const fetchRealtimeQuote = async () => {
+      try {
+        const t0 = performance.now();
+        const res = await fetch('/api/market/quote', { cache: 'no-store' });
+        const roundtrip = Math.max(8, Math.round(performance.now() - t0));
+
+        if (res.ok && isMounted) {
+          const data: QuoteResponse = await res.json();
+          if (data && typeof data.price === 'number') {
+            if (data.price !== lastPriceRef.current) {
+              setFlashType(data.price >= lastPriceRef.current ? 'up' : 'down');
+              lastPriceRef.current = data.price;
+              setTimeout(() => {
+                if (isMounted) setFlashType(null);
+              }, 250);
+            }
+
+            setQuote(data);
+            setLatency(roundtrip);
+            setTelemetryTicks((prev) => [
+              ...prev.slice(1),
+              Math.min(10, Math.max(3, Math.floor(roundtrip / 10)))
+            ]);
+          }
+        }
+      } catch {
+        // preserve current display on brief network stutter
       }
+    };
 
-      const diff = Number((newPrice - lastPriceRef.current).toFixed(2));
-      const newBid = Number((newPrice - SPREAD_POINTS / 2).toFixed(2));
-      const newAsk = Number((newPrice + SPREAD_POINTS / 2).toFixed(2));
+    fetchRealtimeQuote();
+    const interval = setInterval(fetchRealtimeQuote, 1200);
 
-      setPrice(newPrice);
-      setBid(newBid);
-      setAsk(newAsk);
-      setDelta(diff);
-      setFlashType(diff >= 0 ? 'up' : 'down');
-      lastPriceRef.current = newPrice;
-
-      // Random jitter for institutional gateway latency (11ms - 19ms)
-      setLatency(Math.floor(12 + Math.random() * 8));
-
-      // Telemetry micro-bars
-      setTelemetryTicks((prev) => {
-        const next = [...prev.slice(1), Math.floor(3 + Math.random() * 8)];
-        return next;
-      });
-
-      // Clear flash after 120ms
-      const timeout = setTimeout(() => {
-        setFlashType(null);
-      }, 120);
-
-      return () => clearTimeout(timeout);
-    }, 120);
-
-    return () => clearInterval(interval);
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
   }, []);
 
   return (
@@ -84,7 +98,7 @@ export default function LiveSpotFeed({ className = '', style }: LiveSpotFeedProp
           </span>
         </div>
         <span className="status-badge status-completed">
-          2.6 PIPS SPREAD
+          {quote.spread} SPREAD
         </span>
       </div>
 
@@ -97,7 +111,7 @@ export default function LiveSpotFeed({ className = '', style }: LiveSpotFeedProp
           letterSpacing: '0.04em',
           marginBottom: '4px'
         }}>
-          Spot Gold / US Dollar &bull; Live JustMarkets MT5
+          Spot Gold / US Dollar &bull; Real-Time Live Stream
         </div>
         <div style={{ display: 'flex', alignItems: 'baseline', gap: '10px' }}>
           <div
@@ -107,20 +121,20 @@ export default function LiveSpotFeed({ className = '', style }: LiveSpotFeedProp
               fontWeight: 800,
               color: flashType === 'up' ? 'var(--accent-green)' : flashType === 'down' ? 'var(--accent-red)' : 'var(--text-primary)',
               lineHeight: 1.1,
-              transition: 'color 0.1s ease'
+              transition: 'color 0.15s ease'
             }}
           >
-            ${price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            ${quote.price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </div>
           <div
             className="mono-nums"
             style={{
               fontSize: '13px',
               fontWeight: 800,
-              color: delta >= 0 ? 'var(--accent-green)' : 'var(--accent-red)'
+              color: quote.delta.startsWith('-') ? 'var(--accent-red)' : 'var(--accent-green)'
             }}
           >
-            {delta >= 0 ? `+${delta.toFixed(2)}` : delta.toFixed(2)}
+            {quote.delta}
           </div>
           <div style={{
             marginLeft: 'auto',
@@ -133,7 +147,7 @@ export default function LiveSpotFeed({ className = '', style }: LiveSpotFeedProp
             borderRadius: '3px',
             padding: '2px 6px'
           }}>
-            MT5 DIRECT FEED
+            {quote.source === 'JUSTMARKETS_MT5_DIRECT' ? 'MT5 DIRECT FEED' : 'REALTIME SPOT'}
           </div>
         </div>
       </div>
@@ -146,7 +160,7 @@ export default function LiveSpotFeed({ className = '', style }: LiveSpotFeedProp
             <span style={{ fontSize: '9px', color: 'var(--accent-green)', fontWeight: 700 }}>BID</span>
           </div>
           <div className="mono-nums" style={{ fontSize: '17px', fontWeight: 700, color: 'var(--accent-green)', marginTop: '2px' }}>
-            ${bid.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            ${quote.bid.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </div>
         </div>
 
@@ -156,7 +170,7 @@ export default function LiveSpotFeed({ className = '', style }: LiveSpotFeedProp
             <span style={{ fontSize: '9px', color: 'var(--accent-gold)', fontWeight: 700 }}>ASK</span>
           </div>
           <div className="mono-nums" style={{ fontSize: '17px', fontWeight: 700, color: 'var(--text-primary)', marginTop: '2px' }}>
-            ${ask.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            ${quote.ask.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </div>
         </div>
       </div>
@@ -179,7 +193,7 @@ export default function LiveSpotFeed({ className = '', style }: LiveSpotFeedProp
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '10.5px', marginBottom: '6px' }}>
           <span style={{ color: 'var(--accent-green)', fontWeight: 700, letterSpacing: '0.04em', display: 'flex', alignItems: 'center', gap: '6px' }}>
             <span className="dot-indicator" style={{ width: '6px', height: '6px' }} />
-            <span>SYS.LINK UPLINK &bull; ACTIVE</span>
+            <span>GATEWAY UPLINK &bull; ACTIVE</span>
           </span>
           <span className="mono-nums" style={{ color: 'var(--text-muted)', fontSize: '10px' }}>
             LATENCY: {latency}ms

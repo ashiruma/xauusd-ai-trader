@@ -46,7 +46,8 @@ export default function Navbar() {
     { href: '/academy', label: 'Forex School' },
     { href: '/tools/growth-calculator', label: '200-Pip Calculator' },
     { href: '/terminal', label: 'Terminal', protected: true },
-    { href: '/admin', label: 'Partner Portal', protected: true }
+    { href: '/onboarding', label: 'Onboarding' },
+    ...(session?.role === 'admin' ? [{ href: '/admin-secure-x9f8k2', label: 'Partner Portal' }] : [])
   ];
 
   return (
