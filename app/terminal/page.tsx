@@ -7,6 +7,7 @@ import { DEFAULT_PARTNER_CONFIG } from '@/lib/partner';
 import LiveSpotFeed from '@/components/LiveSpotFeed';
 import { getServerLiveQuote } from '@/lib/marketFeed';
 import LiveTradingEngine from '@/components/terminal/LiveTradingEngine';
+import TerminalPositions from '@/components/TerminalPositions';
 
 export const metadata: Metadata = {
   title: 'Autonomous AI Trading Terminal | Velarion Markets',
@@ -118,6 +119,9 @@ export default async function TerminalPage() {
         {/* Right Column: Live Autonomous Trading Engine & Position Telemetry */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           <LiveTradingEngine />
+
+          {/* Connected Positions & Signal Telemetry from API */}
+          <TerminalPositions />
 
           {/* Active Model Consensus */}
           <div className="panel-card" style={{ padding: '24px' }}>

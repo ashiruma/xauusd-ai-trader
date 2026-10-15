@@ -38,6 +38,7 @@ data/*.json
 lighthouse-*.json
 
 # OS / Editor files
+*.zip
 .DS_Store
 Thumbs.db
 # Agents internal

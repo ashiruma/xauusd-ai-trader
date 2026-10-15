@@ -5,6 +5,7 @@ import { Metadata } from 'next';
 import { cookies } from 'next/headers';
 import { getLessonById } from '@/lib/curriculum';
 import LessonQuiz from '@/components/LessonQuiz';
+import CourseProgressGate from '@/components/CourseProgressGate';
 import LessonCheatSheet from '@/components/academy/LessonCheatSheet';
 import {
   SmcLiquiditySweepDiagram,
@@ -143,7 +144,8 @@ export default async function LessonPage({ params }: LessonPageProps) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(courseJsonLd) }}
       />
 
-      <article style={{ maxWidth: '820px', margin: '40px auto 80px', padding: '0 20px' }}>
+      <CourseProgressGate lessonNum={lesson.globalNum}>
+      <article className="lesson-content" style={{ maxWidth: '820px', margin: '40px auto 80px', padding: '0 20px' }}>
         {/* Breadcrumb Navigation */}
         <nav aria-label="Breadcrumb" style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '20px' }}>
           <Link href="/" style={{ color: 'var(--text-secondary)' }}>Home</Link>
@@ -524,6 +526,7 @@ export default async function LessonPage({ params }: LessonPageProps) {
           </a>
         </aside>
       </article>
+      </CourseProgressGate>
     </>
   );
 }

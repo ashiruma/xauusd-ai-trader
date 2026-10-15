@@ -4,26 +4,22 @@ import React, { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import CourseSchema from '@/components/CourseSchema';
 import { getAllLessons } from '@/lib/curriculum';
+import { COURSE_PROGRESS_CHANGED_EVENT, COURSE_PROGRESS_STORAGE_KEY, nextCourseLesson, parseCourseProgress } from '@/lib/courseProgress';
 
 export default function AcademyPage() {
   const [selectedLevel, setSelectedLevel] = useState<'all' | 'beginner' | 'intermediate' | 'advanced'>('all');
-  const [completedLessons, setCompletedLessons] = useState<string[]>([]);
+  const [completedLessons, setCompletedLessons] = useState<number[]>([]);
   const allLessons = useMemo(() => getAllLessons(), []);
 
   useEffect(() => {
     try {
-      const stored = localStorage.getItem('velarion_completed_lessons');
-      if (stored) {
-        setCompletedLessons(JSON.parse(stored));
-      } else {
-        const match = document.cookie.match(/velarion_completed_lessons=([^;]+)/);
-        if (match) {
-          setCompletedLessons(JSON.parse(decodeURIComponent(match[1])));
-        }
-      }
+      setCompletedLessons(parseCourseProgress(localStorage.getItem(COURSE_PROGRESS_STORAGE_KEY)));
     } catch {
       // ignore
     }
+    const refreshProgress = () => setCompletedLessons(parseCourseProgress(localStorage.getItem(COURSE_PROGRESS_STORAGE_KEY)));
+    window.addEventListener(COURSE_PROGRESS_CHANGED_EVENT, refreshProgress);
+    return () => window.removeEventListener(COURSE_PROGRESS_CHANGED_EVENT, refreshProgress);
   }, []);
 
   const filteredLessons = useMemo(() => {
@@ -38,9 +34,11 @@ export default function AcademyPage() {
   const totalLessons = allLessons.length;
   const passedCount = completedLessons.length;
   const progressPercent = totalLessons > 0 ? Math.round((passedCount / totalLessons) * 100) : 0;
+  const firstIncompleteLesson = useMemo(() => nextCourseLesson(completedLessons, totalLessons), [completedLessons, totalLessons]);
+  const courseComplete = firstIncompleteLesson > totalLessons;
 
   return (
-    <div style={{ maxWidth: '1200px', margin: '40px auto 80px', padding: '0 24px' }}>
+    <div className="academy-page" style={{ maxWidth: '1200px', margin: '40px auto 80px', padding: '0 24px' }}>
       <CourseSchema />
 
       {/* Breadcrumb */}
@@ -59,11 +57,11 @@ export default function AcademyPage() {
       </h1>
 
       <p style={{ fontSize: '15px', color: 'var(--text-secondary)', lineHeight: 1.6, maxWidth: '820px', marginBottom: '32px' }}>
-        A progressive, institutional curriculum designed to build market literacy from first principles. Lessons 1 through 5 are open for instant public study. Lessons 6 through 30 carry no software subscription fees and unlock upon partner verification with JustMarkets.
+        A progressive, institutional curriculum designed to build market literacy from first principles. Lessons 1 through 5 are open for instant public study. Lessons 6 through 30 carry no platform subscription fee when verified with our official Introducing Broker partner, JustMarkets.
       </p>
 
       {/* Progress & Overview Panel */}
-      <div className="panel-card" style={{ padding: '24px 28px', marginBottom: '36px', background: 'var(--bg-surface-1)' }}>
+      <div className="panel-card academy-progress-card" style={{ padding: '24px 28px', marginBottom: '36px', background: 'var(--bg-surface-1)' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '20px', marginBottom: '18px' }}>
           <div>
             <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--accent-gold)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '6px' }}>
@@ -73,29 +71,29 @@ export default function AcademyPage() {
               {passedCount} of {totalLessons} Lessons Completed ({progressPercent}%)
             </h2>
             <div style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '4px' }}>
-              Subsidized with no platform subscription fee via our JustMarkets Introducing Broker partnership.
+              Subsidized with no platform subscription fee through our official JustMarkets regulated broker partnership.
             </div>
           </div>
           <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
             <Link
-              href="/academy/lesson-1"
+              href={courseComplete ? '/academy' : `/academy/lesson-${firstIncompleteLesson}`}
               className="btn btn-primary"
               style={{ padding: '10px 20px', fontSize: '13px' }}
             >
-              {passedCount > 0 ? 'Continue Curriculum' : 'Start Lesson 01 (Public)'} &rarr;
+              {courseComplete ? 'Course Complete' : passedCount > 0 ? `Continue Lesson ${String(firstIncompleteLesson).padStart(2, '0')}` : 'Start Lesson 01 (Public)'} &rarr;
             </Link>
             <Link
               href="/onboarding"
               className="btn btn-outline-gold"
               style={{ padding: '10px 18px', fontSize: '13px' }}
             >
-              Unlock All Lessons (Free) &rarr;
+              Unlock Remaining Lessons &rarr;
             </Link>
           </div>
         </div>
 
         {/* Visual Progress Bar */}
-        <div style={{
+        <div role="progressbar" aria-label="Course progress" aria-valuemin={0} aria-valuemax={100} aria-valuenow={progressPercent} style={{
           width: '100%',
           height: '6px',
           background: 'var(--bg-surface-3)',
@@ -112,8 +110,11 @@ export default function AcademyPage() {
       </div>
 
       {/* 3 Tier Navigation Cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px', marginBottom: '36px' }}>
-        <div
+      <div className="academy-tier-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px', marginBottom: '36px' }}>
+        <button
+          type="button"
+          className="academy-tier-card"
+          aria-pressed={selectedLevel === 'beginner'}
           onClick={() => setSelectedLevel('beginner')}
           style={{
             background: selectedLevel === 'beginner' ? 'var(--bg-surface-3)' : 'var(--bg-surface-1)',
@@ -136,9 +137,12 @@ export default function AcademyPage() {
           <div className="mono-nums" style={{ fontSize: '12px', fontWeight: 700, color: 'var(--accent-green)' }}>
             {beginnerCount} Lessons (Lessons 1&ndash;12)
           </div>
-        </div>
+        </button>
 
-        <div
+        <button
+          type="button"
+          className="academy-tier-card"
+          aria-pressed={selectedLevel === 'intermediate'}
           onClick={() => setSelectedLevel('intermediate')}
           style={{
             background: selectedLevel === 'intermediate' ? 'var(--bg-surface-3)' : 'var(--bg-surface-1)',
@@ -161,9 +165,12 @@ export default function AcademyPage() {
           <div className="mono-nums" style={{ fontSize: '12px', fontWeight: 700, color: 'var(--accent-gold)' }}>
             {intermediateCount} Lessons (Lessons 13&ndash;22)
           </div>
-        </div>
+        </button>
 
-        <div
+        <button
+          type="button"
+          className="academy-tier-card"
+          aria-pressed={selectedLevel === 'advanced'}
           onClick={() => setSelectedLevel('advanced')}
           style={{
             background: selectedLevel === 'advanced' ? 'var(--bg-surface-3)' : 'var(--bg-surface-1)',
@@ -186,11 +193,11 @@ export default function AcademyPage() {
           <div className="mono-nums" style={{ fontSize: '12px', fontWeight: 700, color: 'var(--accent-red)' }}>
             {advancedCount} Lessons (Lessons 23&ndash;30)
           </div>
-        </div>
+        </button>
       </div>
 
       {/* Filter Tabs Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px', marginBottom: '20px' }}>
+      <div className="academy-filter-bar" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px', marginBottom: '20px' }}>
         <h2 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)' }}>
           Curriculum Catalog ({filteredLessons.length} Lessons)
         </h2>
@@ -200,7 +207,8 @@ export default function AcademyPage() {
             <button
               key={lvl}
               onClick={() => setSelectedLevel(lvl)}
-              className="btn btn-secondary"
+              className={`btn btn-secondary academy-filter ${selectedLevel === lvl ? 'selected' : ''}`}
+              aria-pressed={selectedLevel === lvl}
               style={{
                 fontSize: '12px',
                 padding: '6px 14px',
@@ -217,20 +225,18 @@ export default function AcademyPage() {
       </div>
 
       {/* 30 Lessons Grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '20px' }}>
+      <div className="academy-lesson-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '20px' }}>
         {filteredLessons.map((lesson) => {
-          const isCompleted = completedLessons.includes(lesson.id) || completedLessons.includes(`lesson-${lesson.globalNum}`) || completedLessons.includes(String(lesson.globalNum));
-          const prevRequiredKey = `lesson-${lesson.globalNum - 1}`;
-          const isPrereqPassed = lesson.globalNum === 1 || completedLessons.includes(prevRequiredKey) || completedLessons.includes(String(lesson.globalNum - 1));
-          const isLockedByPrereq = !isPrereqPassed;
+          const isCompleted = completedLessons.includes(lesson.globalNum);
           const wordCount = lesson.content ? lesson.content.split(/\s+/).length : 500;
           const estReadingTime = `${Math.max(3, Math.ceil(wordCount / 180))} min read`;
           const isPublic = lesson.globalNum <= 5;
+          const isSequenceLocked = lesson.globalNum > firstIncompleteLesson;
 
-          // Determine status badge
+          // Determine status label
           let statusBadge = (
             <span className="status-badge" style={{ fontSize: '10px', background: 'rgba(245, 158, 11, 0.1)', color: 'var(--accent-gold)', borderColor: 'rgba(245, 158, 11, 0.3)' }}>
-              PARTNER (FREE)
+              PARTNER SPONSORED
             </span>
           );
 
@@ -240,16 +246,22 @@ export default function AcademyPage() {
                 COMPLETED
               </span>
             );
-          } else if (isLockedByPrereq) {
+          } else if (isSequenceLocked) {
             statusBadge = (
-              <span className="status-badge" style={{ fontSize: '10px', background: 'var(--bg-surface-3)', color: 'var(--text-muted)', border: '1px solid var(--border-default)' }}>
-                LOCKED &bull; PREREQ
+              <span className="status-badge status-neutral" style={{ fontSize: '10px' }}>
+                LOCKED · PASS PRIOR QUIZ
+              </span>
+            );
+          } else if (lesson.globalNum === firstIncompleteLesson) {
+            statusBadge = (
+              <span className="status-badge status-warning" style={{ fontSize: '10px' }}>
+                NEXT IN SEQUENCE
               </span>
             );
           } else if (isPublic) {
             statusBadge = (
               <span className="status-badge status-completed" style={{ fontSize: '10px' }}>
-                UNLOCKED (PUBLIC)
+                PUBLIC PREVIEW
               </span>
             );
           }
@@ -257,17 +269,16 @@ export default function AcademyPage() {
           return (
             <div
               key={lesson.id}
-              className="feature-card-clean"
+              className="feature-card-clean academy-lesson-card"
               style={{
                 display: 'flex',
                 flexDirection: 'column',
-                justifyContent: 'space-between',
-                opacity: isLockedByPrereq ? 0.85 : 1
+                justifyContent: 'space-between'
               }}
             >
               <div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                  <span className="mono-nums" style={{ fontSize: '11px', color: isLockedByPrereq ? 'var(--text-muted)' : 'var(--accent-gold)', fontWeight: 700 }}>
+                  <span className="mono-nums" style={{ fontSize: '11px', color: 'var(--accent-gold)', fontWeight: 700 }}>
                     LESSON {lesson.globalNum < 10 ? `0${lesson.globalNum}` : lesson.globalNum}
                   </span>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -297,19 +308,19 @@ export default function AcademyPage() {
                 <span className="mono-nums" style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
                   Tier {lesson.level === 'beginner' ? '1' : lesson.level === 'intermediate' ? '2' : '3'}
                 </span>
-                <Link
-                  href={`/academy/lesson-${lesson.globalNum}`}
-                  className={`btn ${isLockedByPrereq ? 'btn-secondary' : isCompleted ? 'btn-outline-gold' : 'btn-primary'}`}
-                  style={{ padding: '6px 14px', fontSize: '12px' }}
-                >
-                  {isCompleted
-                    ? 'Review Lesson'
-                    : isLockedByPrereq
-                    ? `Locked (Pass Lesson ${lesson.globalNum - 1})`
-                    : isPublic
-                    ? 'Study Lesson'
-                    : 'Access Lesson'} &rarr;
-                </Link>
+                {isSequenceLocked ? (
+                  <span className="status-badge status-neutral" aria-disabled="true" style={{ fontSize: '10px' }}>
+                    Unlock by passing Lesson {firstIncompleteLesson}
+                  </span>
+                ) : (
+                  <Link
+                    href={`/academy/lesson-${lesson.globalNum}`}
+                    className="btn btn-outline-gold"
+                    style={{ padding: '6px 14px', fontSize: '12px' }}
+                  >
+                    {isCompleted ? 'Review Lesson' : isPublic ? 'Study (Public)' : 'Study Next Lesson'} &rarr;
+                  </Link>
+                )}
               </div>
             </div>
           );

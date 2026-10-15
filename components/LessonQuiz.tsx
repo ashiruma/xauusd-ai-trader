@@ -3,6 +3,12 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { QuizQuestion } from '@/lib/curriculum';
+import {
+  COURSE_PROGRESS_CHANGED_EVENT,
+  COURSE_PROGRESS_STORAGE_KEY,
+  parseCourseProgress,
+  saveCourseProgress,
+} from '@/lib/courseProgress';
 
 interface LessonQuizProps {
   lessonId: string;
@@ -12,151 +18,128 @@ interface LessonQuizProps {
 }
 
 export default function LessonQuiz({
+  lessonId,
   globalNum,
   quiz,
   nextLessonNum
 }: LessonQuizProps) {
   const quizList: QuizQuestion[] = Array.isArray(quiz) ? quiz : (quiz ? [quiz] : []);
   const [selectedAnswers, setSelectedAnswers] = useState<Record<number, number>>({});
-  const [completedLessons, setCompletedLessons] = useState<string[]>([]);
-  const [hasEvaluated, setHasEvaluated] = useState<boolean>(false);
-  const [isPassed, setIsPassed] = useState<boolean>(false);
+  const [completedLessons, setCompletedLessons] = useState<number[]>([]);
+  const [assessmentFailed, setAssessmentFailed] = useState(false);
   const [showGraduationModal, setShowGraduationModal] = useState<boolean>(false);
 
-  // Load completion state from localStorage or cookie
+  // Load completion state from localStorage
   useEffect(() => {
     try {
-      const stored = localStorage.getItem('velarion_completed_lessons');
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        setCompletedLessons(parsed);
-        if (parsed.includes(`lesson-${globalNum}`)) {
-          setIsPassed(true);
-        }
-      }
+      setCompletedLessons(parseCourseProgress(localStorage.getItem(COURSE_PROGRESS_STORAGE_KEY)));
     } catch {
       // ignore
     }
-  }, [globalNum]);
+    const refreshProgress = () => setCompletedLessons(parseCourseProgress(localStorage.getItem(COURSE_PROGRESS_STORAGE_KEY)));
+    window.addEventListener(COURSE_PROGRESS_CHANGED_EVENT, refreshProgress);
+    return () => window.removeEventListener(COURSE_PROGRESS_CHANGED_EVENT, refreshProgress);
+  }, []);
 
   if (quizList.length === 0) {
     return null;
   }
 
-  // Count foundation lessons completed (1-5)
-  const foundationCompletedCount = [1, 2, 3, 4, 5].filter((num) =>
-    completedLessons.includes(`lesson-${num}`) || completedLessons.includes(String(num))
-  ).length;
+  // Count how many of Foundation Track (Lessons 1-5) are completed
+  const foundationCompletedCount = [1, 2, 3, 4, 5].filter((num) => completedLessons.includes(num)).length;
 
-  // Handle option selection without revealing correctness
+  // Any wrong response restarts the whole course and hides all answer-level feedback.
   const handleSelect = (qIdx: number, optIdx: number) => {
-    if (isPassed) return;
-    setSelectedAnswers((prev) => ({
-      ...prev,
-      [qIdx]: optIdx
-    }));
-    // Reset evaluated state if user changes any selection
-    if (hasEvaluated) {
-      setHasEvaluated(false);
+    if (assessmentFailed || selectedAnswers[qIdx] !== undefined) return;
+
+    const question = quizList[qIdx];
+    const target = question.correct !== undefined ? question.correct : (question as unknown as { correctAnswer: number }).correctAnswer;
+    if (optIdx !== target) {
+      setSelectedAnswers({});
+      setCompletedLessons(saveCourseProgress([]));
+      setAssessmentFailed(true);
+      setShowGraduationModal(false);
+      return;
     }
-  };
 
-  const answeredCount = Object.keys(selectedAnswers).length;
-  const isAllAnswered = answeredCount === quizList.length;
-
-  // Check answers on explicit submission
-  const handleSubmitAssessment = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!isAllAnswered) return;
-
-    // Check if every answer matches the target without revealing which failed
-    const allCorrect = quizList.every((q, idx) => {
-      const target = q.correct !== undefined ? q.correct : (q as unknown as { correctAnswer: number }).correctAnswer;
-      return selectedAnswers[idx] === target;
-    });
-
-    setHasEvaluated(true);
-
-    if (allCorrect) {
-      setIsPassed(true);
+    const updated = { ...selectedAnswers, [qIdx]: optIdx };
+    setSelectedAnswers(updated);
+    if (Object.keys(updated).length === quizList.length) {
       try {
-        const stored: string[] = JSON.parse(localStorage.getItem('velarion_completed_lessons') || '[]');
-        const key = `lesson-${globalNum}`;
-        if (!stored.includes(key)) {
-          stored.push(key);
-          localStorage.setItem('velarion_completed_lessons', JSON.stringify(stored));
-          setCompletedLessons(stored);
-        }
-
-        // Persist cookie for server-side Next.js route gating
-        document.cookie = `velarion_completed_lessons=${encodeURIComponent(JSON.stringify(stored))}; path=/; max-age=31536000; SameSite=Lax`;
-        window.dispatchEvent(new CustomEvent('lesson_passed', { detail: { lessonNum: globalNum } }));
-
+        const stored = parseCourseProgress(localStorage.getItem(COURSE_PROGRESS_STORAGE_KEY));
+        const completed = saveCourseProgress([...stored, globalNum]);
+        setCompletedLessons(completed);
         if (globalNum === 5) {
-          setTimeout(() => {
-            setShowGraduationModal(true);
-          }, 500);
+          setTimeout(() => setShowGraduationModal(true), 600);
         }
       } catch {
-        // ignore
+        // Completion remains visible in this assessment even if browser storage is unavailable.
       }
-    } else {
-      setIsPassed(false);
     }
   };
 
-  // Reset course to beginning and require review before retrying
-  const handleResetCourseAndRetry = () => {
-    setSelectedAnswers({});
-    setHasEvaluated(false);
-    setIsPassed(false);
-    // Smooth scroll learner back to top of lesson content
-    if (typeof window !== 'undefined') {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+  // Calculate current score
+  const answeredCount = Object.keys(selectedAnswers).length;
+  let correctCount = 0;
+  quizList.forEach((q, idx) => {
+    const target = q.correct !== undefined ? q.correct : (q as unknown as { correctAnswer: number }).correctAnswer;
+    if (selectedAnswers[idx] === target) {
+      correctCount++;
     }
-  };
+  });
+
+  const isComplete = answeredCount === quizList.length;
+  const isPassed = isComplete && correctCount === quizList.length;
 
   return (
     <>
-      <div style={{
-        background: 'var(--bg-surface-1)',
-        border: '1.5px solid var(--border-default)',
+      <div className="lesson-quiz" style={{
+        background: 'linear-gradient(180deg, #0F172A 0%, #090D16 100%)',
+        border: '1px solid #1E293B',
         borderRadius: '12px',
         padding: '28px 24px',
         marginTop: '36px',
-        boxShadow: '0 4px 16px rgba(15, 23, 42, 0.05)'
+        boxShadow: '0 12px 30px rgba(0, 0, 0, 0.4)'
       }}>
-        {/* Progress Tracker Bar */}
-        <div style={{
-          background: 'var(--bg-surface-2)',
-          border: '1px solid var(--border-default)',
+        {/* ============================================================== */}
+        {/* TOP CURRICULUM PROGRESS TRACKER BAR                            */}
+        {/* ============================================================== */}
+        <div className="lesson-quiz-progress" style={{
+          background: 'rgba(15, 23, 42, 0.8)',
+          border: '1px solid #1E293B',
           borderRadius: '8px',
           padding: '12px 16px',
           marginBottom: '24px'
         }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', marginBottom: '8px' }}>
-            <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--accent-green)' }}>
-              Required Foundation Track: {foundationCompletedCount} of 5 Lessons Completed
+            <span className="lesson-quiz-progress-primary" style={{ fontSize: '12px', fontWeight: 700, color: '#10B981' }}>
+              Foundation Track: {foundationCompletedCount} of 5 Lessons Completed
             </span>
-            <span style={{ fontSize: '11px', fontFamily: 'var(--font-mono, monospace)', color: 'var(--accent-gold)' }}>
-              Lessons 6&ndash;30 &bull; Institutional Modules (JustMarkets Verified Access)
+            <span className="lesson-quiz-progress-secondary" style={{ fontSize: '11px', fontFamily: 'var(--font-mono, monospace)', color: '#F59E0B', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span style={{ display: 'inline-block', width: '6px', height: '6px', borderRadius: '50%', background: '#F59E0B' }} />
+              Institutional Track: Lessons 6&ndash;30 (Sponsored by JustMarkets)
             </span>
           </div>
 
-          <div style={{ width: '100%', height: '6px', background: 'var(--bg-surface-3)', borderRadius: '3px', overflow: 'hidden', display: 'flex' }}>
+          {/* Dual Segment Progress Bar */}
+          <div className="lesson-quiz-progress-track" style={{ width: '100%', height: '6px', background: '#1E293B', borderRadius: '3px', overflow: 'hidden', display: 'flex' }}>
+            {/* Foundation segment (out of 5) */}
             <div
+              className="lesson-quiz-progress-foundation"
               style={{
                 width: `${Math.min(100, (foundationCompletedCount / 5) * 100 * (5 / 30))}%`,
                 height: '100%',
-                background: 'var(--accent-green)',
+                background: '#10B981',
                 transition: 'width 0.4s ease'
               }}
             />
+            {/* Locked segment indicator */}
             <div
+              className="lesson-quiz-progress-sponsored"
               style={{
                 width: `${(25 / 30) * 100}%`,
                 height: '100%',
-                background: 'var(--accent-gold-subtle)',
+                background: 'rgba(245, 158, 11, 0.25)',
                 marginLeft: '2px'
               }}
             />
@@ -164,241 +147,251 @@ export default function LessonQuiz({
         </div>
 
         {/* Assessment Header */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', marginBottom: '14px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', marginBottom: '16px' }}>
           <div>
-            <span className="section-eyebrow" style={{ fontSize: '11px' }}>
-              Micro-Assessment &bull; 3 Questions
+            <span className="lesson-quiz-kicker" style={{ fontSize: '11px', fontFamily: 'var(--font-mono, monospace)', fontWeight: 700, color: '#F59E0B', background: 'rgba(245, 158, 11, 0.12)', border: '1px solid rgba(245, 158, 11, 0.3)', padding: '2px 8px', borderRadius: '4px' }}>
+              MICRO-ASSESSMENT &bull; 3 QUESTIONS
             </span>
-            <h3 style={{ fontSize: '19px', fontWeight: 800, color: 'var(--text-primary)', margin: '4px 0 0' }}>
+            <h3 className="lesson-quiz-title" style={{ fontSize: '19px', fontWeight: 800, color: '#F8FAFC', margin: '8px 0 0' }}>
               Lesson {globalNum} Comprehension Check
             </h3>
           </div>
 
-          <div>
-            {isPassed ? (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ fontSize: '12px', fontFamily: 'var(--font-mono, monospace)', color: '#94A3B8' }}>
+              {assessmentFailed ? 'Course reset' : isPassed ? `Score: ${correctCount} / ${quizList.length}` : `Answered: ${answeredCount} / ${quizList.length}`}
+            </span>
+            {isPassed && (
               <span className="status-badge status-completed">
-                100% PASSED &bull; UNLOCKED
-              </span>
-            ) : (
-              <span className="status-badge status-warning">
-                REQUIRED FOR PROGRESSION
+                PASSED
               </span>
             )}
           </div>
         </div>
 
-        <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '22px', lineHeight: 1.55 }}>
-          Select the most accurate response for each question. To preserve educational rigor and prevent speculative guessing, individual questions will not reveal answer keys. All 3 questions must be answered correctly to advance.
+        <p className="lesson-quiz-intro" style={{ fontSize: '13px', color: '#94A3B8', marginBottom: '24px', lineHeight: 1.5 }}>
+          Pass every question to unlock the next lesson. Any incorrect response clears all course progress and restarts the sequence at Lesson 1; this assessment becomes available again when you reach it in order.
         </p>
 
-        {/* Failed Assessment Remediation Banner */}
-        {hasEvaluated && !isPassed && (
-          <div style={{
-            background: 'var(--accent-red-subtle)',
-            border: '1px solid var(--accent-red-border)',
-            borderRadius: '8px',
-            padding: '16px 20px',
-            marginBottom: '24px'
-          }}>
-            <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--accent-red)', marginBottom: '4px' }}>
-              Comprehension Check Incomplete
-            </div>
-            <p style={{ fontSize: '12.5px', color: 'var(--text-primary)', lineHeight: 1.55, margin: 0 }}>
-              One or more responses did not meet the required 100% standard. In accordance with risk management training standards, answer keys are not exposed. Please review the lesson content from the beginning to reinforce core concepts, then retake the assessment.
-            </p>
-            <div style={{ marginTop: '12px' }}>
-              <button
-                type="button"
-                onClick={handleResetCourseAndRetry}
-                className="btn btn-secondary"
-                style={{ fontSize: '12px', padding: '7px 14px' }}
+        {assessmentFailed ? (
+          <div className="course-reset-notice" role="status">
+            <strong>Course progress reset</strong>
+            <p>Your assessment was not passed. All completed lessons have been cleared. Start again from Lesson 1 and pass each assessment in order; this assessment will unlock when you reach it again.</p>
+            <Link className="btn btn-primary" href="/academy">Return to course overview <span aria-hidden="true">→</span></Link>
+          </div>
+        ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '22px' }}>
+          {quizList.map((q, qIdx) => {
+            const targetAns = q.correct !== undefined ? q.correct : (q as unknown as { correctAnswer: number }).correctAnswer;
+            const selectedOpt = selectedAnswers[qIdx];
+            const hasAnswered = selectedOpt !== undefined;
+            const isAnswerCorrect = hasAnswered && selectedOpt === targetAns;
+
+            return (
+              <div
+                key={qIdx}
+                className="lesson-quiz-question"
+                style={{
+                  background: '#090D16',
+                  border: isPassed && isAnswerCorrect ? '1px solid rgba(16, 185, 129, 0.4)' : hasAnswered ? '1px solid rgba(197, 160, 89, 0.4)' : '1px solid #1E293B',
+                  borderRadius: '10px',
+                  padding: '18px 20px',
+                  transition: 'border-color 0.2s ease'
+                }}
               >
-                Review Lesson From Start &amp; Retake &uarr;
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Passed Assessment Banner */}
-        {isPassed && (
-          <div style={{
-            background: 'var(--accent-green-subtle)',
-            border: '1px solid var(--accent-green-border)',
-            borderRadius: '8px',
-            padding: '16px 20px',
-            marginBottom: '24px'
-          }}>
-            <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--accent-green)', marginBottom: '4px' }}>
-              Comprehension Verified (100% Score)
-            </div>
-            <p style={{ fontSize: '12.5px', color: 'var(--text-primary)', lineHeight: 1.55, margin: 0 }}>
-              You have demonstrated conceptual understanding of Lesson {globalNum}. This milestone has been verified in your curriculum record.
-            </p>
-          </div>
-        )}
-
-        {/* Question Form */}
-        <form onSubmit={handleSubmitAssessment}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            {quizList.map((q, qIdx) => {
-              const selectedOpt = selectedAnswers[qIdx];
-              const isSelected = selectedOpt !== undefined;
-
-              return (
-                <div
-                  key={qIdx}
-                  style={{
-                    background: 'var(--bg-surface-1)',
-                    border: isSelected ? '1px solid var(--accent-gold)' : '1px solid var(--border-default)',
-                    borderRadius: '8px',
-                    padding: '18px 20px',
-                    transition: 'border-color 0.15s ease'
-                  }}
-                >
-                  <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1.45, marginBottom: '14px' }}>
-                    <span className="mono-nums" style={{ color: 'var(--accent-gold)', marginRight: '6px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '10px', marginBottom: '14px' }}>
+                  <div className="lesson-quiz-prompt" style={{ fontSize: '14px', fontWeight: 700, color: '#F8FAFC', lineHeight: 1.45 }}>
+                    <span className="lesson-quiz-question-number" style={{ color: '#F59E0B', fontFamily: 'var(--font-mono, monospace)', marginRight: '6px' }}>
                       0{qIdx + 1}.
                     </span>
                     {q.question}
                   </div>
 
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    {q.options.map((opt, optIdx) => {
-                      const isOptionChosen = selectedOpt === optIdx;
+                  {isPassed && isAnswerCorrect && (
+                    <span
+                      style={{
+                        fontSize: '11px',
+                        fontFamily: 'var(--font-mono, monospace)',
+                        fontWeight: 700,
+                        padding: '2px 8px',
+                        borderRadius: '4px',
+                        flexShrink: 0,
+                        background: isAnswerCorrect ? 'rgba(16, 185, 129, 0.15)' : 'rgba(244, 63, 94, 0.15)',
+                        color: isAnswerCorrect ? '#10B981' : '#F43F5E',
+                        border: `1px solid ${isAnswerCorrect ? 'rgba(16, 185, 129, 0.3)' : 'rgba(244, 63, 94, 0.3)'}`
+                      }}
+                    >
+                      VERIFIED
+                    </span>
+                  )}
+                </div>
 
-                      return (
-                        <button
-                          key={optIdx}
-                          type="button"
-                          onClick={() => handleSelect(qIdx, optIdx)}
-                          disabled={isPassed}
+                {/* Options */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  {q.options.map((opt, optIdx) => {
+                    const isSelected = selectedOpt === optIdx;
+                    const isTarget = optIdx === targetAns;
+
+                    let bg = '#0F172A';
+                    let border = '#1E293B';
+                    let color = '#CBD5E1';
+                    let markerBg = '#1E293B';
+                    let markerColor = '#94A3B8';
+
+                    if (isPassed && isAnswerCorrect && isTarget) {
+                        bg = 'rgba(16, 185, 129, 0.12)';
+                        border = '#10B981';
+                        color = '#F8FAFC';
+                        markerBg = '#10B981';
+                        markerColor = '#090D16';
+                    } else if (hasAnswered && isSelected) {
+                        bg = 'rgba(197, 160, 89, 0.12)';
+                        border = '#C5A059';
+                        color = '#F8FAFC';
+                        markerBg = '#C5A059';
+                        markerColor = '#090D16';
+                    }
+
+                    return (
+                      <button
+                        key={optIdx}
+                        type="button"
+                        className={`lesson-quiz-option ${isPassed && isTarget ? 'correct' : hasAnswered && isSelected ? 'selected' : ''}`}
+                        onClick={() => handleSelect(qIdx, optIdx)}
+                        disabled={hasAnswered || assessmentFailed || isPassed}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '12px',
+                          padding: '11px 14px',
+                          borderRadius: '6px',
+                          background: bg,
+                          border: `1px solid ${border}`,
+                          color,
+                          textAlign: 'left',
+                          cursor: hasAnswered || assessmentFailed || isPassed ? 'default' : 'pointer',
+                          fontSize: '13px',
+                          transition: 'all 0.15s ease',
+                          width: '100%'
+                        }}
+                      >
+                        <span className="lesson-quiz-option-marker"
                           style={{
+                            width: '22px',
+                            height: '22px',
+                            borderRadius: '4px',
+                            background: markerBg,
+                            color: markerColor,
                             display: 'flex',
                             alignItems: 'center',
-                            gap: '12px',
-                            padding: '10px 14px',
-                            borderRadius: '6px',
-                            background: isOptionChosen ? 'var(--accent-gold-subtle)' : 'var(--bg-base)',
-                            border: isOptionChosen ? '1px solid var(--accent-gold)' : '1px solid var(--border-subtle)',
-                            color: 'var(--text-primary)',
-                            textAlign: 'left',
-                            cursor: isPassed ? 'default' : 'pointer',
-                            fontSize: '13px',
-                            transition: 'all 0.15s ease',
-                            width: '100%'
+                            justifyContent: 'center',
+                            fontSize: '11px',
+                            fontWeight: 700,
+                            fontFamily: 'var(--font-mono, monospace)',
+                            flexShrink: 0
                           }}
                         >
-                          <span
-                            className="mono-nums"
-                            style={{
-                              width: '22px',
-                              height: '22px',
-                              borderRadius: '4px',
-                              background: isOptionChosen ? 'var(--accent-gold)' : 'var(--bg-surface-2)',
-                              color: isOptionChosen ? '#FFFFFF' : 'var(--text-secondary)',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              fontSize: '11px',
-                              fontWeight: 700,
-                              flexShrink: 0
-                            }}
-                          >
-                            {String.fromCharCode(65 + optIdx)}
-                          </span>
-                          <span style={{ lineHeight: 1.45, flex: 1 }}>{opt}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
+                          {String.fromCharCode(65 + optIdx)}
+                        </span>
+                        <span style={{ lineHeight: 1.45, flex: 1 }}>{opt}</span>
+                      </button>
+                    );
+                  })}
                 </div>
-              );
-            })}
+
+                {/* Instant 1-Sentence Institutional Explanation */}
+                {isPassed && isAnswerCorrect && q.explanation && (
+                  <div
+                    className="lesson-quiz-explanation"
+                    style={{
+                      marginTop: '12px',
+                      padding: '10px 14px',
+                      borderRadius: '6px',
+                      fontSize: '12px',
+                      lineHeight: 1.5,
+                      background: isAnswerCorrect ? 'rgba(16, 185, 129, 0.08)' : 'rgba(244, 63, 94, 0.08)',
+                      borderLeft: `3px solid ${isAnswerCorrect ? '#10B981' : '#F43F5E'}`,
+                      color: '#E2E8F0'
+                    }}
+                  >
+                    <strong style={{ color: isAnswerCorrect ? '#10B981' : '#F43F5E', marginRight: '6px' }}>
+                      Institutional Context:
+                    </strong>
+                    {q.explanation}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+        )}
+
+        {/* Assessment Controls & Graduation Actions */}
+        <div className="lesson-quiz-controls" style={{ marginTop: '28px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px', borderTop: '1px solid #1E293B', paddingTop: '18px' }}>
+          <div>
+            {assessmentFailed ? (
+              <span style={{ fontSize: '12px', color: '#F59E0B' }}>
+                Start again at Lesson 1. Progression unlocks only after each assessment is passed.
+              </span>
+            ) : !isComplete ? (
+              <span style={{ fontSize: '12px', color: '#94A3B8' }}>
+                Select answers for all 3 questions to complete Lesson {globalNum}.
+              </span>
+            ) : isPassed ? (
+              <span style={{ fontSize: '13px', fontWeight: 700, color: '#10B981' }}>
+                Comprehension verified. Lesson {globalNum} logged in curriculum tracker.
+              </span>
+            ) : null}
           </div>
 
-          {/* Action Row */}
-          <div style={{
-            marginTop: '24px',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            flexWrap: 'wrap',
-            gap: '14px',
-            borderTop: '1px solid var(--border-subtle)',
-            paddingTop: '18px'
-          }}>
-            <div>
-              {!isPassed && (
-                <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
-                  {answeredCount} of {quizList.length} questions answered
-                </span>
-              )}
-            </div>
+          <div style={{ display: 'flex', gap: '10px' }}>
+            {isPassed && globalNum < 5 && nextLessonNum && (
+              <Link
+                href={`/academy/lesson-${nextLessonNum}`}
+                className="btn btn-primary"
+                style={{ fontSize: '12.5px', padding: '9px 20px' }}
+              >
+                Proceed to Lesson {nextLessonNum} &rarr;
+              </Link>
+            )}
 
-            <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
-              {!isPassed && (
-                <button
-                  type="submit"
-                  disabled={!isAllAnswered}
-                  className="btn btn-primary"
-                  style={{
-                    fontSize: '13px',
-                    padding: '9px 20px',
-                    opacity: isAllAnswered ? 1 : 0.6,
-                    cursor: isAllAnswered ? 'pointer' : 'not-allowed'
-                  }}
-                >
-                  Verify Comprehension &rarr;
-                </button>
-              )}
+            {isPassed && globalNum === 5 && (
+              <button
+                type="button"
+                onClick={() => setShowGraduationModal(true)}
+                className="btn btn-primary"
+                style={{ fontSize: '12.5px', padding: '9px 20px' }}
+              >
+                View Graduation Milestone &rarr;
+              </button>
+            )}
 
-              {isPassed && nextLessonNum && (
-                <Link
-                  href={`/academy/lesson-${nextLessonNum}`}
-                  className="btn btn-primary"
-                  style={{ fontSize: '13px', padding: '9px 20px' }}
-                >
-                  Proceed to Lesson {nextLessonNum} &rarr;
-                </Link>
-              )}
-
-              {isPassed && globalNum === 5 && (
-                <button
-                  type="button"
-                  onClick={() => setShowGraduationModal(true)}
-                  className="btn btn-outline-gold"
-                  style={{ fontSize: '13px', padding: '9px 18px' }}
-                >
-                  Foundation Milestone Status &rarr;
-                </button>
-              )}
-            </div>
+            {isPassed && globalNum > 5 && nextLessonNum && (
+              <Link
+                href={`/academy/lesson-${nextLessonNum}`}
+                className="btn btn-primary"
+                style={{ fontSize: '12.5px', padding: '9px 20px' }}
+              >
+                Next: Lesson {nextLessonNum} &rarr;
+              </Link>
+            )}
           </div>
-        </form>
-
-        {/* Education & Risk Clarification Footnote */}
-        <div style={{
-          marginTop: '20px',
-          paddingTop: '14px',
-          borderTop: '1px solid var(--border-subtle)',
-          fontSize: '11px',
-          color: 'var(--text-muted)',
-          lineHeight: 1.5
-        }}>
-          <strong>Educational Risk Notice:</strong> Demonstrating conceptual comprehension through lesson assessments does not guarantee trading profitability, eliminate market risk, or prevent account drawdowns. Spot Gold and leveraged FX instruments carry a significant risk of losing deposited capital.
         </div>
       </div>
 
-      {/* Lesson 5 Completion Modal */}
+      {/* ============================================================== */}
+      {/* HIGH-CONVERTING LESSON 5 GRADUATION CELEBRATION MODAL          */}
+      {/* ============================================================== */}
       {showGraduationModal && (
         <div
           className="modal-overlay"
+          data-lesson-quiz-modal="true"
           onClick={() => setShowGraduationModal(false)}
           style={{
             position: 'fixed',
             inset: 0,
-            background: 'rgba(15, 23, 42, 0.75)',
-            backdropFilter: 'blur(4px)',
+            background: 'rgba(4, 7, 13, 0.85)',
+            backdropFilter: 'blur(8px)',
             zIndex: 9999,
             display: 'flex',
             alignItems: 'center',
@@ -408,19 +401,24 @@ export default function LessonQuiz({
         >
           <div
             className="modal-card"
+            data-lesson-quiz-card="true"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="foundation-complete-title"
             onClick={(e) => e.stopPropagation()}
             style={{
-              maxWidth: '560px',
+              maxWidth: '580px',
               width: '100%',
-              background: 'var(--bg-base)',
-              border: '1px solid var(--border-default)',
-              borderRadius: 'var(--radius-lg)',
-              padding: '32px 28px',
+              background: 'linear-gradient(180deg, #0F172A 0%, #090D16 100%)',
+              border: '1.5px solid var(--border-gold, #C5A059)',
+              borderRadius: '16px',
+              padding: '36px 32px',
               textAlign: 'center',
-              boxShadow: '0 20px 48px rgba(15, 23, 42, 0.2)',
+              boxShadow: '0 24px 60px rgba(0, 0, 0, 0.7)',
               position: 'relative'
             }}
           >
+            {/* Close Button */}
             <button
               onClick={() => setShowGraduationModal(false)}
               style={{
@@ -429,69 +427,72 @@ export default function LessonQuiz({
                 right: '18px',
                 background: 'transparent',
                 border: 'none',
-                color: 'var(--text-muted)',
+                color: '#94A3B8',
                 fontSize: '22px',
                 cursor: 'pointer',
                 padding: '4px'
               }}
-              aria-label="Close milestone dialog"
+              aria-label="Close graduation dialog"
             >
               &times;
             </button>
 
-            <span className="status-badge status-completed" style={{ marginBottom: '14px' }}>
-              FOUNDATION TRACK COMPLETED &bull; 5/5
-            </span>
-
-            <h2 style={{ fontSize: '24px', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '12px', lineHeight: 1.3 }}>
-              XAUUSD Foundations Milestone Reached
-            </h2>
-
-            <p style={{ fontSize: '13.5px', color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: '20px' }}>
-              You have completed the core market literacy modules. Lessons 6 through 30 (covering Market Structure Shifts, Liquidity Sweeps, and Drawdown Governance) and the AI Trading Terminal carry <strong>no platform subscription fee</strong>, subsidized through our official Introducing Broker partnership with <strong>JustMarkets</strong>.
-            </p>
-
-            <div style={{
-              background: 'var(--bg-surface-1)',
-              border: '1px solid var(--border-default)',
-              borderRadius: 'var(--radius-md)',
-              padding: '14px 18px',
-              marginBottom: '20px',
-              textAlign: 'left',
-              fontSize: '12.5px',
-              color: 'var(--text-secondary)',
-              lineHeight: 1.55
-            }}>
-              <strong style={{ color: 'var(--text-primary)', display: 'block', marginBottom: '4px' }}>
-                Progression Requirements to Institutional Modules &amp; Terminal:
-              </strong>
-              1. Open an account via our official JustMarkets partner link (code: <code className="mono-nums" style={{ color: 'var(--accent-gold)' }}>tohstb0d83</code>).<br />
-              2. Complete account verification and initial trading deposit.<br />
-              3. Enter your MT5 Account ID in Velarion to unlock subsequent curriculum and account linking.
+            {/* Achievement Badge */}
+            <div className="lesson-quiz-graduation-badge" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '6px 14px', background: 'rgba(16, 185, 129, 0.12)', border: '1px solid rgba(16, 185, 129, 0.3)', borderRadius: '20px', marginBottom: '20px' }}>
+              <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#10B981' }} />
+              <span style={{ fontSize: '11px', fontWeight: 800, color: '#10B981', fontFamily: 'var(--font-mono, monospace)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                FOUNDATION TRACK COMPLETED &bull; 5/5
+              </span>
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <h2 id="foundation-complete-title" className="lesson-quiz-modal-title" style={{ fontSize: '26px', fontWeight: 800, color: '#F8FAFC', marginBottom: '14px', letterSpacing: '-0.4px', lineHeight: 1.25 }}>
+              Congratulations! You&apos;ve Completed the XAUUSD Foundations.
+            </h2>
+
+            <p className="lesson-quiz-modal-copy" style={{ fontSize: '14.5px', color: '#CBD5E1', lineHeight: 1.65, marginBottom: '20px' }}>
+              Lessons 6 through 30 (covering Institutional SMC Execution, Multi-Agent AI Confluence, and the 200-Pip Growth Matrix) plus our Live XAUUSD AI Terminal carry <strong style={{ color: '#F59E0B' }}>no platform subscription fee</strong>&mdash;subsidized through our official Introducing Broker partnership with <strong>JustMarkets</strong>.
+            </p>
+
+            <div className="lesson-quiz-graduation-note" style={{
+              background: '#090D16',
+              border: '1px solid #1E293B',
+              borderRadius: '8px',
+              padding: '14px 18px',
+              marginBottom: '24px',
+              textAlign: 'left',
+              fontSize: '12.5px',
+              color: '#94A3B8',
+              lineHeight: 1.55
+            }}>
+              <strong style={{ color: '#F8FAFC', display: 'block', marginBottom: '4px' }}>
+                How to Unlock Lessons 6&ndash;30 &amp; Live Terminal:
+              </strong>
+              To unlock the remaining 25 lessons and live signals, open your MT5 account via our official JustMarkets partner link, fund your trading account, and complete partner verification.
+            </div>
+
+            {/* CTAs */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <a
                 href="https://one.justmarkets.link/a/tohstb0d83"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="btn btn-primary"
-                style={{ padding: '11px 20px', fontSize: '13px' }}
+                style={{ padding: '13px 24px', fontSize: '14px', fontWeight: 700 }}
               >
-                Register on JustMarkets (Code: tohstb0d83) &rarr;
+                Open JustMarkets Account &amp; Unlock Lessons 6&ndash;30 &rarr;
               </a>
 
               <Link
                 href="/onboarding?redirect=/academy/lesson-6"
                 className="btn btn-outline-gold"
-                style={{ padding: '10px 18px', fontSize: '12.5px' }}
+                style={{ padding: '11px 20px', fontSize: '13px' }}
               >
-                Verify Existing Funded MT5 ID &rarr;
+                Already have an MT5 account? Verify ID &rarr;
               </Link>
             </div>
 
-            <div style={{ marginTop: '16px', fontSize: '11px', color: 'var(--text-muted)' }}>
-              Non-custodial: Trading capital remains strictly in your own regulated JustMarkets broker account. Users bear broker spreads, swaps, and market risks.
+            <div style={{ marginTop: '16px', fontSize: '11px', color: '#64748B', fontFamily: 'var(--font-mono, monospace)' }}>
+              Non-Custodial Direct Broker Custody &bull; Funds remain securely in your own regulated JustMarkets MT5 account
             </div>
           </div>
         </div>
