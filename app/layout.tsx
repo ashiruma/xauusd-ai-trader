@@ -65,6 +65,15 @@ export const metadata: Metadata = {
       'max-image-preview': 'large',
       'max-snippet': -1
     }
+  },
+  icons: {
+    icon: [
+      { url: '/favicon.ico', sizes: 'any' },
+      { url: '/velarion_emblem_dark.png', type: 'image/png' },
+      { url: '/velarion_brand_dark.png', type: 'image/png' }
+    ],
+    shortcut: '/favicon.ico',
+    apple: '/velarion_emblem_dark.png'
   }
 };
 
@@ -76,6 +85,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link rel="icon" type="image/png" href="/velarion_emblem_dark.png" />
+        <link rel="shortcut icon" href="/favicon.ico" />
+        <link rel="apple-touch-icon" href="/velarion_emblem_dark.png" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
         <link

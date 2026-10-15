@@ -46,12 +46,12 @@ export default function LessonCheatSheet({
       style={{
         marginTop: '36px',
         marginBottom: '36px',
-        background: 'linear-gradient(180deg, #0D1424 0%, #090D16 100%)',
-        border: '1.5px solid var(--border-gold, #C5A059)',
+        background: 'var(--bg-surface-1)',
+        border: '1.5px solid var(--border-accent)',
         borderRadius: '12px',
         padding: '28px 24px 20px',
         position: 'relative',
-        boxShadow: '0 16px 36px rgba(0, 0, 0, 0.4)'
+        boxShadow: '0 4px 16px rgba(15, 23, 42, 0.05)'
       }}
     >
       {/* Header with Authentic Branding & Watermark */}
@@ -59,25 +59,25 @@ export default function LessonCheatSheet({
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
-        borderBottom: '1px solid #1E293B',
+        borderBottom: '1px solid var(--border-default)',
         paddingBottom: '16px',
         marginBottom: '20px',
         flexWrap: 'wrap',
         gap: '12px'
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <picture>
-            <source srcSet="/velarion_brand_dark.webp" type="image/webp" />
-            <img
-              src="/velarion_brand_dark.png"
-              alt="VELARION MARKETS"
-              width={120}
-              height={32}
-              style={{ height: '28px', width: 'auto', display: 'block' }}
-            />
-          </picture>
-          <span style={{ height: '18px', width: '1px', background: '#334155' }} />
-          <span style={{ fontSize: '11px', fontFamily: 'var(--font-mono, monospace)', fontWeight: 700, color: '#F59E0B', letterSpacing: '0.5px', textTransform: 'uppercase' }}>
+          <img
+            src="/velarion_emblem_dark.png"
+            alt="Velarion Emblem"
+            width={30}
+            height={30}
+            style={{ width: '30px', height: '30px', objectFit: 'contain' }}
+          />
+          <span style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-primary)' }}>
+            VELARION MARKETS
+          </span>
+          <span style={{ height: '18px', width: '1px', background: 'var(--border-default)' }} />
+          <span style={{ fontSize: '11px', fontFamily: 'var(--font-mono, monospace)', fontWeight: 700, color: 'var(--accent-gold)', letterSpacing: '0.5px', textTransform: 'uppercase' }}>
             DESK CHEAT SHEET &bull; LESSON {lessonNum < 10 ? `0${lessonNum}` : lessonNum}
           </span>
         </div>
@@ -94,7 +94,7 @@ export default function LessonCheatSheet({
       </div>
 
       {/* Lesson Title Banner */}
-      <h3 style={{ fontSize: '18px', fontWeight: 800, color: '#F8FAFC', marginBottom: '16px', letterSpacing: '-0.3px' }}>
+      <h3 style={{ fontSize: '18px', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '16px', letterSpacing: '-0.3px' }}>
         Key Takeaways &bull; {title}
       </h3>
 
@@ -102,10 +102,10 @@ export default function LessonCheatSheet({
       <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '20px' }}>
         {items.map((item, idx) => (
           <div key={idx} style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
-            <span style={{ color: '#F59E0B', fontWeight: 800, fontSize: '14px', lineHeight: 1.4, flexShrink: 0 }}>
+            <span style={{ color: 'var(--accent-gold)', fontWeight: 800, fontSize: '14px', lineHeight: 1.4, flexShrink: 0 }}>
               &bull;
             </span>
-            <p style={{ margin: 0, fontSize: '13.5px', color: '#E2E8F0', lineHeight: 1.55 }}>
+            <p style={{ margin: 0, fontSize: '13.5px', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
               {item}
             </p>
           </div>
@@ -114,23 +114,26 @@ export default function LessonCheatSheet({
 
       {/* Pro Execution Tip Box */}
       <div style={{
-        background: 'rgba(245, 158, 11, 0.08)',
-        borderLeft: '3px solid #F59E0B',
+        background: 'var(--bg-surface-2)',
+        borderLeft: '3px solid var(--accent-gold)',
+        borderTop: '1px solid var(--border-default)',
+        borderRight: '1px solid var(--border-default)',
+        borderBottom: '1px solid var(--border-default)',
         borderRadius: '0 6px 6px 0',
         padding: '12px 16px',
         marginBottom: '20px'
       }}>
-        <div style={{ fontSize: '11px', fontFamily: 'var(--font-mono, monospace)', fontWeight: 800, color: '#F59E0B', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '4px' }}>
-          Institutional Pro Tip &bull; Spot Gold
+        <div style={{ fontSize: '11px', fontFamily: 'var(--font-mono, monospace)', fontWeight: 800, color: 'var(--accent-gold)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '4px' }}>
+          Institutional Pro Tip &bull; Spot Gold (BabyPips Standard)
         </div>
-        <div style={{ fontSize: '12.5px', color: '#CBD5E1', lineHeight: 1.5 }}>
+        <div style={{ fontSize: '12.5px', color: 'var(--text-primary)', lineHeight: 1.5 }}>
           {tip}
         </div>
       </div>
 
       {/* Screenshot & Sharing Watermark Footer */}
       <div style={{
-        borderTop: '1px solid #1E293B',
+        borderTop: '1px solid var(--border-default)',
         paddingTop: '14px',
         display: 'flex',
         justifyContent: 'space-between',

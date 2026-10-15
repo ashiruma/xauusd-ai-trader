@@ -71,6 +71,10 @@ export default function LessonQuiz({
             setCompletedLessons(stored);
           }
 
+          // Persist cookie for server-side Next.js route gating
+          document.cookie = `velarion_completed_lessons=${encodeURIComponent(JSON.stringify(stored))}; path=/; max-age=31536000; SameSite=Lax`;
+          window.dispatchEvent(new CustomEvent('lesson_passed', { detail: { lessonNum: globalNum } }));
+
           // Trigger Lesson 5 Graduation Celebration Modal
           if (globalNum === 5) {
             setTimeout(() => {
@@ -104,41 +108,41 @@ export default function LessonQuiz({
   return (
     <>
       <div style={{
-        background: 'linear-gradient(180deg, #0F172A 0%, #090D16 100%)',
-        border: '1px solid #1E293B',
+        background: 'var(--bg-surface-1)',
+        border: '1.5px solid var(--border-default)',
         borderRadius: '12px',
         padding: '28px 24px',
         marginTop: '36px',
-        boxShadow: '0 12px 30px rgba(0, 0, 0, 0.4)'
+        boxShadow: '0 4px 16px rgba(15, 23, 42, 0.05)'
       }}>
         {/* ============================================================== */}
         {/* TOP CURRICULUM PROGRESS TRACKER BAR                            */}
         {/* ============================================================== */}
         <div style={{
-          background: 'rgba(15, 23, 42, 0.8)',
-          border: '1px solid #1E293B',
+          background: 'var(--bg-surface-2)',
+          border: '1px solid var(--border-default)',
           borderRadius: '8px',
           padding: '12px 16px',
           marginBottom: '24px'
         }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', marginBottom: '8px' }}>
-            <span style={{ fontSize: '12px', fontWeight: 700, color: '#10B981' }}>
+            <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--accent-green)' }}>
               Foundation Track: {foundationCompletedCount} of 5 Free Lessons Completed
             </span>
-            <span style={{ fontSize: '11px', fontFamily: 'var(--font-mono, monospace)', color: '#F59E0B', display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span style={{ display: 'inline-block', width: '6px', height: '6px', borderRadius: '50%', background: '#F59E0B' }} />
+            <span style={{ fontSize: '11px', fontFamily: 'var(--font-mono, monospace)', color: 'var(--accent-gold)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span style={{ display: 'inline-block', width: '6px', height: '6px', borderRadius: '50%', background: 'var(--accent-gold)' }} />
               Institutional Track: Lessons 6&ndash;30 (Sponsored by JustMarkets)
             </span>
           </div>
 
           {/* Dual Segment Progress Bar */}
-          <div style={{ width: '100%', height: '6px', background: '#1E293B', borderRadius: '3px', overflow: 'hidden', display: 'flex' }}>
+          <div style={{ width: '100%', height: '6px', background: 'var(--bg-surface-3)', borderRadius: '3px', overflow: 'hidden', display: 'flex' }}>
             {/* Foundation segment (out of 5) */}
             <div
               style={{
                 width: `${Math.min(100, (foundationCompletedCount / 5) * 100 * (5 / 30))}%`,
                 height: '100%',
-                background: '#10B981',
+                background: 'var(--accent-green)',
                 transition: 'width 0.4s ease'
               }}
             />
@@ -147,7 +151,7 @@ export default function LessonQuiz({
               style={{
                 width: `${(25 / 30) * 100}%`,
                 height: '100%',
-                background: 'rgba(245, 158, 11, 0.25)',
+                background: 'var(--accent-gold-subtle)',
                 marginLeft: '2px'
               }}
             />
@@ -193,20 +197,20 @@ export default function LessonQuiz({
               <div
                 key={qIdx}
                 style={{
-                  background: '#090D16',
+                  background: 'var(--bg-card)',
                   border: hasAnswered
                     ? isAnswerCorrect
-                      ? '1px solid rgba(16, 185, 129, 0.4)'
-                      : '1px solid rgba(244, 63, 94, 0.4)'
-                    : '1px solid #1E293B',
+                      ? '1.5px solid var(--accent-green)'
+                      : '1.5px solid var(--accent-red)'
+                    : '1px solid var(--border-default)',
                   borderRadius: '10px',
                   padding: '18px 20px',
                   transition: 'border-color 0.2s ease'
                 }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '10px', marginBottom: '14px' }}>
-                  <div style={{ fontSize: '14px', fontWeight: 700, color: '#F8FAFC', lineHeight: 1.45 }}>
-                    <span style={{ color: '#F59E0B', fontFamily: 'var(--font-mono, monospace)', marginRight: '6px' }}>
+                  <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1.45 }}>
+                    <span style={{ color: 'var(--accent-gold)', fontFamily: 'var(--font-mono, monospace)', marginRight: '6px' }}>
                       0{qIdx + 1}.
                     </span>
                     {q.question}
@@ -221,9 +225,9 @@ export default function LessonQuiz({
                         padding: '2px 8px',
                         borderRadius: '4px',
                         flexShrink: 0,
-                        background: isAnswerCorrect ? 'rgba(16, 185, 129, 0.15)' : 'rgba(244, 63, 94, 0.15)',
-                        color: isAnswerCorrect ? '#10B981' : '#F43F5E',
-                        border: `1px solid ${isAnswerCorrect ? 'rgba(16, 185, 129, 0.3)' : 'rgba(244, 63, 94, 0.3)'}`
+                        background: isAnswerCorrect ? 'var(--accent-green-subtle)' : 'var(--accent-red-subtle)',
+                        color: isAnswerCorrect ? 'var(--accent-green)' : 'var(--accent-red)',
+                        border: `1px solid ${isAnswerCorrect ? 'var(--accent-green-border)' : 'var(--accent-red-border)'}`
                       }}
                     >
                       {isAnswerCorrect ? 'CORRECT' : 'INCORRECT'}
@@ -237,25 +241,25 @@ export default function LessonQuiz({
                     const isSelected = selectedOpt === optIdx;
                     const isTarget = optIdx === targetAns;
 
-                    let bg = '#0F172A';
-                    let border = '#1E293B';
-                    let color = '#CBD5E1';
-                    let markerBg = '#1E293B';
-                    let markerColor = '#94A3B8';
+                    let bg = 'var(--bg-surface-1)';
+                    let border = 'var(--border-default)';
+                    let color = 'var(--text-primary)';
+                    let markerBg = 'var(--bg-surface-2)';
+                    let markerColor = 'var(--text-secondary)';
 
                     if (hasAnswered) {
                       if (isTarget) {
-                        bg = 'rgba(16, 185, 129, 0.12)';
-                        border = '#10B981';
-                        color = '#F8FAFC';
-                        markerBg = '#10B981';
-                        markerColor = '#090D16';
+                        bg = 'var(--accent-green-subtle)';
+                        border = 'var(--accent-green)';
+                        color = 'var(--text-primary)';
+                        markerBg = 'var(--accent-green)';
+                        markerColor = '#FFFFFF';
                       } else if (isSelected && !isTarget) {
-                        bg = 'rgba(244, 63, 94, 0.12)';
-                        border = '#F43F5E';
-                        color = '#F8FAFC';
-                        markerBg = '#F43F5E';
-                        markerColor = '#090D16';
+                        bg = 'var(--accent-red-subtle)';
+                        border = 'var(--accent-red)';
+                        color = 'var(--text-primary)';
+                        markerBg = 'var(--accent-red)';
+                        markerColor = '#FFFFFF';
                       }
                     }
 

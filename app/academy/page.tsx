@@ -15,6 +15,11 @@ export default function AcademyPage() {
       const stored = localStorage.getItem('velarion_completed_lessons');
       if (stored) {
         setCompletedLessons(JSON.parse(stored));
+      } else {
+        const match = document.cookie.match(/velarion_completed_lessons=([^;]+)/);
+        if (match) {
+          setCompletedLessons(JSON.parse(decodeURIComponent(match[1])));
+        }
       }
     } catch {
       // ignore
@@ -214,12 +219,15 @@ export default function AcademyPage() {
       {/* 30 Lessons Grid */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '20px' }}>
         {filteredLessons.map((lesson) => {
-          const isCompleted = completedLessons.includes(lesson.id) || completedLessons.includes(`lesson-${lesson.globalNum}`);
+          const isCompleted = completedLessons.includes(lesson.id) || completedLessons.includes(`lesson-${lesson.globalNum}`) || completedLessons.includes(String(lesson.globalNum));
+          const prevRequiredKey = `lesson-${lesson.globalNum - 1}`;
+          const isPrereqPassed = lesson.globalNum === 1 || completedLessons.includes(prevRequiredKey) || completedLessons.includes(String(lesson.globalNum - 1));
+          const isLockedByPrereq = !isPrereqPassed;
           const wordCount = lesson.content ? lesson.content.split(/\s+/).length : 500;
           const estReadingTime = `${Math.max(3, Math.ceil(wordCount / 180))} min read`;
           const isPublic = lesson.globalNum <= 5;
 
-          // Determine status label
+          // Determine status badge
           let statusBadge = (
             <span className="status-badge" style={{ fontSize: '10px', background: 'rgba(245, 158, 11, 0.1)', color: 'var(--accent-gold)', borderColor: 'rgba(245, 158, 11, 0.3)' }}>
               PARTNER (FREE)
@@ -232,10 +240,16 @@ export default function AcademyPage() {
                 COMPLETED
               </span>
             );
+          } else if (isLockedByPrereq) {
+            statusBadge = (
+              <span className="status-badge" style={{ fontSize: '10px', background: 'var(--bg-surface-3)', color: 'var(--text-muted)', border: '1px solid var(--border-default)' }}>
+                LOCKED &bull; PREREQ
+              </span>
+            );
           } else if (isPublic) {
             statusBadge = (
               <span className="status-badge status-completed" style={{ fontSize: '10px' }}>
-                PUBLIC PREVIEW
+                UNLOCKED (PUBLIC)
               </span>
             );
           }
@@ -247,12 +261,13 @@ export default function AcademyPage() {
               style={{
                 display: 'flex',
                 flexDirection: 'column',
-                justifyContent: 'space-between'
+                justifyContent: 'space-between',
+                opacity: isLockedByPrereq ? 0.85 : 1
               }}
             >
               <div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                  <span className="mono-nums" style={{ fontSize: '11px', color: 'var(--accent-gold)', fontWeight: 700 }}>
+                  <span className="mono-nums" style={{ fontSize: '11px', color: isLockedByPrereq ? 'var(--text-muted)' : 'var(--accent-gold)', fontWeight: 700 }}>
                     LESSON {lesson.globalNum < 10 ? `0${lesson.globalNum}` : lesson.globalNum}
                   </span>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -284,10 +299,16 @@ export default function AcademyPage() {
                 </span>
                 <Link
                   href={`/academy/lesson-${lesson.globalNum}`}
-                  className="btn btn-outline-gold"
+                  className={`btn ${isLockedByPrereq ? 'btn-secondary' : isCompleted ? 'btn-outline-gold' : 'btn-primary'}`}
                   style={{ padding: '6px 14px', fontSize: '12px' }}
                 >
-                  {isCompleted ? 'Review Lesson' : isPublic ? 'Study (Public)' : 'Access Lesson'} &rarr;
+                  {isCompleted
+                    ? 'Review Lesson'
+                    : isLockedByPrereq
+                    ? `Locked (Pass Lesson ${lesson.globalNum - 1})`
+                    : isPublic
+                    ? 'Study Lesson'
+                    : 'Access Lesson'} &rarr;
                 </Link>
               </div>
             </div>

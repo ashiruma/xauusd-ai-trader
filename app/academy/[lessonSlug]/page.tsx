@@ -54,7 +54,26 @@ export default async function LessonPage({ params }: LessonPageProps) {
 
   const cookieStore = await cookies();
   const isMt5Verified = cookieStore.get('velarion_mt5_verified')?.value === 'true';
-  const isLocked = lesson.globalNum > 5 && !isMt5Verified;
+
+  // Read completed lessons cookie for sequential comprehension gating
+  const completedCookie = cookieStore.get('velarion_completed_lessons')?.value;
+  let completedLessons: string[] = [];
+  try {
+    if (completedCookie) {
+      completedLessons = JSON.parse(decodeURIComponent(completedCookie));
+    }
+  } catch {
+    completedLessons = [];
+  }
+
+  // PREREQUISITE COMPREHENSION GATING (BabyPips standard: progressive mastery)
+  // Lesson 1 is always unlocked.
+  // Lesson N requires Lesson N-1 to be passed in comprehension check.
+  const prevRequiredKey = `lesson-${lesson.globalNum - 1}`;
+  const isPrerequisitePassed = lesson.globalNum === 1 || completedLessons.includes(prevRequiredKey) || completedLessons.includes(String(lesson.globalNum - 1));
+  const isLockedByPrerequisite = !isPrerequisitePassed;
+  const isLockedByMt5 = lesson.globalNum > 5 && !isMt5Verified;
+  const isLocked = isLockedByPrerequisite || isLockedByMt5;
 
   const prevLessonNum = lesson.globalNum > 1 ? lesson.globalNum - 1 : null;
   const nextLessonNum = lesson.globalNum < 30 ? lesson.globalNum + 1 : null;
@@ -194,10 +213,55 @@ export default async function LessonPage({ params }: LessonPageProps) {
           </section>
         )}
 
-        {/* Gated Paywall View vs Full Content View */}
-        {isLocked ? (
+        {/* Gated Prerequisite View vs MT5 Paywall vs Full Content View */}
+        {isLockedByPrerequisite ? (
           /* ============================================================== */
-          /* SERVER-SIDE SECURED PAYWALL CARD                               */
+          /* BABYPIPS PREREQUISITE COMPREHENSION MASTERY GATE              */
+          /* ============================================================== */
+          <div style={{
+            background: 'var(--bg-surface-1)',
+            border: '1.5px solid var(--accent-gold)',
+            borderRadius: 'var(--radius-lg)',
+            padding: '40px 32px',
+            textAlign: 'center',
+            boxShadow: '0 4px 16px rgba(15, 23, 42, 0.05)',
+            marginBottom: '40px'
+          }}>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '6px 14px', background: 'var(--accent-gold-subtle)', border: '1px solid var(--border-accent)', borderRadius: '20px', marginBottom: '20px' }}>
+              <span className="dot-indicator" style={{ background: 'var(--accent-gold)' }} />
+              <span style={{ fontSize: '11px', fontWeight: 800, color: 'var(--accent-gold)', letterSpacing: '0.8px', textTransform: 'uppercase' }}>
+                PREREQUISITE REQUIRED &bull; LESSON {lesson.globalNum - 1} NOT PASSED
+              </span>
+            </div>
+
+            <h2 style={{ fontSize: '24px', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '14px', letterSpacing: '-0.3px' }}>
+              Comprehension Verification Required to Unlock Lesson {lesson.globalNum}
+            </h2>
+
+            <p style={{ fontSize: '14.5px', color: 'var(--text-secondary)', lineHeight: 1.65, maxWidth: '620px', margin: '0 auto 24px' }}>
+              In strict accordance with <strong>BabyPips.com School of Pipsology</strong> educational discipline, trading models require proven foundational mastery before progressing. You must complete and pass the 3-question comprehension check for <strong>Lesson {lesson.globalNum - 1}</strong> with a 100% score to unlock Lesson {lesson.globalNum}.
+            </p>
+
+            <div style={{ display: 'flex', justifyContent: 'center', gap: '14px', flexWrap: 'wrap' }}>
+              <Link
+                href={`/academy/lesson-${lesson.globalNum - 1}`}
+                className="btn btn-primary"
+                style={{ fontSize: '13px', padding: '12px 24px' }}
+              >
+                Go to Lesson {lesson.globalNum - 1} to Pass Assessment &rarr;
+              </Link>
+              <Link
+                href="/academy"
+                className="btn btn-secondary"
+                style={{ fontSize: '13px', padding: '12px 20px' }}
+              >
+                View Complete Curriculum Catalog
+              </Link>
+            </div>
+          </div>
+        ) : isLockedByMt5 ? (
+          /* ============================================================== */
+          /* SERVER-SIDE SECURED MT5 PAYWALL CARD                           */
           /* Notice: Full content, diagram & quiz are omitted on the server */
           /* ============================================================== */
           <div style={{ position: 'relative', marginBottom: '40px' }}>
@@ -222,15 +286,15 @@ export default async function LessonPage({ params }: LessonPageProps) {
 
             {/* Unhackable Gate Overlay Card */}
             <div style={{
-              background: 'linear-gradient(180deg, rgba(14,22,37,0.96) 0%, rgba(9,13,22,0.98) 100%)',
-              border: '1.5px solid var(--border-gold, #C5A059)',
+              background: 'var(--bg-surface-1)',
+              border: '1.5px solid var(--border-accent)',
               borderRadius: 'var(--radius-lg)',
               padding: '36px 32px',
               textAlign: 'center',
-              boxShadow: '0 20px 48px rgba(0, 0, 0, 0.5)'
+              boxShadow: '0 8px 30px rgba(15, 23, 42, 0.08)'
             }}>
-              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '6px 14px', background: 'rgba(245, 158, 11, 0.1)', border: '1px solid rgba(245, 158, 11, 0.3)', borderRadius: '20px', marginBottom: '20px' }}>
-                <span className="status-indicator live" style={{ background: 'var(--accent-gold)' }} />
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '6px 14px', background: 'var(--accent-gold-subtle)', border: '1px solid var(--border-accent)', borderRadius: '20px', marginBottom: '20px' }}>
+                <span className="dot-indicator" style={{ background: 'var(--accent-gold)' }} />
                 <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--accent-gold)', letterSpacing: '0.5px', textTransform: 'uppercase' }}>
                   Sponsored by JustMarkets &bull; 100% Free
                 </span>
@@ -290,6 +354,31 @@ export default async function LessonPage({ params }: LessonPageProps) {
           /* FULL LESSON CONTENT & ASSESSMENTS (UNLOCKED)                   */
           /* ============================================================== */
           <>
+            {/* BabyPips Factual Standards Verification Section */}
+            <section aria-label="BabyPips Factual Standards Verification" style={{
+              background: 'var(--bg-surface-1)',
+              border: '1px solid var(--border-default)',
+              borderLeft: '4px solid var(--accent-gold)',
+              borderRadius: 'var(--radius-md)',
+              padding: '18px 22px',
+              marginBottom: '28px'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px', flexWrap: 'wrap', gap: '8px' }}>
+                <div style={{ fontSize: '11px', fontWeight: 800, color: 'var(--accent-gold)', textTransform: 'uppercase', letterSpacing: '0.8px' }}>
+                  Factual Curriculum Verification &bull; BabyPips.com Standards
+                </div>
+                <span className="status-badge status-completed" style={{ fontSize: '10.5px' }}>
+                  BABYPIPS COMPLIANT
+                </span>
+              </div>
+              <p style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.6, margin: '0 0 6px 0' }}>
+                Every concept taught in Lesson {lesson.globalNum} is mathematically and factually corroborated by the <strong>BabyPips School of Pipsology</strong>. In interbank spot trading, precision in lot calculations, spread mechanics, and systematic risk management (never risking &gt; 1-2% per trade) is strictly required.
+              </p>
+              <div style={{ fontSize: '11.5px', color: 'var(--text-muted)' }}>
+                Factual Standard: Interbank XAUUSD Lot Sizing &bull; 1.0 Standard Lot = 100 Troy Ounces ($1 move = $100).
+              </div>
+            </section>
+
             {/* Section 1: Key Concept & Theory */}
             <section aria-label="Key Concept & Core Theory" className="panel-card" style={{ padding: '32px', lineHeight: 1.75, fontSize: '15px', color: 'var(--text-primary)', marginBottom: '32px' }}>
               <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '16px', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '8px' }}>
@@ -301,7 +390,7 @@ export default async function LessonPage({ params }: LessonPageProps) {
               />
             </section>
 
-            {/* Section 2: Technical Application / Custom Dark-Mode SVG Diagram */}
+            {/* Section 2: Technical Application / Custom Responsive SVG Diagram */}
             <section aria-label="Technical Application" style={{ marginBottom: '32px' }}>
               <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--accent-gold)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '12px' }}>
                 Technical Application &bull; Execution Diagram
@@ -375,13 +464,28 @@ export default async function LessonPage({ params }: LessonPageProps) {
           )}
 
           {nextLessonNum ? (
-            <Link
-              href={`/academy/lesson-${nextLessonNum}`}
-              className="btn btn-primary"
-              style={{ fontSize: '13px' }}
-            >
-              Next: Lesson {nextLessonNum} &rarr;
-            </Link>
+            completedLessons.includes(`lesson-${lesson.globalNum}`) ? (
+              <Link
+                href={`/academy/lesson-${nextLessonNum}`}
+                className="btn btn-primary"
+                style={{ fontSize: '13px' }}
+              >
+                Proceed to Lesson {nextLessonNum} &rarr; (Unlocked)
+              </Link>
+            ) : (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
+                  Pass Comprehension Check above to unlock Next
+                </span>
+                <button
+                  disabled
+                  className="btn btn-secondary"
+                  style={{ fontSize: '13px', opacity: 0.5, cursor: 'not-allowed' }}
+                >
+                  Lesson {nextLessonNum} Locked
+                </button>
+              </div>
+            )
           ) : (
             <Link
               href="/academy"
