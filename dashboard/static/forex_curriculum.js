@@ -1,5 +1,5 @@
 // Velarion Markets Forex Training Curriculum (30 Lessons + Glossary)
-// Strict pedagogical progression with targeted misconception feedback. Zero emojis.
+// Clean, structured, educational content with zero emojis.
 window.FOREX_CURRICULUM = [
   {
     "id": "b1",
@@ -26,13 +26,7 @@ window.FOREX_CURRICULUM = [
         "Because government regulations mandate 24-hour trading across all asset classes."
       ],
       "correct": 1,
-      "explanation": "The Forex market is decentralized (Over-the-Counter) and operates across consecutive global time zones. As Asian markets wind down, European markets open, followed by North American markets.",
-      "wrongHints": [
-        "London is the largest financial hub, but Forex has no physical central exchange\u2014it is decentralized and over-the-counter (OTC).",
-        "",
-        "Retail algorithms account for only a tiny fraction of volume; interbank clearing hours across global time zones drive the 24-hour cycle.",
-        "There is no international law mandating 24-hour trading; equity markets close daily. The 24-hour FX cycle is natural across world time zones."
-      ]
+      "explanation": "The Forex market is decentralized (Over-the-Counter) and operates across consecutive global time zones. As Asian markets wind down, European markets open, followed by North American markets."
     }
   },
   {
@@ -60,13 +54,7 @@ window.FOREX_CURRICULUM = [
         "They print physical fiat currency for sovereign nations."
       ],
       "correct": 1,
-      "explanation": "Tier-1 commercial banks form the interbank network, providing massive pools of liquidity and quoting competitive bid/ask prices to institutional and broker participants.",
-      "wrongHints": [
-        "Exchange rates are floating and market-determined, not set arbitrarily by commercial banks for tourists.",
-        "",
-        "Commercial banks do not guarantee retail trader profits; they manage their own institutional liquidity and risk.",
-        "Sovereign central banks and treasuries issue national fiat currency, not commercial banks."
-      ]
+      "explanation": "Tier-1 commercial banks form the interbank network, providing massive pools of liquidity and quoting competitive bid/ask prices to institutional and broker participants."
     }
   },
   {
@@ -94,13 +82,7 @@ window.FOREX_CURRICULUM = [
         "You must deposit 1,280 GBP to trade the pair."
       ],
       "correct": 1,
-      "explanation": "The first currency (GBP) is the Base Currency. The price tells you how much of the second currency (USD) is required to purchase 1 unit of the base currency: 1 GBP = $1.28 USD.",
-      "wrongHints": [
-        "In GBP/USD, GBP is the Base Currency (1 unit). The quote tells you the price in USD.",
-        "",
-        "The exchange quote reflects the current price ratio, not the daily percentage gain or loss.",
-        "The quote is an exchange rate, not a minimum account deposit."
-      ]
+      "explanation": "The first currency (GBP) is the Base Currency. The price tells you how much of the second currency (USD) is required to purchase 1 unit of the base currency: 1 GBP = $1.28 USD."
     }
   },
   {
@@ -128,13 +110,7 @@ window.FOREX_CURRICULUM = [
         "The closing price of the previous 1-hour candle"
       ],
       "correct": 1,
-      "explanation": "Buyers always pay the Ask price, while sellers receive the Bid price. The difference between the two is the spread.",
-      "wrongHints": [
-        "The Bid price is what you receive when SELLING to the market, not buying.",
-        "",
-        "Market orders execute at either Bid or Ask, never the synthetic midpoint.",
-        "Candlestick close prices represent past history, not current live execution quotes."
-      ]
+      "explanation": "Buyers always pay the Ask price, while sellers receive the Bid price. The difference between the two is the spread."
     }
   },
   {
@@ -162,13 +138,7 @@ window.FOREX_CURRICULUM = [
         "It only changes for retail traders, not banks."
       ],
       "correct": 1,
-      "explanation": "During periods of high uncertainty or low liquidity (such as rollover hours or major news), liquidity providers widen their quotes to compensate for inventory risk.",
-      "wrongHints": [
-        "Spreads never drop to zero during news; in fact, liquidity providers pull quotes, causing spreads to widen.",
-        "",
-        "Spreads are market-driven by liquidity and broker pricing, not fixed by central banks.",
-        "Spread widening occurs across the entire interbank network, affecting institutional and retail orders alike."
-      ]
+      "explanation": "During periods of high uncertainty or low liquidity (such as rollover hours or major news), liquidity providers widen their quotes to compensate for inventory risk."
     }
   },
   {
@@ -196,13 +166,7 @@ window.FOREX_CURRICULUM = [
         "0.25 pips"
       ],
       "correct": 1,
-      "explanation": "1.0835 - 1.0810 = 0.0025, which corresponds to 25 pips (since 1 pip = 0.0001).",
-      "wrongHints": [
-        "0.0025 on a standard 4-decimal currency pair represents 25 pips (since 1 pip = 0.0001), not 2.5.",
-        "",
-        "250 pips would be an exchange rate change of 0.0250.",
-        "0.25 pips would be an exchange rate change of 0.000025."
-      ]
+      "explanation": "1.0835 - 1.0810 = 0.0025, which corresponds to 25 pips (since 1 pip = 0.0001)."
     }
   },
   {
@@ -230,13 +194,7 @@ window.FOREX_CURRICULUM = [
         "$0.01 (1 cent)"
       ],
       "correct": 2,
-      "explanation": "A micro-lot (0.01) represents 1,000 units. 1,000 * 0.0001 = $0.10 USD per pip.",
-      "wrongHints": [
-        "$10.00 per pip corresponds to a 1.00 Standard Lot (100,000 units), not a micro-lot.",
-        "$1.00 per pip corresponds to a 0.10 Mini Lot (10,000 units).",
-        "",
-        "A micro-lot (0.01) controls 1,000 units: 1,000 * 0.0001 = $0.10 USD (10 cents), not 1 cent."
-      ]
+      "explanation": "A micro-lot (0.01) represents 1,000 units. 1,000 * 0.0001 = $0.10 USD per pip."
     }
   },
   {
@@ -264,13 +222,7 @@ window.FOREX_CURRICULUM = [
         "Nothing happens until you manually click close."
       ],
       "correct": 1,
-      "explanation": "A Stop-Out is an automated risk safety measure where the broker closes active positions at current market prices when equity cannot support required margin.",
-      "wrongHints": [
-        "Brokers do not deposit funds into your account during losing trades.",
-        "",
-        "Account leverage is fixed and does not automatically increase when you are in drawdown.",
-        "Brokers will not allow trades to stay open into negative balance; automated stop-out systems close them."
-      ]
+      "explanation": "A Stop-Out is an automated risk safety measure where the broker closes active positions at current market prices when equity cannot support required margin."
     }
   },
   {
@@ -298,13 +250,7 @@ window.FOREX_CURRICULUM = [
         "Sell Limit"
       ],
       "correct": 2,
-      "explanation": "A Buy Limit is placed below the current market price when you expect price to drop to a discount level and then reverse upward.",
-      "wrongHints": [
-        "A Sell Stop is placed below current market price anticipating continued downward breakout.",
-        "A Buy Stop is placed above current market price anticipating upward breakout momentum.",
-        "",
-        "A Sell Limit is placed above current market price expecting downward reversal."
-      ]
+      "explanation": "A Buy Limit is placed below the current market price when you expect price to drop to a discount level and then reverse upward."
     }
   },
   {
@@ -332,13 +278,7 @@ window.FOREX_CURRICULUM = [
         "Ctrl + T"
       ],
       "correct": 1,
-      "explanation": "Pressing F9 in MT5 opens the New Order ticket dialog directly.",
-      "wrongHints": [
-        "Ctrl + Z is the universal undo command, not the order ticket.",
-        "",
-        "Alt + F4 closes the program window.",
-        "Ctrl + T toggles the Toolbox/Terminal window at the bottom."
-      ]
+      "explanation": "Pressing F9 in MT5 opens the New Order ticket dialog directly."
     }
   },
   {
@@ -366,13 +306,7 @@ window.FOREX_CURRICULUM = [
         "Because exchange rates only move in one direction."
       ],
       "correct": 1,
-      "explanation": "Moving your stop-loss during a losing trade violates your initial risk plan and exposes your account to catastrophic loss.",
-      "wrongHints": [
-        "MetaTrader does not charge commissions for modifying existing stop levels.",
-        "",
-        "Brokers permit modifying stop orders; the danger is purely mathematical and psychological ruin.",
-        "Exchange rates fluctuate in both directions continuously."
-      ]
+      "explanation": "Moving your stop-loss during a losing trade violates your initial risk plan and exposes your account to catastrophic loss."
     }
   },
   {
@@ -400,13 +334,7 @@ window.FOREX_CURRICULUM = [
         "To trade maximum 100-lot positions without consequence."
       ],
       "correct": 1,
-      "explanation": "Demo accounts allow traders to master the terminal, test strategy rules, and verify disciplined execution without financial risk.",
-      "wrongHints": [
-        "Demo accounts use virtual currency; profits cannot be converted to real cash.",
-        "",
-        "Demo accounts do not replace legal KYC/identity verification for live broker accounts.",
-        "Trading reckless maximum lot sizes on demo builds destructive habits that destroy live accounts."
-      ]
+      "explanation": "Demo accounts allow traders to master the terminal, test strategy rules, and verify disciplined execution without financial risk."
     }
   },
   {
@@ -434,13 +362,7 @@ window.FOREX_CURRICULUM = [
         "Trading volume was exactly zero."
       ],
       "correct": 1,
-      "explanation": "A long lower wick reveals that price visited lower levels, but buyers entered aggressively and pushed the close higher, signaling rejection.",
-      "wrongHints": [
-        "A lower wick indicates sellers were rejected; sellers dominated only if the candle closed at its absolute low.",
-        "",
-        "Wicks are natural market fluctuations, not broker chart feed errors.",
-        "A wick requires active trading volume to form."
-      ]
+      "explanation": "A long lower wick reveals that price visited lower levels, but buyers entered aggressively and pushed the close higher, signaling rejection."
     }
   },
   {
@@ -468,13 +390,7 @@ window.FOREX_CURRICULUM = [
         "Exchange rates immediately freeze."
       ],
       "correct": 1,
-      "explanation": "Role reversal is a core market mechanic: once buyers fail to defend support and price breaks through, that level becomes a barrier of supply (resistance) on future retests.",
-      "wrongHints": [
-        "Broken support zones do not disappear; they retain institutional memory as future supply barriers.",
-        "",
-        "Order execution continues smoothly through broken support levels.",
-        "Exchange rates never freeze when support breaks."
-      ]
+      "explanation": "Role reversal is a core market mechanic: once buyers fail to defend support and price breaks through, that level becomes a barrier of supply (resistance) on future retests."
     }
   },
   {
@@ -502,13 +418,7 @@ window.FOREX_CURRICULUM = [
         "A straight vertical line with no retracements."
       ],
       "correct": 1,
-      "explanation": "A bullish trend requires successive Higher Highs and Higher Lows, indicating ongoing dominance by buyers on both expansion and pullback phases.",
-      "wrongHints": [
-        "Lower Highs and Lower Lows define a Downtrend (bearish market state).",
-        "",
-        "Horizontal price action without higher highs or lower lows defines Consolidation/Range.",
-        "Vertical parabolic movement without pullbacks is unsustainable and precedes sharp reversals."
-      ]
+      "explanation": "A bullish trend requires successive Higher Highs and Higher Lows, indicating ongoing dominance by buyers on both expansion and pullback phases."
     }
   },
   {
@@ -536,13 +446,7 @@ window.FOREX_CURRICULUM = [
         "Spreads become completely fixed."
       ],
       "correct": 1,
-      "explanation": "Lower timeframe price action is subordinate to higher timeframe flows. Trading M5 in isolation blinds you to major daily and 4-hour support/resistance barriers.",
-      "wrongHints": [
-        "Timeframe selection has zero impact on internet latency or ping.",
-        "",
-        "MetaTrader supports order execution across all timeframes.",
-        "Bid-ask spreads are determined by interbank market depth, not your chart timeframe."
-      ]
+      "explanation": "Lower timeframe price action is subordinate to higher timeframe flows. Trading M5 in isolation blinds you to major daily and 4-hour support/resistance barriers."
     }
   },
   {
@@ -570,13 +474,7 @@ window.FOREX_CURRICULUM = [
         "It calculates the broker's commission."
       ],
       "correct": 1,
-      "explanation": "ATR measures how much an asset moves on average per candle, making it an invaluable tool for volatility-adjusted position sizing and stop placement.",
-      "wrongHints": [
-        "No technical indicator can predict the exact future minute or hour of a price reversal.",
-        "",
-        "Indicators do not guarantee that take-profit targets will be reached.",
-        "Brokers do not use ATR to calculate commission."
-      ]
+      "explanation": "ATR measures how much an asset moves on average per candle, making it an invaluable tool for volatility-adjusted position sizing and stop placement."
     }
   },
   {
@@ -604,13 +502,7 @@ window.FOREX_CURRICULUM = [
         "Trading in that currency becomes completely illegal."
       ],
       "correct": 0,
-      "explanation": "Higher interest rates attract foreign capital seeking higher returns on sovereign debt and bank deposits, increasing demand for that currency.",
-      "wrongHints": [
-        "",
-        "A rate hike typically strengthens a currency, not causes a 50% crash.",
-        "Central bank rate changes are standard monetary policy and do not lead to delisting.",
-        "Interest rate adjustments are legally mandated central bank policy."
-      ]
+      "explanation": "Higher interest rates attract foreign capital seeking higher returns on sovereign debt and bank deposits, increasing demand for that currency."
     }
   },
   {
@@ -638,13 +530,7 @@ window.FOREX_CURRICULUM = [
         "Exchange rates only change once per week."
       ],
       "correct": 1,
-      "explanation": "During high-impact releases, liquidity briefly dries up, causing spreads to expand dramatically and exposing market orders to severe slippage.",
-      "wrongHints": [
-        "Trading servers operate normally during economic news releases.",
-        "",
-        "Broker commissions are fixed per traded lot and do not double during news.",
-        "Exchange rates fluctuate continuously every millisecond."
-      ]
+      "explanation": "During high-impact releases, liquidity briefly dries up, causing spreads to expand dramatically and exposing market orders to severe slippage."
     }
   },
   {
@@ -672,13 +558,7 @@ window.FOREX_CURRICULUM = [
         "Midday in the Tokyo session"
       ],
       "correct": 1,
-      "explanation": "When both the London and New York banking centers are operating simultaneously, market depth is at its peak and spreads are tightest.",
-      "wrongHints": [
-        "The Sunday evening market open has the thinnest liquidity and widest spreads of the week.",
-        "",
-        "The rollover hour (21:00-23:00 UTC) has thin liquidity and wide spreads.",
-        "The Tokyo session has significantly lower volume than the European and US sessions."
-      ]
+      "explanation": "When both the London and New York banking centers are operating simultaneously, market depth is at its peak and spreads are tightest."
     }
   },
   {
@@ -706,13 +586,7 @@ window.FOREX_CURRICULUM = [
         "10.0%"
       ],
       "correct": 2,
-      "explanation": "At 1:2 R:R, winning 1 out of 3 trades (33.3%) breaks even: 1 win * $20 = $20, 2 losses * $10 = $20. Any win rate above 33.3% produces net profit.",
-      "wrongHints": [
-        "A 66.7% win rate at 1:2 R:R would yield massive profits, far exceeding break-even.",
-        "A 50.0% win rate at 1:2 R:R yields a large net profit (Win $20, Loss $10).",
-        "",
-        "At a 10% win rate, you lose 9 trades (-$90) for every 1 win (+$20), producing net loss."
-      ]
+      "explanation": "At 1:2 R:R, winning 1 out of 3 trades (33.3%) breaks even: 1 win * $20 = $20, 2 losses * $10 = $20. Any win rate above 33.3% produces net profit."
     }
   },
   {
@@ -740,13 +614,7 @@ window.FOREX_CURRICULUM = [
         "It is required by tax authorities in every country."
       ],
       "correct": 1,
-      "explanation": "A trade journal transforms subjective opinions into objective data, exposing whether losses are due to random market variance or undisciplined rule-breaking.",
-      "wrongHints": [
-        "Brokers never refund trading losses.",
-        "",
-        "Journals do not automate execution; they are diagnostic self-improvement logs.",
-        "Tax reporting rules do not mandate detailed trade journaling."
-      ]
+      "explanation": "A trade journal transforms subjective opinions into objective data, exposing whether losses are due to random market variance or undisciplined rule-breaking."
     }
   },
   {
@@ -774,13 +642,7 @@ window.FOREX_CURRICULUM = [
         "0.05 Lots ($10 risk)"
       ],
       "correct": 1,
-      "explanation": "20 pips on 0.01 micro-lot = 20 * $0.10 = $2.00. That matches your exact 1% ($2.00) risk allowance.",
-      "wrongHints": [
-        "A 0.10 mini-lot on 20 pips risks $20.00 (10% of a $200 account), violating your 1% rule.",
-        "",
-        "A 1.00 standard lot on 20 pips risks $200.00, which is 100% of the entire account.",
-        "A 0.05 lot risks $10.00 (5% of the account)."
-      ]
+      "explanation": "20 pips on 0.01 micro-lot = 20 * $0.10 = $2.00. That matches your exact 1% ($2.00) risk allowance."
     }
   },
   {
@@ -808,13 +670,7 @@ window.FOREX_CURRICULUM = [
         "Because broker margins double automatically."
       ],
       "correct": 0,
-      "explanation": "EUR/USD and GBP/USD have high positive correlation. Going long on both effectively doubles your directional risk on the US Dollar.",
-      "wrongHints": [
-        "",
-        "MT5 allows multiple positions across European pairs without error.",
-        "The British Pound floats independently and is not pegged to the Euro.",
-        "Required margin per lot is unchanged, but total risk exposure is doubled."
-      ]
+      "explanation": "EUR/USD and GBP/USD have high positive correlation. Going long on both effectively doubles your directional risk on the US Dollar."
     }
   },
   {
@@ -842,13 +698,7 @@ window.FOREX_CURRICULUM = [
         "25%"
       ],
       "correct": 2,
-      "explanation": "If a $100 account drops to $50 (50% loss), you must generate $50 on your remaining $50 to break even, which is an exact +100% gain.",
-      "wrongHints": [
-        "A 50% gain on remaining $50 yields only $75, leaving you still down $25.",
-        "A 75% gain on remaining $50 yields only $87.50, still short of break-even.",
-        "",
-        "A 25% gain on $50 yields only $62.50."
-      ]
+      "explanation": "If a $100 account drops to $50 (50% loss), you must generate $50 on your remaining $50 to break even, which is an exact +100% gain."
     }
   },
   {
@@ -876,13 +726,7 @@ window.FOREX_CURRICULUM = [
         "It causes all trades to hit break-even."
       ],
       "correct": 1,
-      "explanation": "Loss aversion causes traders to avoid realizing paper losses, leading them to widen stops or hold losing trades while prematurely taking tiny profits on winning trades.",
-      "wrongHints": [
-        "Loss aversion affects live funded risk, not demo account creation.",
-        "",
-        "Loss aversion is an internal psychological bias, not a broker technical issue.",
-        "Loss aversion causes traders to avoid taking small losses, resulting in catastrophic blowouts."
-      ]
+      "explanation": "Loss aversion causes traders to avoid realizing paper losses, leading them to widen stops or hold losing trades while prematurely taking tiny profits on winning trades."
     }
   },
   {
@@ -910,13 +754,7 @@ window.FOREX_CURRICULUM = [
         "Because historical prices are always 100% incorrect."
       ],
       "correct": 1,
-      "explanation": "Transaction friction (spreads and commissions) is unavoidable in live trading; failing to model it creates wildly unrealistic expectations.",
-      "wrongHints": [
-        "MT5 can run backtests with or without custom spread modeling.",
-        "",
-        "Deducting transaction friction does not impact CPU processing speed.",
-        "Historical tick data is real broker price history."
-      ]
+      "explanation": "Transaction friction (spreads and commissions) is unavoidable in live trading; failing to model it creates wildly unrealistic expectations."
     }
   },
   {
@@ -944,13 +782,7 @@ window.FOREX_CURRICULUM = [
         "A technical error in the MT5 platform."
       ],
       "correct": 1,
-      "explanation": "An FVG represents price inefficiency caused by one-sided institutional buying or selling, leaving a price pocket that the market frequently revisits to rebalance.",
-      "wrongHints": [
-        "FVGs are chart technical formations, not bank exchange holidays.",
-        "",
-        "Spread fees are transaction costs, not Fair Value Gaps.",
-        "FVGs are legitimate market inefficiencies, not MT5 software bugs."
-      ]
+      "explanation": "An FVG represents price inefficiency caused by one-sided institutional buying or selling, leaving a price pocket that the market frequently revisits to rebalance."
     }
   },
   {
@@ -978,13 +810,7 @@ window.FOREX_CURRICULUM = [
         "$500.00"
       ],
       "correct": 1,
-      "explanation": "On a 0.01 micro-lot of gold (1 oz), a $1.00 move equals $1.00 USD. A $5.00 price move equals exactly $5.00 profit.",
-      "wrongHints": [
-        "$50.00 profit would require a 0.10 mini-lot.",
-        "",
-        "$0.50 profit would be a $0.50 price move.",
-        "$500.00 profit would require a 1.00 standard lot."
-      ]
+      "explanation": "On a 0.01 micro-lot of gold (1 oz), a $1.00 move equals $1.00 USD. A $5.00 price move equals exactly $5.00 profit."
     }
   },
   {
@@ -1012,13 +838,7 @@ window.FOREX_CURRICULUM = [
         "1.00"
       ],
       "correct": 1,
-      "explanation": "Profit Factor = Gross Profits / Gross Losses = $6,000 / $2,500 = 2.40. A Profit Factor of 2.40 indicates high positive expectancy.",
-      "wrongHints": [
-        "0.41 is the inverse (losses divided by profits).",
-        "",
-        "3.50 would require $8,750 in gross profits.",
-        "1.00 is exactly break-even ($2,500 profit / $2,500 loss)."
-      ]
+      "explanation": "Profit Factor = Gross Profits / Gross Losses = $6,000 / $2,500 = 2.40. A Profit Factor of 2.40 indicates high positive expectancy."
     }
   }
 ];

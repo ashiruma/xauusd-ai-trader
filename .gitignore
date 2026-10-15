@@ -13,6 +13,8 @@ ENV/
 node_modules/
 dist/
 build/
+.next/
+*.tsbuildinfo
 
 # Testing & Cache
 .pytest_cache/
