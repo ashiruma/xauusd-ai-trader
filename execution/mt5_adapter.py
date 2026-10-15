@@ -197,11 +197,27 @@ class MT5ExecutionAdapter(BaseExecutionAdapter):
         }
 
     def get_quote(self, symbol: Optional[str] = None) -> Dict[str, Any]:
-        sym = symbol or self._symbol
         if not self.is_connected():
             return {"bid": 0.0, "ask": 0.0, "spread_points": 0.0, "time": None}
 
-        tick = mt5.symbol_info_tick(sym)
+        # Try candidates in priority order: explicit symbol, configured _symbol, broker suffixes
+        candidates = []
+        if symbol:
+            candidates.append(symbol)
+        if self._symbol and self._symbol not in candidates:
+            candidates.append(self._symbol)
+        for extra in ["XAUUSD.m", "XAUUSD", "XAUUSDm", "GOLD"]:
+            if extra not in candidates:
+                candidates.append(extra)
+
+        tick = None
+        for sym in candidates:
+            t = mt5.symbol_info_tick(sym)
+            if t is not None and getattr(t, "bid", 0) > 0 and getattr(t, "ask", 0) > 0:
+                tick = t
+                self._symbol = sym
+                break
+
         if tick is None:
             return {"bid": 0.0, "ask": 0.0, "spread_points": 0.0, "time": None}
 

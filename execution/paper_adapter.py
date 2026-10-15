@@ -22,8 +22,8 @@ class PaperExecutionAdapter(BaseExecutionAdapter):
         self._connected: bool = True
         self._positions: Dict[int, Position] = {}
         self._next_ticket: int = 7000001
-        self._latest_bid: float = 4194.95
-        self._latest_ask: float = 4195.21
+        self._latest_bid: float = 4143.93
+        self._latest_ask: float = 4144.19
 
     def connect(self) -> bool:
         self._connected = True

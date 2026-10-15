@@ -166,7 +166,7 @@ async def get_market_state():
 
 class HighFrequencySpotSimulator:
     """High-frequency spot feed generator providing sub-second micro-ticks and realistic spreads."""
-    def __init__(self, anchor_price: float = 4195.08):
+    def __init__(self, anchor_price: float = 4144.06):
         self.anchor_price = anchor_price
         self.current_price = anchor_price
         self.prev_price = anchor_price
@@ -201,7 +201,7 @@ class HighFrequencySpotSimulator:
         return tick_data
 
 
-hf_spot_sim = HighFrequencySpotSimulator(4195.08)
+hf_spot_sim = HighFrequencySpotSimulator(4144.06)
 
 
 @app.get("/api/market/quote")
