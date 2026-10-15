@@ -456,6 +456,42 @@ def test_partner_drip_down_routing(client):
             conn.commit()
 
 
+def test_market_quote_live_updating(client):
+    res1 = client.get("/api/market/quote")
+    assert res1.status_code == 200
+    d1 = res1.json()
+    assert d1["symbol"] == "XAUUSD"
+    assert d1["broker"] == "JustMarkets MT5"
+    assert "current_price" in d1
+    assert "bid" in d1
+    assert "ask" in d1
+    assert "timestamp" in d1
+    assert d1["ask"] >= d1["bid"]
+    assert d1["spread_points"] > 0
+
+    res2 = client.get("/api/market/quote")
+    assert res2.status_code == 200
+    d2 = res2.json()
+    assert d2["symbol"] == "XAUUSD"
+    assert "current_price" in d2
+
+
+def test_market_ticks_endpoint(client):
+    res = client.get("/api/market/ticks")
+    assert res.status_code == 200
+    data = res.json()
+    assert data["success"] is True
+    assert data["symbol"] == "XAUUSD"
+    assert len(data["ticks"]) > 0
+    t = data["ticks"][0]
+    assert "price" in t
+    assert "bid" in t
+    assert "ask" in t
+    assert "timestamp" in t
+    assert "time_ms" in t
+
+
+
 
 
 
