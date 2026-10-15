@@ -17,15 +17,17 @@ export default function WhyGoldPage() {
   return (
     <div style={{ maxWidth: '1000px', margin: '40px auto 80px', padding: '0 24px' }}>
       {/* Breadcrumb */}
-      <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '16px' }}>
-        <Link href="/" style={{ color: 'var(--accent-gold)' }}>Home</Link> &gt; Why Spot Gold
+      <nav aria-label="Breadcrumb" style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '18px' }}>
+        <Link href="/" style={{ color: 'var(--text-secondary)' }}>Home</Link>
+        <span style={{ margin: '0 8px' }}>/</span>
+        <span style={{ color: 'var(--accent-gold)' }}>Why Spot Gold</span>
+      </nav>
+
+      <div className="section-eyebrow">
+        <span>Institutional Macro Thesis</span>
       </div>
 
-      <div className="landing-eyebrow">
-        <span>INSTITUTIONAL MACRO THESIS</span>
-      </div>
-
-      <h1 style={{ fontSize: '36px', fontWeight: 800, color: 'var(--text-primary)', lineHeight: 1.2, marginBottom: '16px' }}>
+      <h1 style={{ fontSize: '36px', fontWeight: 800, color: 'var(--text-primary)', lineHeight: 1.2, marginBottom: '16px', letterSpacing: '-0.5px' }}>
         Why Spot Gold (XAUUSD) Only: The Institutional Quantitative Advantage
       </h1>
 
@@ -35,46 +37,46 @@ export default function WhyGoldPage() {
 
       {/* 4 Pillars Grid */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px', marginBottom: '48px' }}>
-        <div className="feature-card">
-          <div className="feature-card-header">
+        <div className="feature-card-clean">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
             <span className="status-badge status-completed">PILLAR 01</span>
             <span className="mono-nums" style={{ color: 'var(--accent-gold)', fontSize: '11px' }}>LIQUIDITY</span>
           </div>
-          <h3 className="feature-card-title">$130B+ Daily Turnover</h3>
-          <p className="feature-card-desc">
+          <h3>$130B+ Daily Turnover</h3>
+          <p>
             Spot Gold is one of the deepest financial markets on earth. The massive volume ensures immediate order fills with zero dealer re-quotes and minimal slippage during high-impact data releases.
           </p>
         </div>
 
-        <div className="feature-card">
-          <div className="feature-card-header">
+        <div className="feature-card-clean">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
             <span className="status-badge status-completed">PILLAR 02</span>
             <span className="mono-nums" style={{ color: 'var(--accent-gold)', fontSize: '11px' }}>SOVEREIGN</span>
           </div>
-          <h3 className="feature-card-title">Central Bank Accumulation</h3>
-          <p className="feature-card-desc">
+          <h3>Central Bank Accumulation</h3>
+          <p>
             Global central banks are diversifying sovereign reserves away from fiat treasuries into physical bullion, providing persistent long-term structural institutional demand.
           </p>
         </div>
 
-        <div className="feature-card">
-          <div className="feature-card-header">
+        <div className="feature-card-clean">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
             <span className="status-badge status-completed">PILLAR 03</span>
             <span className="mono-nums" style={{ color: 'var(--accent-gold)', fontSize: '11px' }}>MACRO MATH</span>
           </div>
-          <h3 className="feature-card-title">Real Yield Sensitivity</h3>
-          <p className="feature-card-desc">
+          <h3>Real Yield Sensitivity</h3>
+          <p>
             Gold acts as a zero-coupon perpetual sovereign asset. Its price movements correlate inversely with US 10-Year TIPS real yields and the broad Dollar index (DXY).
           </p>
         </div>
 
-        <div className="feature-card">
-          <div className="feature-card-header">
+        <div className="feature-card-clean">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
             <span className="status-badge status-completed">PILLAR 04</span>
             <span className="mono-nums" style={{ color: 'var(--accent-gold)', fontSize: '11px' }}>SESSION REGIMES</span>
           </div>
-          <h3 className="feature-card-title">Predictable Session Liquidity</h3>
-          <p className="feature-card-desc">
+          <h3>Predictable Session Liquidity</h3>
+          <p>
             The Asian session sets clean overnight liquidity boundaries, which are systematically swept during the London open (07:00 UTC) and expanded through the New York overlap.
           </p>
         </div>
@@ -86,24 +88,24 @@ export default function WhyGoldPage() {
           Eliminating Multi-Pair Noise and Correlation Friction
         </h2>
         <p style={{ fontSize: '14px', color: 'var(--text-secondary)', lineHeight: 1.7, marginBottom: '16px' }}>
-          When trading multiple currency crosses (e.g. EURUSD, GBPUSD, AUDUSD, USDJPY), retail accounts routinely take on hidden correlated beta. A single US interest rate decision can trigger simultaneous stop-outs across 5 different pairs, causing account ruin.
+          When trading multiple currency crosses (e.g. EURUSD, GBPUSD, AUDUSD, USDJPY), retail accounts routinely take on hidden correlated beta. A single US interest rate decision can trigger simultaneous stop-outs across five different pairs, causing severe drawdown ruin.
         </p>
-        <p style={{ fontSize: '14px', color: 'var(--text-secondary)', lineHeight: 1.7, marginBottom: '16px' }}>
+        <p style={{ fontSize: '14px', color: 'var(--text-secondary)', lineHeight: 1.7, marginBottom: '24px' }}>
           By focusing exclusively on Spot Gold, our quantitative execution architecture isolates one balance sheet, eliminates cross-pair noise, and captures the cleanest 200-pip trend expansions in modern finance.
         </p>
-        
-        <h2 style={{ fontSize: '22px', fontWeight: 700, color: 'var(--text-primary)', margin: '24px 0 14px' }}>
+
+        <h2 style={{ fontSize: '22px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '14px' }}>
           Algorithmic Execution on JustMarkets MT5
         </h2>
-        <p style={{ fontSize: '14px', color: 'var(--text-secondary)', lineHeight: 1.7, marginBottom: '16px' }}>
-          Our models execute on JustMarkets MT5 with raw ECN spreads averaging 2.6 pips, non-custodial capital protection, and ultra-low server latency. Traders retain 100% custody over deposits and withdrawals, while Velarion handles signal computation.
+        <p style={{ fontSize: '14px', color: 'var(--text-secondary)', lineHeight: 1.7, margin: 0 }}>
+          Our models execute on JustMarkets MT5 with raw ECN spreads averaging 2.6 pips, non-custodial capital protection, and direct server execution. Traders retain 100% custody over deposits and withdrawals, while Velarion handles signal computation.
         </p>
       </div>
 
       {/* CTA Box */}
       <div style={{
-        background: 'var(--bg-surface-2)',
-        border: '1px solid var(--border-gold)',
+        background: 'var(--bg-surface-1)',
+        border: '1px solid var(--border-accent)',
         borderRadius: 'var(--radius-lg)',
         padding: '28px',
         display: 'flex',
@@ -121,7 +123,7 @@ export default function WhyGoldPage() {
           </p>
         </div>
         <div style={{ display: 'flex', gap: '12px' }}>
-          <Link href="/tools/growth-calculator" className="btn btn-gold">
+          <Link href="/tools/growth-calculator" className="btn btn-primary">
             Launch Calculator &rarr;
           </Link>
           <a

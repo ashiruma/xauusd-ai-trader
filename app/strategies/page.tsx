@@ -17,12 +17,14 @@ export default function StrategiesPage() {
   return (
     <div style={{ maxWidth: '1100px', margin: '40px auto 80px', padding: '0 24px' }}>
       {/* Breadcrumb */}
-      <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '16px' }}>
-        <Link href="/" style={{ color: 'var(--accent-gold)' }}>Home</Link> &gt; Quantitative Strategies
-      </div>
+      <nav aria-label="Breadcrumb" style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '18px' }}>
+        <Link href="/" style={{ color: 'var(--text-secondary)' }}>Home</Link>
+        <span style={{ margin: '0 8px' }}>/</span>
+        <span style={{ color: 'var(--accent-gold)' }}>Quantitative Strategies</span>
+      </nav>
 
-      <div className="landing-eyebrow">
-        <span>SYSTEMATIC ALGORITHMIC EXECUTION</span>
+      <div className="section-eyebrow">
+        <span>Systematic Algorithmic Execution</span>
       </div>
 
       <h1 style={{ fontSize: '36px', fontWeight: 800, color: 'var(--text-primary)', lineHeight: 1.2, marginBottom: '16px' }}>
@@ -237,8 +239,8 @@ export default function StrategiesPage() {
 
       {/* CTA Box */}
       <div style={{
-        background: 'var(--bg-surface-2)',
-        border: '1px solid var(--border-gold)',
+        background: 'var(--bg-surface-1)',
+        border: '1px solid var(--border-accent)',
         borderRadius: 'var(--radius-lg)',
         padding: '28px',
         display: 'flex',
@@ -256,7 +258,7 @@ export default function StrategiesPage() {
           </p>
         </div>
         <div style={{ display: 'flex', gap: '12px' }}>
-          <Link href="/terminal" className="btn btn-gold">
+          <Link href="/terminal" className="btn btn-primary">
             Launch Trading Terminal &rarr;
           </Link>
           <a

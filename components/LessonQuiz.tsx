@@ -201,7 +201,7 @@ export default function LessonQuiz({
           {!submitted ? (
             <button
               type="submit"
-              className="btn btn-gold"
+              className="btn btn-primary"
               style={{ padding: '10px 22px', fontSize: '13px' }}
             >
               Submit Answer
@@ -221,7 +221,7 @@ export default function LessonQuiz({
               {isPassed && nextLessonNum && (
                 <a
                   href={`/academy/lesson-${nextLessonNum}`}
-                  className="btn btn-gold"
+                  className="btn btn-primary"
                   style={{ padding: '10px 22px', fontSize: '13px' }}
                 >
                   Proceed to Lesson {nextLessonNum} &rarr;

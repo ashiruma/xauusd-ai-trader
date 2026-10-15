@@ -186,7 +186,7 @@ export default function AuthModal({
             <button
               type="submit"
               disabled={loading}
-              className="btn btn-gold"
+              className="btn btn-primary"
               style={{ flex: 1, padding: '12px', fontSize: '13px' }}
             >
               {loading ? 'Verifying Gateway...' : 'Verify MT5 & Unlock Session'}

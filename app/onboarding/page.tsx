@@ -1,7 +1,8 @@
-// app/onboarding/page.tsx
 'use client';
 
-import { useState } from 'react';
+import React, { useState } from 'react';
+import Link from 'next/link';
+import { DEFAULT_PARTNER_CONFIG } from '@/lib/partner';
 
 export default function OnboardingPage() {
   const [mt5Id, setMt5Id] = useState('');
@@ -35,75 +36,156 @@ export default function OnboardingPage() {
   };
 
   return (
-    <main className="max-w-2xl mx-auto px-4 py-16 text-slate-100">
-      <div className="text-center mb-10">
-        <h1 className="text-3xl font-extrabold mb-3">Unlock Velarion Markets for Free</h1>
-        <p className="text-slate-400">
-          Our entire AI terminal, quant strategies, and 30-lesson Forex School are 100% free, subsidized by our official partner <strong className="text-amber-400">JustMarkets</strong>.
+    <main style={{ maxWidth: '680px', margin: '48px auto 80px', padding: '0 24px' }}>
+      {/* Breadcrumb Navigation */}
+      <nav aria-label="Breadcrumb" style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '20px' }}>
+        <Link href="/" style={{ color: 'var(--text-secondary)' }}>Home</Link>
+        <span style={{ margin: '0 8px' }}>/</span>
+        <span style={{ color: 'var(--accent-gold)' }}>Broker Onboarding</span>
+      </nav>
+
+      <div style={{ textAlign: 'center', marginBottom: '36px' }}>
+        <div className="section-eyebrow">
+          <span>Subsidized Access Activation</span>
+        </div>
+        <h1 style={{ fontSize: '32px', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '12px', letterSpacing: '-0.5px' }}>
+          Unlock Velarion Markets for Free
+        </h1>
+        <p style={{ fontSize: '14.5px', color: 'var(--text-secondary)', lineHeight: 1.6 }}>
+          Our AI trading terminal, quantitative models, and 30-lesson Forex Academy are 100% free, subsidized directly by our official partner <strong style={{ color: 'var(--accent-gold)' }}>JustMarkets</strong>.
         </p>
       </div>
 
-      <div className="bg-slate-900 border border-slate-800 p-8 rounded-2xl shadow-xl space-y-8">
+      <div style={{
+        background: 'var(--bg-surface-1)',
+        border: '1px solid var(--border-default)',
+        borderRadius: 'var(--radius-lg)',
+        padding: '32px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '28px'
+      }}>
         {/* Step 1 */}
-        <div className="flex gap-4 items-start">
-          <div className="bg-amber-500 text-slate-950 font-bold w-8 h-8 rounded-full flex items-center justify-center shrink-0">1</div>
+        <div style={{ display: 'flex', gap: '16px', alignItems: 'flex-start' }}>
+          <div style={{
+            width: '30px',
+            height: '30px',
+            borderRadius: '50%',
+            background: 'var(--accent-gold-subtle)',
+            border: '1px solid var(--border-accent)',
+            color: 'var(--accent-gold)',
+            fontWeight: 800,
+            fontSize: '13px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexShrink: 0,
+            marginTop: '2px'
+          }}>
+            1
+          </div>
           <div>
-            <h3 className="font-bold text-lg text-white">Create &amp; Fund Your JustMarkets Account</h3>
-            <p className="text-slate-400 text-sm mt-1">
-              Register using our official partner link with partner code <code className="text-amber-400 font-mono">tohstb0d83</code> and make your trading deposit.
+            <h3 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px' }}>
+              Create &amp; Fund Your JustMarkets Account
+            </h3>
+            <p style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.5, marginBottom: '12px' }}>
+              Register using our official partner link with partner code <code className="mono-nums" style={{ color: 'var(--accent-gold)', background: 'var(--bg-surface-2)', padding: '2px 6px', borderRadius: '4px' }}>{DEFAULT_PARTNER_CONFIG.primaryCode}</code> and open an MT5 account.
             </p>
             <a
-              href="https://one.justmarkets.link/a/tohstb0d83"
+              href={DEFAULT_PARTNER_CONFIG.primaryLink}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-block mt-3 bg-amber-500/10 border border-amber-500/30 text-amber-400 font-semibold px-4 py-2 rounded-lg text-sm hover:bg-amber-500/20 transition"
+              className="btn btn-outline-gold"
+              style={{ fontSize: '12px', padding: '6px 14px' }}
             >
               Open JustMarkets Partner Link &rarr;
             </a>
           </div>
         </div>
 
+        <div style={{ borderTop: '1px solid var(--border-subtle)' }} />
+
         {/* Step 2 */}
-        <div className="flex gap-4 items-start">
-          <div className="bg-amber-500 text-slate-950 font-bold w-8 h-8 rounded-full flex items-center justify-center shrink-0">2</div>
-          <div className="w-full">
-            <h3 className="font-bold text-lg text-white">Verify Your MT5 Account ID</h3>
-            <p className="text-slate-400 text-sm mt-1 mb-4">
-              Enter your live MT5 account number below for instant verification.
+        <div style={{ display: 'flex', gap: '16px', alignItems: 'flex-start' }}>
+          <div style={{
+            width: '30px',
+            height: '30px',
+            borderRadius: '50%',
+            background: 'var(--accent-gold-subtle)',
+            border: '1px solid var(--border-accent)',
+            color: 'var(--accent-gold)',
+            fontWeight: 800,
+            fontSize: '13px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexShrink: 0,
+            marginTop: '2px'
+          }}>
+            2
+          </div>
+          <div style={{ flex: 1 }}>
+            <h3 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px' }}>
+              Verify Your MT5 Account ID
+            </h3>
+            <p style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.5, marginBottom: '16px' }}>
+              Enter your live or demo MT5 account number below for instant server verification.
             </p>
 
-            <form onSubmit={handleVerify} className="space-y-4">
+            <form onSubmit={handleVerify} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
               <input
                 type="text"
                 placeholder="e.g. 1200533810"
                 value={mt5Id}
                 onChange={(e) => setMt5Id(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-amber-400 font-mono"
+                className="calc-input mono-nums"
                 required
               />
 
               <button
                 type="submit"
                 disabled={status === 'loading'}
-                className="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold py-3 rounded-xl transition shadow-lg shadow-amber-500/10 disabled:opacity-50"
+                className="btn btn-primary"
+                style={{ width: '100%', padding: '12px', fontSize: '13.5px' }}
               >
-                {status === 'loading' ? 'Verifying with Broker...' : 'Verify & Unlock Instant Access'}
+                {status === 'loading' ? 'Verifying with Broker Gateway...' : 'Verify & Unlock Instant Access'}
               </button>
 
               {status === 'success' && (
-                <div className="p-3 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-sm rounded-lg text-center">
-                  Verified successfully! Redirecting to terminal...
+                <div style={{
+                  padding: '12px',
+                  background: 'var(--accent-green-subtle)',
+                  border: '1px solid var(--accent-green-border)',
+                  color: 'var(--accent-green)',
+                  fontSize: '13px',
+                  borderRadius: 'var(--radius-sm)',
+                  textAlign: 'center'
+                }}>
+                  Verified successfully. Redirecting to trading terminal...
                 </div>
               )}
 
               {status === 'error' && (
-                <div className="p-3 bg-red-500/10 border border-red-500/30 text-red-400 text-sm rounded-lg text-center">
+                <div style={{
+                  padding: '12px',
+                  background: 'var(--accent-red-subtle)',
+                  border: '1px solid var(--accent-red-border)',
+                  color: 'var(--accent-red)',
+                  fontSize: '13px',
+                  borderRadius: 'var(--radius-sm)',
+                  textAlign: 'center'
+                }}>
                   {errorMessage}
                 </div>
               )}
             </form>
           </div>
         </div>
+      </div>
+
+      {/* Non-Custodial Security Guarantee */}
+      <div style={{ marginTop: '24px', textAlign: 'center', fontSize: '11.5px', color: 'var(--text-muted)', lineHeight: 1.6 }}>
+        Non-custodial cryptographic verification. No passwords required. Your trading funds remain 100% inside regulated JustMarkets MT5 custody.
       </div>
     </main>
   );

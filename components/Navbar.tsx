@@ -4,11 +4,11 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import AuthModal from './AuthModal';
-import { DEFAULT_PARTNER_CONFIG } from '@/lib/partner';
 
 export default function Navbar() {
   const pathname = usePathname();
   const [authModalOpen, setAuthModalOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [session, setSession] = useState<{
     verified: boolean;
     mt5Account?: string;
@@ -27,6 +27,11 @@ export default function Navbar() {
         }
       })
       .catch(() => setSession(null));
+  }, [pathname]);
+
+  // Close mobile menu on route change
+  useEffect(() => {
+    setMobileMenuOpen(false);
   }, [pathname]);
 
   const handleLogout = async () => {
@@ -59,7 +64,7 @@ export default function Navbar() {
         top: 0,
         zIndex: 100,
         padding: '0 24px',
-        height: '58px',
+        height: '60px',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between'
@@ -70,8 +75,8 @@ export default function Navbar() {
             <div style={{
               width: '32px',
               height: '32px',
-              background: 'linear-gradient(135deg, #E6BB59, #B88E30)',
-              color: '#080D18',
+              background: 'linear-gradient(135deg, #C5A059, #8C6D2D)',
+              color: '#0B0F19',
               fontWeight: 800,
               fontSize: '17px',
               borderRadius: '4px',
@@ -105,8 +110,8 @@ export default function Navbar() {
             </div>
           </Link>
 
-          {/* Navigation Items */}
-          <nav style={{ display: 'flex', alignItems: 'center', gap: '6px' }} className="hidden-mobile">
+          {/* Desktop Navigation Links */}
+          <nav style={{ display: 'flex', alignItems: 'center', gap: '4px' }} className="nav-desktop-links">
             {navLinks.map((item) => {
               const isActive = pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href));
               return (
@@ -132,7 +137,7 @@ export default function Navbar() {
         </div>
 
         {/* Right Actions & Auth Status */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           {/* Uplink Telemetry */}
           <div style={{
             display: 'flex',
@@ -146,7 +151,7 @@ export default function Navbar() {
             color: 'var(--text-secondary)',
             fontFamily: 'var(--font-mono)'
           }}>
-            <span className="dot-indicator" style={{ width: '6px', height: '6px' }} />
+            <span className="dot-indicator" />
             <span>MT5 UPLINK</span>
           </div>
 
@@ -155,10 +160,10 @@ export default function Navbar() {
               <span style={{
                 fontSize: '11.5px',
                 color: 'var(--accent-gold)',
-                background: 'rgba(230, 187, 89, 0.1)',
+                background: 'var(--accent-gold-subtle)',
                 padding: '4px 10px',
                 borderRadius: '4px',
-                border: '1px solid rgba(230, 187, 89, 0.3)',
+                border: '1px solid var(--border-accent)',
                 fontFamily: 'var(--font-mono)'
               }}>
                 MT5: #{session.mt5Account}
@@ -172,18 +177,87 @@ export default function Navbar() {
               </button>
             </div>
           ) : (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <button
-                onClick={() => setAuthModalOpen(true)}
-                className="btn btn-gold"
-                style={{ padding: '6px 14px', fontSize: '12px' }}
-              >
-                Verify MT5 Account
-              </button>
-            </div>
+            <button
+              onClick={() => setAuthModalOpen(true)}
+              className="btn btn-primary"
+              style={{ padding: '6px 14px', fontSize: '12px' }}
+            >
+              Verify MT5 Account
+            </button>
           )}
+
+          {/* Mobile Hamburger Toggle Button */}
+          <button
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            aria-label="Toggle navigation menu"
+            style={{
+              display: 'none',
+              background: 'transparent',
+              border: '1px solid var(--border-default)',
+              borderRadius: '4px',
+              padding: '6px 8px',
+              color: 'var(--text-primary)',
+              cursor: 'pointer'
+            }}
+            className="nav-mobile-toggle"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              {mobileMenuOpen ? (
+                <>
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </>
+              ) : (
+                <>
+                  <line x1="3" y1="12" x2="21" y2="12" />
+                  <line x1="3" y1="6" x2="21" y2="6" />
+                  <line x1="3" y1="18" x2="21" y2="18" />
+                </>
+              )}
+            </svg>
+          </button>
         </div>
       </header>
+
+      {/* Mobile Drawer Navigation */}
+      {mobileMenuOpen && (
+        <div style={{
+          position: 'fixed',
+          top: '60px',
+          left: 0,
+          right: 0,
+          background: 'var(--bg-surface-1)',
+          borderBottom: '1px solid var(--border-default)',
+          padding: '16px 24px',
+          zIndex: 99,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '8px',
+          boxShadow: '0 8px 24px rgba(0,0,0,0.5)'
+        }}>
+          {navLinks.map((item) => {
+            const isActive = pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href));
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={() => setMobileMenuOpen(false)}
+                style={{
+                  padding: '10px 14px',
+                  borderRadius: '4px',
+                  fontSize: '14px',
+                  fontWeight: isActive ? 700 : 500,
+                  color: isActive ? 'var(--accent-gold)' : 'var(--text-primary)',
+                  background: isActive ? 'var(--bg-surface-2)' : 'transparent',
+                  borderLeft: isActive ? '3px solid var(--accent-gold)' : '3px solid transparent'
+                }}
+              >
+                {item.label}
+              </Link>
+            );
+          })}
+        </div>
+      )}
 
       <AuthModal
         isOpen={authModalOpen}
