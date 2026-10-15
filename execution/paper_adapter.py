@@ -116,6 +116,9 @@ class PaperExecutionAdapter(BaseExecutionAdapter):
         order.executed_at = datetime.now(timezone.utc)
 
         # Create active Position
+        entry_rationale = db.get_recorded_entry_rationale(order.signal_id) if order.signal_id else None
+        if not entry_rationale:
+            entry_rationale = "Entry rationale unavailable"
         pos = Position(
             ticket=order.ticket,
             symbol=order.symbol,
@@ -129,7 +132,8 @@ class PaperExecutionAdapter(BaseExecutionAdapter):
             magic_number=order.magic_number,
             open_time=order.executed_at,
             signal_id=order.signal_id,
-            strategy_id=order.strategy_id
+            strategy_id=order.strategy_id,
+            entry_rationale=entry_rationale
         )
         self._positions[order.ticket] = pos
         db.record_order(order)

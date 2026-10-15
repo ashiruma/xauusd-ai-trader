@@ -10,22 +10,24 @@ interface LiveSpotFeedProps {
 
 export interface QuoteResponse {
   symbol: string;
-  price: number;
-  bid: number;
-  ask: number;
+  price: number | null;
+  bid: number | null;
+  ask: number | null;
   spread: string;
   spreadPips: number;
   delta: string;
   timestamp: number;
+  lastUpdated?: number | string | null;
   source: string;
   status?: string;
+  isConnected?: boolean;
+  message?: string;
 }
 
 export default function LiveSpotFeed({ className = '', style, initialQuote }: LiveSpotFeedProps) {
   const [quote, setQuote] = useState<QuoteResponse | null>(initialQuote || null);
-  const [isConnected, setIsConnected] = useState<boolean>(true);
   const [flashType, setFlashType] = useState<'up' | 'down' | null>(null);
-  const lastPriceRef = useRef<number | null>(initialQuote?.price || null);
+  const lastPriceRef = useRef<number | null>(initialQuote?.price ?? null);
 
   useEffect(() => {
     let isMounted = true;
@@ -40,30 +42,57 @@ export default function LiveSpotFeed({ className = '', style, initialQuote }: Li
 
         if (res.ok && isMounted) {
           const data: QuoteResponse = await res.json();
-          if (data && typeof data.price === 'number') {
-            if (lastPriceRef.current !== null && data.price !== lastPriceRef.current) {
+          if (data) {
+            if (typeof data.price === 'number' && lastPriceRef.current !== null && data.price !== lastPriceRef.current) {
               setFlashType(data.price >= lastPriceRef.current ? 'up' : 'down');
               setTimeout(() => {
                 if (isMounted) setFlashType(null);
               }, 300);
             }
-            lastPriceRef.current = data.price;
+            if (typeof data.price === 'number') {
+              lastPriceRef.current = data.price;
+            }
             setQuote(data);
-            setIsConnected(true);
           }
+        } else if (res.status === 401 && isMounted) {
+          setQuote(prev => ({
+            symbol: prev?.symbol || 'XAUUSD.m',
+            price: null,
+            bid: null,
+            ask: null,
+            spread: 'Unavailable',
+            spreadPips: 0,
+            delta: '—',
+            timestamp: Date.now(),
+            source: 'JUSTMARKETS_MT5_DIRECT',
+            status: 'DISCONNECTED',
+            isConnected: false,
+            message: 'Session unauthorized'
+          }));
         }
       } catch (err: unknown) {
         if (isMounted && (err as { name?: string })?.name !== 'AbortError') {
-          // If we fail multiple times without quote, mark offline
-          if (!lastPriceRef.current) {
-            setIsConnected(false);
-          }
+          setQuote(prev => ({
+            symbol: prev?.symbol || 'XAUUSD.m',
+            price: null,
+            bid: null,
+            ask: null,
+            spread: 'Unavailable',
+            spreadPips: 0,
+            delta: '—',
+            timestamp: Date.now(),
+            lastUpdated: prev?.lastUpdated || null,
+            source: 'JUSTMARKETS_MT5_DIRECT',
+            status: 'DISCONNECTED',
+            isConnected: false,
+            message: 'MT5 disconnected'
+          }));
         }
       }
     };
 
     fetchQuote();
-    const interval = setInterval(fetchQuote, 1000); // 1-second real-time polling
+    const interval = setInterval(fetchQuote, 1500);
 
     return () => {
       isMounted = false;
@@ -72,14 +101,15 @@ export default function LiveSpotFeed({ className = '', style, initialQuote }: Li
     };
   }, []);
 
-  const displayPrice = quote?.price ?? (lastPriceRef.current || 4158.52);
-  const displayBid = quote?.bid ?? Number((displayPrice - 0.13).toFixed(2));
-  const displayAsk = quote?.ask ?? Number((displayPrice + 0.13).toFixed(2));
-  const displaySpread = quote?.spread ?? '4.1 PIPS';
-  const deltaVal = quote?.delta ?? '+51.23 (+1.25%)';
-  const isNegative = deltaVal.startsWith('-');
-  const isDirectMT5 = quote?.source === 'JUSTMARKETS_MT5_DIRECT';
-  const isTradingView = quote?.source?.includes('TRADINGVIEW') ?? true;
+  const isConnected = Boolean(quote?.isConnected && typeof quote?.price === 'number' && quote?.price > 0);
+  const symbol = quote?.symbol || 'XAUUSD.m';
+  const displayPrice = isConnected && typeof quote?.price === 'number' ? quote.price : null;
+  const displayBid = isConnected && typeof quote?.bid === 'number' ? quote.bid : null;
+  const displayAsk = isConnected && typeof quote?.ask === 'number' ? quote.ask : null;
+  const displaySpread = isConnected ? quote?.spread : 'Unavailable';
+  const lastUpdateTime = quote?.lastUpdated
+    ? new Date(quote.lastUpdated).toLocaleTimeString()
+    : null;
 
   return (
     <div
@@ -87,7 +117,7 @@ export default function LiveSpotFeed({ className = '', style, initialQuote }: Li
       style={style}
       aria-label="XAUUSD Real-Time Market Panel"
     >
-      {/* Top Header: Instrument & Stream Status */}
+      {/* Top Header: Instrument & Connection Status */}
       <div style={{
         display: 'flex',
         justifyContent: 'space-between',
@@ -97,7 +127,7 @@ export default function LiveSpotFeed({ className = '', style, initialQuote }: Li
         marginBottom: '16px'
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          {/* Status Dot: Emerald Green when live, Red ONLY when offline */}
+          {/* Status Dot: Emerald Green when live broker feed active, Red when disconnected */}
           <span
             className={`dot-indicator ${isConnected ? 'live' : 'offline'}`}
             style={{
@@ -112,54 +142,32 @@ export default function LiveSpotFeed({ className = '', style, initialQuote }: Li
           />
           <div>
             <span style={{ fontSize: '13px', fontWeight: 800, letterSpacing: '0.5px', color: 'var(--text-primary)' }}>
-              XAUUSD.m
+              {symbol}
             </span>
             <span style={{ fontSize: '11px', color: 'var(--text-muted)', marginLeft: '6px' }}>
-              Spot Gold
+              Spot Gold (JustMarkets)
             </span>
           </div>
         </div>
 
-        {/* Live Source Badge */}
-        <a
-          href="https://www.tradingview.com/symbols/XAUUSD/"
-          target="_blank"
-          rel="noopener noreferrer"
+        {/* Live Broker Connection Badge */}
+        <span
           className="status-badge"
-          title="Live Gold Spot Price via TradingView (XAUUSD)"
+          title={isConnected ? 'Connected to JustMarkets MT5 session' : 'Broker feed disconnected'}
           style={{
             fontSize: '10px',
             fontFamily: 'var(--font-mono, monospace)',
             fontWeight: 700,
-            textDecoration: 'none',
             display: 'inline-flex',
             alignItems: 'center',
             gap: '4px',
-            background: isConnected
-              ? isDirectMT5
-                ? 'rgba(245, 158, 11, 0.12)'
-                : 'rgba(16, 185, 129, 0.12)'
-              : 'rgba(244, 63, 94, 0.12)',
-            color: isConnected
-              ? isDirectMT5
-                ? '#F59E0B'
-                : '#10B981'
-              : '#F43F5E',
-            border: `1px solid ${
-              isConnected
-                ? isDirectMT5
-                  ? 'rgba(245, 158, 11, 0.3)'
-                  : 'rgba(16, 185, 129, 0.3)'
-                : 'rgba(244, 63, 94, 0.3)'
-            }`
+            background: isConnected ? 'rgba(16, 185, 129, 0.12)' : 'rgba(244, 63, 94, 0.12)',
+            color: isConnected ? '#10B981' : '#F43F5E',
+            border: `1px solid ${isConnected ? 'rgba(16, 185, 129, 0.3)' : 'rgba(244, 63, 94, 0.3)'}`
           }}
         >
-          {isConnected
-            ? isDirectMT5
-              ? 'JUSTMARKETS MT5'
-              : 'TRADINGVIEW REALTIME'
-            : 'RECONNECTING...'}
-        </a>
+          {isConnected ? 'JUSTMARKETS MT5 LIVE' : 'MT5 DISCONNECTED'}
+        </span>
       </div>
 
       {/* Primary Quote Display */}
@@ -168,33 +176,39 @@ export default function LiveSpotFeed({ className = '', style, initialQuote }: Li
           Mid Market Price (USD)
         </div>
         <div style={{ display: 'flex', alignItems: 'baseline', gap: '12px' }}>
-          <div
-            className="mono-nums"
-            style={{
-              fontSize: '34px',
-              fontWeight: 800,
-              lineHeight: 1.1,
-              color: flashType === 'up'
-                ? '#10B981'
-                : flashType === 'down'
-                ? '#F43F5E'
-                : 'var(--text-primary)',
-              transition: 'color 0.15s ease'
-            }}
-          >
-            ${displayPrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-          </div>
-          <div
-            className="mono-nums"
-            style={{
-              fontSize: '13px',
-              fontWeight: 700,
-              color: isNegative ? '#F43F5E' : '#10B981'
-            }}
-          >
-            {deltaVal}
-          </div>
+          {isConnected && displayPrice !== null ? (
+            <div
+              className="mono-nums"
+              style={{
+                fontSize: '34px',
+                fontWeight: 800,
+                lineHeight: 1.1,
+                color: flashType === 'up'
+                  ? '#10B981'
+                  : flashType === 'down'
+                  ? '#F43F5E'
+                  : 'var(--text-primary)',
+                transition: 'color 0.15s ease'
+              }}
+            >
+              ${displayPrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+              <div style={{ fontSize: '22px', fontWeight: 700, color: '#F43F5E' }}>
+                Data unavailable
+              </div>
+              <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
+                Reconnecting to MT5 broker feed...
+              </div>
+            </div>
+          )}
         </div>
+        {lastUpdateTime && (
+          <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>
+            Last broker quote update: {lastUpdateTime}
+          </div>
+        )}
       </div>
 
       {/* Bid / Ask Breakdown */}
@@ -205,7 +219,9 @@ export default function LiveSpotFeed({ className = '', style, initialQuote }: Li
             <span style={{ fontSize: '9px', fontWeight: 700, color: '#10B981' }}>SELL</span>
           </div>
           <div className="mono-nums" style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)' }}>
-            ${displayBid.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            {isConnected && displayBid !== null
+              ? `$${displayBid.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+              : '—'}
           </div>
         </div>
 
@@ -215,7 +231,9 @@ export default function LiveSpotFeed({ className = '', style, initialQuote }: Li
             <span style={{ fontSize: '9px', fontWeight: 700, color: '#F59E0B' }}>BUY</span>
           </div>
           <div className="mono-nums" style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)' }}>
-            ${displayAsk.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            {isConnected && displayAsk !== null
+              ? `$${displayAsk.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+              : '—'}
           </div>
         </div>
       </div>
@@ -232,26 +250,26 @@ export default function LiveSpotFeed({ className = '', style, initialQuote }: Li
         gap: '8px'
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ color: 'var(--text-secondary)' }}>Calculated Spread</span>
-          <span className="mono-nums" style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
+          <span style={{ color: 'var(--text-secondary)' }}>Broker Spread</span>
+          <span className="mono-nums" style={{ fontWeight: 600, color: isConnected ? 'var(--text-primary)' : 'var(--text-muted)' }}>
             {displaySpread}
           </span>
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ color: 'var(--text-secondary)' }}>Trading Session</span>
-          <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>
-            London / NY Active
+          <span style={{ color: 'var(--text-secondary)' }}>Broker Gateway</span>
+          <span style={{ color: isConnected ? 'var(--accent-green)' : 'var(--accent-red)', fontWeight: 600 }}>
+            {isConnected ? 'Connected (JustMarkets MT5)' : 'Disconnected'}
           </span>
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ color: 'var(--text-secondary)' }}>Model Regime</span>
-          <span style={{ color: 'var(--accent-gold)', fontWeight: 600 }}>
-            Trend Continuation
+          <span style={{ color: 'var(--text-secondary)' }}>Connection Mode</span>
+          <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>
+            Non-Custodial Read-Only
           </span>
         </div>
       </div>
 
-      {/* Footer Broker & TradingView Transparency */}
+      {/* Footer Broker Transparency */}
       <div style={{
         marginTop: '14px',
         fontSize: '11px',
@@ -262,15 +280,10 @@ export default function LiveSpotFeed({ className = '', style, initialQuote }: Li
         justifyContent: 'space-between',
         alignItems: 'center'
       }}>
-        <span>Execution: JustMarkets MT5</span>
-        <a
-          href="https://www.tradingview.com/symbols/XAUUSD/"
-          target="_blank"
-          rel="noopener noreferrer"
-          style={{ color: 'var(--accent-gold)', textDecoration: 'none', fontWeight: 600 }}
-        >
-          TradingView XAUUSD &rarr;
-        </a>
+        <span>Execution Broker: JustMarkets Ltd</span>
+        <span style={{ color: isConnected ? 'var(--accent-green)' : 'var(--text-muted)', fontWeight: 600 }}>
+          {isConnected ? 'Telemetry Verified' : 'Awaiting Connection'}
+        </span>
       </div>
     </div>
   );

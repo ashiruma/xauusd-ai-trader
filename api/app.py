@@ -164,87 +164,109 @@ async def get_market_state():
     return coordinator.latest_market_state.model_dump() if coordinator.latest_market_state else {}
 
 
-class HighFrequencySpotSimulator:
-    """High-frequency spot feed generator providing sub-second micro-ticks and realistic spreads."""
-    def __init__(self, anchor_price: float = 4144.06):
-        self.anchor_price = anchor_price
-        self.current_price = anchor_price
-        self.prev_price = anchor_price
-        self.recent_ticks: List[Dict[str, Any]] = []
-
-    def get_tick(self) -> Dict[str, Any]:
-        now = datetime.now(timezone.utc)
-        drift = (self.anchor_price - self.current_price) * 0.08
-        jitter = random.uniform(-0.06, 0.06)
-        self.prev_price = self.current_price
-        self.current_price = round(self.current_price + drift + jitter, 2)
-        spread_usd = round(random.uniform(0.22, 0.28), 2)
-        spread_points = round(spread_usd / 0.01, 1)
-        spread_pips = round(spread_usd * 10, 1)
-        bid = round(self.current_price - spread_usd / 2.0, 2)
-        ask = round(self.current_price + spread_usd / 2.0, 2)
-        tick_data = {
-            "symbol": "XAUUSD",
-            "price": self.current_price,
-            "bid": bid,
-            "ask": ask,
-            "spread_points": spread_points,
-            "spread_pips": spread_pips,
-            "spread_usd": spread_usd,
-            "delta": round(self.current_price - self.prev_price, 2),
-            "timestamp": now.isoformat(),
-            "time_ms": int(now.timestamp() * 1000)
-        }
-        self.recent_ticks.append(tick_data)
-        if len(self.recent_ticks) > 60:
-            self.recent_ticks.pop(0)
-        return tick_data
-
-
-hf_spot_sim = HighFrequencySpotSimulator(4144.06)
+# Real-time broker quote and telemetry cache
+_last_known_broker_tick: Optional[Dict[str, Any]] = None
+_recent_real_ticks: List[Dict[str, Any]] = []
 
 
 @app.get("/api/market/quote")
 async def get_market_quote():
-    """Live XAUUSD spot market quote with millisecond-resolution telemetry."""
+    """Broker-sourced XAUUSD spot market quote with verified connection telemetry."""
+    global _last_known_broker_tick, _recent_real_ticks
     coordinator.refresh_market_quote()
     adapter = coordinator.get_active_adapter()
-    acc = adapter.get_account_info() if adapter and adapter.is_connected() else {}
-    st = coordinator.latest_market_state
-    
-    # Check if active adapter is MT5 and actively streaming live ticks
+    is_live = (settings.trading_mode == TradingMode.LIVE)
+    now_iso = datetime.now(timezone.utc).isoformat()
+    now_ms = int(datetime.now(timezone.utc).timestamp() * 1000)
+
+    # In live mode, only MT5 connection is the single source of truth
+    is_connected = bool(adapter and adapter.is_connected())
+    active_symbol = getattr(adapter, "_symbol", "XAUUSD.m") if adapter else "XAUUSD.m"
+    acc = adapter.get_account_info() if is_connected else {}
+
     has_live_broker_tick = False
-    if adapter and adapter.is_connected() and hasattr(adapter, "get_quote"):
-        q = adapter.get_quote()
-        if q and q.get("bid", 0) > 0 and q.get("ask", 0) > 0:
-            bid = q["bid"]
-            ask = q["ask"]
+    bid = None
+    ask = None
+    current_price = None
+    spread_points = None
+    spread_pips = None
+    spread_usd = None
+
+    if is_connected and hasattr(adapter, "get_quote"):
+        try:
+            q = adapter.get_quote(active_symbol)
+            if q and q.get("bid", 0) > 0 and q.get("ask", 0) > 0:
+                bid = round(float(q["bid"]), 2)
+                ask = round(float(q["ask"]), 2)
+                current_price = round((bid + ask) / 2.0, 2)
+                spread_points = q.get("spread_points", round((ask - bid) / 0.01, 1))
+                spread_pips = round(spread_points / 10.0, 1)
+                spread_usd = round(ask - bid, 2)
+                has_live_broker_tick = True
+
+                tick_data = {
+                    "symbol": active_symbol,
+                    "price": current_price,
+                    "bid": bid,
+                    "ask": ask,
+                    "spread_points": spread_points,
+                    "spread_pips": spread_pips,
+                    "spread_usd": spread_usd,
+                    "timestamp": now_iso,
+                    "time_ms": now_ms
+                }
+                _last_known_broker_tick = tick_data
+                _recent_real_ticks.append(tick_data)
+                if len(_recent_real_ticks) > 60:
+                    _recent_real_ticks.pop(0)
+        except Exception as e:
+            logger.debug(f"Error reading live broker quote: {e}")
+
+    # Fallback to feed only if in paper mode and tick was recorded
+    if not has_live_broker_tick and not is_live and coordinator.feed.current_quote:
+        feed_q = coordinator.feed.current_quote
+        if feed_q.bid > 0 and feed_q.ask > 0:
+            bid = round(feed_q.bid, 2)
+            ask = round(feed_q.ask, 2)
             current_price = round((bid + ask) / 2.0, 2)
-            spread_points = q.get("spread_points", round((ask - bid) / 0.01, 1))
+            spread_points = feed_q.spread_points
             spread_pips = round(spread_points / 10.0, 1)
             spread_usd = round(ask - bid, 2)
             has_live_broker_tick = True
-            
+
+    st = coordinator.latest_market_state
+    regime = st.regime.value if (st and hasattr(st.regime, "value")) else (str(st.regime) if st else ("TREND_UP" if has_live_broker_tick else "UNKNOWN"))
+    trend_desc = st.trend_description if (st and st.trend_description) else ("Multi-model alignment confirmed across session liquidity pools with hard stop-loss guardrails." if has_live_broker_tick else "Broker feed disconnected. Market telemetry unavailable.")
+
     if not has_live_broker_tick:
-        sim_tick = hf_spot_sim.get_tick()
-        bid = sim_tick["bid"]
-        ask = sim_tick["ask"]
-        current_price = sim_tick["price"]
-        spread_points = sim_tick["spread_points"]
-        spread_pips = sim_tick["spread_pips"]
-        spread_usd = sim_tick["spread_usd"]
-    
-    regime = st.regime.value if (st and hasattr(st.regime, "value")) else (str(st.regime) if st else "TREND_UP")
-    trend_desc = st.trend_description if (st and st.trend_description) else "Multi-model alignment confirmed across session liquidity pools with hard stop-loss guardrails."
-    now_iso = datetime.now(timezone.utc).isoformat()
-    
+        return {
+            "success": False,
+            "symbol": active_symbol,
+            "broker": "JustMarkets MT5",
+            "server": None,
+            "login": None,
+            "is_connected": False,
+            "status": "MT5_DISCONNECTED",
+            "current_price": None,
+            "bid": None,
+            "ask": None,
+            "spread_points": None,
+            "spread_pips": None,
+            "spread_usd": None,
+            "regime": "UNKNOWN",
+            "trend_description": "Broker feed disconnected. Market telemetry unavailable.",
+            "last_updated": _last_known_broker_tick.get("timestamp") if _last_known_broker_tick else None,
+            "timestamp": now_iso
+        }
+
     return {
         "success": True,
-        "symbol": "XAUUSD",
+        "symbol": active_symbol,
         "broker": "JustMarkets MT5",
-        "server": acc.get("server", "JustMarkets-Demo3"),
-        "login": acc.get("login", 1200533810),
-        "is_connected": adapter.is_connected() if adapter else True,
+        "server": acc.get("server"),
+        "login": acc.get("login"),
+        "is_connected": is_connected,
+        "status": "CONNECTED",
         "current_price": current_price,
         "bid": bid,
         "ask": ask,
@@ -259,22 +281,45 @@ async def get_market_quote():
 
 @app.get("/api/market/ticks")
 async def get_market_ticks():
-    """Recent high-frequency microsecond ticks."""
+    """Recent high-frequency ticks returned strictly from broker feed."""
+    adapter = coordinator.get_active_adapter()
+    is_connected = bool(adapter and adapter.is_connected())
+    active_symbol = getattr(adapter, "_symbol", "XAUUSD.m") if adapter else "XAUUSD.m"
+    if not is_connected or not _recent_real_ticks:
+        return {
+            "success": is_connected,
+            "symbol": active_symbol,
+            "is_connected": is_connected,
+            "status": "CONNECTED" if is_connected else "MT5_DISCONNECTED",
+            "ticks": _recent_real_ticks[-30:] if _recent_real_ticks else []
+        }
+
     return {
         "success": True,
-        "symbol": "XAUUSD",
-        "ticks": hf_spot_sim.recent_ticks[-30:] if hf_spot_sim.recent_ticks else [hf_spot_sim.get_tick()]
+        "symbol": active_symbol,
+        "is_connected": True,
+        "status": "CONNECTED",
+        "ticks": _recent_real_ticks[-30:]
     }
 
 
 @app.get("/api/market/stream")
 async def get_market_stream():
-    """Server-Sent Events (SSE) high-frequency tick stream."""
+    """Server-Sent Events (SSE) streaming real broker ticks only."""
     async def sse_event_stream():
         while True:
-            tick = hf_spot_sim.get_tick()
-            yield f"data: {json.dumps(tick)}\n\n"
-            await asyncio.sleep(0.12)
+            adapter = coordinator.get_active_adapter()
+            is_connected = bool(adapter and adapter.is_connected())
+            if is_connected and _last_known_broker_tick:
+                yield f"data: {json.dumps(_last_known_broker_tick)}\n\n"
+            else:
+                heartbeat = {
+                    "is_connected": False,
+                    "status": "MT5_DISCONNECTED",
+                    "timestamp": datetime.now(timezone.utc).isoformat()
+                }
+                yield f"data: {json.dumps(heartbeat)}\n\n"
+            await asyncio.sleep(1.0)
     return StreamingResponse(sse_event_stream(), media_type="text/event-stream")
 
 
@@ -383,21 +428,43 @@ class PartnerVerificationRequest(BaseModel):
 
 @app.get("/api/account/info")
 async def get_account_info():
-    """Returns current active broker account info and minimum deposit policy."""
+    """Returns verified broker account info or disconnected state."""
     is_live = (settings.trading_mode == TradingMode.LIVE)
-    acc = coordinator.mt5_adapter.get_account_info() if is_live else coordinator.paper_adapter.get_account_info()
+    if is_live:
+        is_connected = coordinator.mt5_adapter.is_connected()
+        acc = coordinator.mt5_adapter.get_account_info() if is_connected else {}
+        equity = acc.get("equity", 0.0) if is_connected else 0.0
+        balance = acc.get("balance", 0.0) if is_connected else 0.0
+        margin_free = acc.get("margin_free", 0.0) if is_connected else 0.0
+        return {
+            "login": acc.get("login") if is_connected else None,
+            "server": acc.get("server") if is_connected else None,
+            "company": acc.get("company", "Just Global Markets Ltd.") if is_connected else "JustMarkets MT5 (Disconnected)",
+            "symbol": coordinator.mt5_adapter._symbol if is_connected else (coordinator.mt5_adapter._symbol or "XAUUSD.m"),
+            "is_connected": is_connected,
+            "status": "CONNECTED" if is_connected else "MT5_DISCONNECTED",
+            "trading_mode": settings.trading_mode.value,
+            "balance": balance,
+            "equity": equity,
+            "margin_free": margin_free,
+            "min_deposit_required": settings.risk.min_guest_deposit_usd,
+            "deposit_compliant": (equity >= settings.risk.min_guest_deposit_usd) if is_connected else False
+        }
+
+    acc = coordinator.paper_adapter.get_account_info()
     return {
-        "login": acc.get("login") or settings.mt5.login if is_live else "PAPER_SIMULATOR",
-        "server": acc.get("server") or settings.mt5.server if is_live else "INTERNAL_PAPER",
-        "company": acc.get("company", "Just Global Markets Ltd.") if is_live else "Paper Simulation",
-        "symbol": coordinator.mt5_adapter._symbol if is_live else "XAUUSD",
-        "is_connected": coordinator.mt5_adapter.is_connected() if is_live else True,
+        "login": "PAPER_SIMULATOR",
+        "server": "INTERNAL_PAPER",
+        "company": "Paper Simulation (Demo / Paper Preview)",
+        "symbol": "XAUUSD",
+        "is_connected": True,
+        "status": "PAPER_MODE",
         "trading_mode": settings.trading_mode.value,
         "balance": acc.get("balance", 0.0),
         "equity": acc.get("equity", 0.0),
         "margin_free": acc.get("margin_free", 0.0),
         "min_deposit_required": settings.risk.min_guest_deposit_usd,
-        "deposit_compliant": (acc.get("equity", 0.0) >= settings.risk.min_guest_deposit_usd) if is_live else True
+        "deposit_compliant": True
     }
 
 
@@ -1177,9 +1244,23 @@ async def stop_live_trading():
 @app.get("/api/positions")
 async def get_positions():
     adapter = coordinator.get_active_adapter()
+    is_live = (settings.trading_mode == TradingMode.LIVE)
+    is_connected = bool(adapter and adapter.is_connected())
+
+    if is_live and not is_connected:
+        return {
+            "count": 0,
+            "positions": [],
+            "is_connected": False,
+            "status": "MT5_DISCONNECTED"
+        }
+
+    raw_positions = adapter.get_open_positions() if adapter else []
     return {
-        "count": len(adapter.get_open_positions()),
-        "positions": [p.model_dump() for p in adapter.get_open_positions()]
+        "count": len(raw_positions),
+        "positions": [p.model_dump() for p in raw_positions],
+        "is_connected": is_connected,
+        "status": "CONNECTED" if is_connected else "PAPER_MODE"
     }
 
 
@@ -1208,8 +1289,10 @@ async def get_candles_history(timeframe: str = "M15", count: int = 300):
         "D1": TimeFrame.D1
     }
     selected_tf = tf_map.get(tf_upper, TimeFrame.M15)
-    
-    # Try fetching directly from MT5 if connected and live
+    is_live = (settings.trading_mode == TradingMode.LIVE)
+    broker_symbol = getattr(coordinator.mt5_adapter, "_symbol", "XAUUSD.m") or "XAUUSD.m"
+
+    # Fetch directly from MT5 if connected
     candles_list: List[Candle] = []
     if coordinator.mt5_adapter.is_connected():
         try:
@@ -1223,12 +1306,12 @@ async def get_candles_history(timeframe: str = "M15", count: int = 300):
                 "D1": mt5.TIMEFRAME_D1
             }
             target_mt5_tf = mt5_tf_map.get(tf_upper, mt5.TIMEFRAME_M15)
-            rates = mt5.copy_rates_from_pos(coordinator.mt5_adapter._symbol, target_mt5_tf, 0, count)
+            rates = mt5.copy_rates_from_pos(broker_symbol, target_mt5_tf, 0, count)
             if rates is not None and len(rates) > 0:
                 for r in rates:
                     dt = datetime.fromtimestamp(int(r['time']), tz=timezone.utc)
                     candles_list.append(Candle(
-                        symbol="XAUUSD",
+                        symbol=broker_symbol,
                         timeframe=selected_tf,
                         timestamp=dt,
                         open=float(r['open']),
@@ -1238,25 +1321,41 @@ async def get_candles_history(timeframe: str = "M15", count: int = 300):
                         volume=float(r['tick_volume'])
                     ))
         except Exception as e:
-            logger.debug(f"Direct MT5 candle pull fallback: {e}")
+            logger.debug(f"Direct MT5 candle pull: {e}")
 
-    # Fallback to feed cache if direct MT5 query had no rates
+    # In live mode, MT5 is the single source of truth. Do not substitute historical CSV if disconnected.
+    if is_live and not coordinator.mt5_adapter.is_connected():
+        return {
+            "symbol": broker_symbol,
+            "timeframe": tf_upper,
+            "count": 0,
+            "candles": [],
+            "status": "MT5_DISCONNECTED",
+            "is_connected": False,
+            "message": "MT5 disconnected. Live candles unavailable."
+        }
+
+    # Fallback to feed cache or broker real historical sync csv in paper/demo mode
     if not candles_list:
         candles_list = coordinator.feed.get_candles(selected_tf, count=count)
 
-    # Secondary fallbacks if feed buffer is still empty
-    if not candles_list and selected_tf == TimeFrame.M15:
+    if not candles_list:
         real_csv = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data", "historical", "xauusd_broker_real.csv")
         if os.path.exists(real_csv):
             from scripts.broker_data_sync import load_from_csv
             all_candles = load_from_csv(real_csv)
-            coordinator.feed.load_historical_candles(TimeFrame.M15, all_candles[-count:])
-            candles_list = coordinator.feed.get_candles(TimeFrame.M15, count=count)
-        else:
-            from data.feed import MarketDataEngine
-            sim = MarketDataEngine.generate_synthetic_data(num_days=10, base_price=2650.0)
-            coordinator.feed.load_historical_candles(TimeFrame.M15, sim.get_candles(TimeFrame.M15, count))
-            candles_list = coordinator.feed.get_candles(TimeFrame.M15, count=count)
+            coordinator.feed.load_historical_candles(selected_tf, all_candles[-count:])
+            candles_list = coordinator.feed.get_candles(selected_tf, count=count)
+
+    if not candles_list:
+        return {
+            "symbol": broker_symbol,
+            "timeframe": tf_upper,
+            "count": 0,
+            "candles": [],
+            "status": "UNAVAILABLE",
+            "is_connected": False
+        }
 
     # Strictly sort by unix timestamp ascending and remove any duplicates
     seen_times = set()

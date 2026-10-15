@@ -21,7 +21,7 @@ interface TradeEngineData {
   isLiveBrokerConnection: boolean;
   broker: string;
   accountNumber: string;
-  currentSpotPrice: number;
+  currentSpotPrice: number | null;
   dataFreshness: string;
   timeZone: string;
   autoTradingEnabled: boolean;
@@ -37,6 +37,7 @@ interface TradeEngineData {
     dailyTargetPct: number;
   };
   activePosition: LivePosition | null;
+  positions: LivePosition[];
   recentTrades: ExecutedTrade[];
   executionModelConsensus: {
     smcLiquiditySweep: { signal: string; confidence: number; reason: string };
@@ -53,6 +54,7 @@ export default function LiveTradingEngine() {
   const [actionMessage, setActionMessage] = useState<string | null>(null);
   const [showWhyModal, setShowWhyModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [showBridgeModal, setShowBridgeModal] = useState(false);
 
   // User safety settings state
   const [settings, setSettings] = useState<TradingSettingsState>({
@@ -97,7 +99,7 @@ export default function LiveTradingEngine() {
   useEffect(() => {
     fetchTradeData();
     fetchSettings();
-    const interval = setInterval(fetchTradeData, 1500);
+    const interval = setInterval(fetchTradeData, 3000);
     return () => clearInterval(interval);
   }, []);
 
@@ -125,43 +127,22 @@ export default function LiveTradingEngine() {
 
   const handleToggleEmergencyKillSwitch = async () => {
     const nextPaused = !settings.isEmergencyPaused;
-    await handleSaveSettings({ isEmergencyPaused: nextPaused });
+    setActionLoading(true);
+    try {
+      await fetch('/api/trades/live', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'toggleEmergencyPause', paused: nextPaused })
+      });
+      await handleSaveSettings({ isEmergencyPaused: nextPaused });
+    } finally {
+      setActionLoading(false);
+    }
   };
 
   const handleRevokeAuthorization = async () => {
     if (confirm('Are you sure you want to revoke automated trading authorization? No automated orders will be submitted.')) {
       await handleSaveSettings({ isAutomatedTradingAuthorized: false });
-    }
-  };
-
-  const handleExecuteNextSetup = async () => {
-    if (!settings.isAutomatedTradingAuthorized && !settings.isEmergencyPaused) {
-      alert('Automated trading authorization required. Please review and authorize in Trading Settings first.');
-      setShowSettingsModal(true);
-      return;
-    }
-    if (settings.isEmergencyPaused) {
-      alert('Emergency Kill Switch is currently active. Please deactivate the kill switch before executing orders.');
-      return;
-    }
-
-    setActionLoading(true);
-    try {
-      const res = await fetch('/api/trades/live', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'executeNextSetup', lots: settings.maxLots })
-      });
-      if (res.ok) {
-        const json = await res.json();
-        setActionMessage(json.message);
-        setTimeout(() => setActionMessage(null), 4000);
-        await fetchTradeData();
-      }
-    } catch {
-      // ignore
-    } finally {
-      setActionLoading(false);
     }
   };
 
@@ -173,6 +154,7 @@ export default function LiveTradingEngine() {
     );
   }
 
+  const isConnected = Boolean(data?.isLiveBrokerConnection && data?.status === 'ONLINE');
   const pos = data?.activePosition;
   const acc = data?.account;
   const isPosProfit = (pos?.pnl || 0) >= 0;
@@ -180,10 +162,10 @@ export default function LiveTradingEngine() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-      {/* Simulation / Environment Transparency Banner */}
+      {/* Environment & Connection Banner */}
       <div style={{
-        background: 'var(--bg-surface-1)',
-        border: '1px solid var(--border-default)',
+        background: isConnected ? 'var(--bg-surface-1)' : 'rgba(244, 63, 94, 0.08)',
+        border: `1px solid ${isConnected ? 'var(--border-default)' : 'rgba(244, 63, 94, 0.3)'}`,
         borderRadius: 'var(--radius-md)',
         padding: '14px 20px',
         display: 'flex',
@@ -193,20 +175,28 @@ export default function LiveTradingEngine() {
         gap: '12px'
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span className="status-badge status-warning" style={{ fontSize: '10.5px' }}>
-            {data?.environment || 'DEMO / PAPER PREVIEW'}
+          <span className={`status-badge ${isConnected ? 'status-completed' : 'status-danger'}`} style={{ fontSize: '10.5px' }}>
+            {isConnected ? 'JUSTMARKETS MT5 LIVE' : 'MT5 DISCONNECTED'}
           </span>
           <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
-            Broker Feed: <strong>{data?.broker}</strong> &bull; Freshness: <code className="mono-nums" style={{ color: 'var(--accent-green)' }}>{data?.dataFreshness}</code> ({data?.timeZone})
+            Broker: <strong>{data?.broker}</strong> &bull; Account: <strong className="mono-nums">#{data?.accountNumber}</strong> &bull; Connection: <span style={{ color: isConnected ? 'var(--accent-green)' : 'var(--accent-red)', fontWeight: 600 }}>{isConnected ? 'Active' : 'Offline / Reconnecting'}</span>
           </span>
         </div>
 
         <div style={{ display: 'flex', gap: '8px' }}>
           <button
             type="button"
+            onClick={() => setShowBridgeModal(true)}
+            className="btn btn-secondary"
+            style={{ fontSize: '11.5px', padding: '6px 12px' }}
+          >
+            Bridge Architecture &rarr;
+          </button>
+          <button
+            type="button"
             onClick={() => setShowSettingsModal(true)}
             className="btn btn-outline-gold"
-            style={{ fontSize: '12px', padding: '6px 12px' }}
+            style={{ fontSize: '11.5px', padding: '6px 12px' }}
           >
             Trading Safety Settings &rarr;
           </button>
@@ -243,7 +233,7 @@ export default function LiveTradingEngine() {
                 {settings.isEmergencyPaused
                   ? 'EMERGENCY KILL SWITCH: ALL TRADING PAUSED'
                   : settings.isAutomatedTradingAuthorized
-                  ? 'AUTOMATED TRADING: AUTHORIZED & ACTIVE'
+                  ? 'AUTOMATED TRADING: AUTHORIZED & ARMED'
                   : 'AUTOMATED TRADING: UNAUTHORIZED (MONITORING ONLY)'}
               </span>
             </div>
@@ -270,13 +260,13 @@ export default function LiveTradingEngine() {
             </button>
 
             <button
-              onClick={handleExecuteNextSetup}
-              disabled={actionLoading || settings.isEmergencyPaused}
+              onClick={() => setShowSettingsModal(true)}
+              disabled={actionLoading}
               type="button"
               className="btn btn-primary"
               style={{ fontSize: '12px', padding: '8px 14px' }}
             >
-              Dispatch Consensus Setup &rarr;
+              Configure Execution Safety &rarr;
             </button>
           </div>
         </div>
@@ -294,22 +284,22 @@ export default function LiveTradingEngine() {
               Account Balance
             </div>
             <div className="mono-nums" style={{ fontSize: '20px', fontWeight: 800, color: 'var(--text-primary)', marginTop: '4px' }}>
-              ${acc?.balance.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+              {isConnected && acc?.balance ? `$${acc.balance.toLocaleString('en-US', { minimumFractionDigits: 2 })}` : '—'}
             </div>
             <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '2px' }}>
-              Initial: ${acc?.initialDeposit.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+              {isConnected ? 'Verified JustMarkets Balance' : 'Awaiting Broker Feed'}
             </div>
           </div>
 
           <div style={{ background: 'var(--bg-surface-1)', padding: '14px 16px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-default)' }}>
             <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-              Realized Strategy Gain
+              Realized Session Gain
             </div>
             <div className="mono-nums" style={{ fontSize: '20px', fontWeight: 800, color: 'var(--accent-green)', marginTop: '4px' }}>
-              +${acc?.totalProfit.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+              {isConnected ? `+$${(acc?.totalProfit || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}` : '—'}
             </div>
             <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '2px' }}>
-              +{acc?.totalPipsBanked} Net Pips Banked
+              {isConnected ? `+${acc?.totalPipsBanked || 0} Net Pips Banked` : 'Awaiting Broker Feed'}
             </div>
           </div>
 
@@ -318,22 +308,22 @@ export default function LiveTradingEngine() {
               Floating Unrealized PnL
             </div>
             <div className="mono-nums" style={{ fontSize: '20px', fontWeight: 800, color: isPosProfit ? 'var(--accent-green)' : 'var(--accent-red)', marginTop: '4px' }}>
-              {isPosProfit ? '+' : ''}${acc?.openPnl.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+              {isConnected ? `${isPosProfit ? '+' : ''}${(acc?.openPnl || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}` : '—'}
             </div>
             <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '2px' }}>
-              Equity: ${acc?.equity.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+              {isConnected ? `Equity: $${(acc?.equity || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}` : 'Awaiting Broker Feed'}
             </div>
           </div>
 
           <div style={{ background: 'var(--bg-surface-1)', padding: '14px 16px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-default)' }}>
             <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-              Historical Win Rate
+              Session Win Rate
             </div>
             <div className="mono-nums" style={{ fontSize: '20px', fontWeight: 800, color: 'var(--accent-gold)', marginTop: '4px' }}>
-              {acc?.winRate}%
+              {isConnected && (acc?.totalTrades || 0) > 0 ? `${acc?.winRate}%` : '—'}
             </div>
             <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '2px' }}>
-              Sample: {acc?.totalTrades} Closed Executions
+              {isConnected ? `${acc?.totalTrades || 0} Closed Executions` : 'Awaiting Broker Feed'}
             </div>
           </div>
         </div>
@@ -382,18 +372,22 @@ export default function LiveTradingEngine() {
 
             <div style={{ background: 'var(--bg-surface-1)', padding: '10px 12px', borderRadius: 'var(--radius-xs)', border: '1px solid var(--border-subtle)' }}>
               <div style={{ fontSize: '10.5px', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Stop Loss (SL)</div>
-              <div className="mono-nums val-bear" style={{ fontWeight: 700, marginTop: '2px' }}>${pos.stopLoss.toFixed(2)}</div>
+              <div className="mono-nums val-bear" style={{ fontWeight: 700, marginTop: '2px' }}>
+                {pos.stopLoss > 0 ? `$${pos.stopLoss.toFixed(2)}` : 'None'}
+              </div>
             </div>
 
             <div style={{ background: 'var(--bg-surface-1)', padding: '10px 12px', borderRadius: 'var(--radius-xs)', border: '1px solid var(--border-subtle)' }}>
               <div style={{ fontSize: '10.5px', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Take Profit (TP)</div>
-              <div className="mono-nums val-bull" style={{ fontWeight: 700, marginTop: '2px' }}>${pos.takeProfit.toFixed(2)}</div>
+              <div className="mono-nums val-bull" style={{ fontWeight: 700, marginTop: '2px' }}>
+                {pos.takeProfit > 0 ? `$${pos.takeProfit.toFixed(2)}` : 'None'}
+              </div>
             </div>
 
             <div style={{ background: 'var(--bg-surface-1)', padding: '10px 12px', borderRadius: 'var(--radius-xs)', border: '1px solid var(--border-subtle)' }}>
               <div style={{ fontSize: '10.5px', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Capital Risk Exposure</div>
               <div className="mono-nums" style={{ fontWeight: 700, marginTop: '2px', color: 'var(--text-primary)' }}>
-                ${pos.riskExposureUsd.toFixed(2)} ({pos.riskExposurePct}%)
+                ${pos.riskExposureUsd.toFixed(2)}
               </div>
             </div>
           </div>
@@ -401,27 +395,24 @@ export default function LiveTradingEngine() {
           {/* Educational Alignment Callout */}
           <div style={{ padding: '12px 16px', background: 'var(--bg-surface-2)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-default)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
             <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
-              <strong style={{ color: 'var(--accent-gold)' }}>Model &amp; Curriculum Alignment:</strong> Triggered by <strong>{pos.strategy}</strong> ({pos.lessonReference}).
+              <strong style={{ color: 'var(--accent-gold)' }}>Strategy:</strong> {pos.strategy} &bull; Ticket #{pos.ticket}
             </div>
             <Link href="/academy" style={{ fontSize: '12px', color: 'var(--accent-gold)', fontWeight: 700, textDecoration: 'none' }}>
-              Review Lesson Strategy &rarr;
+              Review Curriculum &rarr;
             </Link>
           </div>
         </div>
       ) : (
         <div className="panel-card" style={{ padding: '24px', textAlign: 'center' }}>
-          <div style={{ fontSize: '14px', color: 'var(--text-secondary)', marginBottom: '12px' }}>
-            Scanning XAUUSD market structure for quantitative entry signal...
+          <div style={{ fontSize: '14px', color: 'var(--text-primary)', fontWeight: 700, marginBottom: '6px' }}>
+            No Active Open Positions
           </div>
-          <button
-            onClick={handleExecuteNextSetup}
-            disabled={actionLoading || settings.isEmergencyPaused}
-            type="button"
-            className="btn btn-primary"
-            style={{ fontSize: '12px' }}
-          >
-            Dispatch Next Consensus Setup Now
-          </button>
+          <div style={{ fontSize: '12.5px', color: 'var(--text-secondary)', maxWidth: '500px', margin: '0 auto 12px' }}>
+            The connected JustMarkets MT5 account currently reports zero active positions. Orders placed by the trading engine will appear here in real-time.
+          </div>
+          <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
+            MT5 Gateway: {isConnected ? 'Streaming Direct Quotes' : 'Awaiting Connection'} &bull; Non-Custodial
+          </div>
         </div>
       )}
 
@@ -433,7 +424,7 @@ export default function LiveTradingEngine() {
               Recent Order Execution History
             </h3>
             <p style={{ fontSize: '12px', color: 'var(--text-secondary)', margin: '4px 0 0' }}>
-              Sample trades executed on Spot Gold. Simulated historical results are hypothetical and do not guarantee future performance.
+              Closed executions verified from the connected JustMarkets MT5 account session.
             </p>
           </div>
           <span className="status-badge status-neutral">
@@ -441,47 +432,52 @@ export default function LiveTradingEngine() {
           </span>
         </div>
 
-        <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12.5px', textAlign: 'left' }}>
-            <thead>
-              <tr style={{ borderBottom: '1px solid var(--border-default)', color: 'var(--text-muted)' }}>
-                <th style={{ padding: '8px 10px' }}>Ticket</th>
-                <th style={{ padding: '8px 10px' }}>Strategy Model</th>
-                <th style={{ padding: '8px 10px' }}>Side / Lots</th>
-                <th style={{ padding: '8px 10px' }}>Entry &rarr; Exit</th>
-                <th style={{ padding: '8px 10px' }}>Pips</th>
-                <th style={{ padding: '8px 10px', textAlign: 'right' }}>Net PnL (USD)</th>
-              </tr>
-            </thead>
-            <tbody>
-              {data?.recentTrades.map((t) => (
-                <tr key={t.id} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
-                  <td className="mono-nums" style={{ padding: '10px', color: 'var(--text-muted)' }}>
-                    #{t.ticket}
-                  </td>
-                  <td style={{ padding: '10px' }}>
-                    <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{t.strategy}</div>
-                    <div style={{ fontSize: '11px', color: 'var(--accent-gold)' }}>{t.lessonReference}</div>
-                  </td>
-                  <td style={{ padding: '10px' }}>
-                    <span className={`status-badge ${t.type === 'BUY' ? 'status-completed' : 'status-danger'}`} style={{ fontSize: '10.5px' }}>
-                      {t.type} {t.lots}
-                    </span>
-                  </td>
-                  <td className="mono-nums" style={{ padding: '10px' }}>
-                    ${t.entryPrice.toFixed(2)} &rarr; ${t.exitPrice.toFixed(2)}
-                  </td>
-                  <td className="mono-nums val-bull" style={{ padding: '10px', fontWeight: 600 }}>
-                    +{t.pips.toFixed(1)}
-                  </td>
-                  <td className="mono-nums val-bull" style={{ padding: '10px', textAlign: 'right', fontWeight: 800 }}>
-                    +${t.pnl.toFixed(2)}
-                  </td>
+        {data?.recentTrades && data.recentTrades.length > 0 ? (
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12.5px', textAlign: 'left' }}>
+              <thead>
+                <tr style={{ borderBottom: '1px solid var(--border-default)', color: 'var(--text-muted)' }}>
+                  <th style={{ padding: '8px 10px' }}>Ticket</th>
+                  <th style={{ padding: '8px 10px' }}>Strategy</th>
+                  <th style={{ padding: '8px 10px' }}>Side / Lots</th>
+                  <th style={{ padding: '8px 10px' }}>Entry &rarr; Exit</th>
+                  <th style={{ padding: '8px 10px' }}>Pips</th>
+                  <th style={{ padding: '8px 10px', textAlign: 'right' }}>Net PnL (USD)</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {data.recentTrades.map((t) => (
+                  <tr key={t.id} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+                    <td className="mono-nums" style={{ padding: '10px', color: 'var(--text-muted)' }}>
+                      #{t.ticket}
+                    </td>
+                    <td style={{ padding: '10px' }}>
+                      <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{t.strategy}</div>
+                    </td>
+                    <td style={{ padding: '10px' }}>
+                      <span className={`status-badge ${t.type === 'BUY' ? 'status-completed' : 'status-danger'}`} style={{ fontSize: '10.5px' }}>
+                        {t.type} {t.lots}
+                      </span>
+                    </td>
+                    <td className="mono-nums" style={{ padding: '10px' }}>
+                      ${t.entryPrice.toFixed(2)} &rarr; ${t.exitPrice.toFixed(2)}
+                    </td>
+                    <td className={`mono-nums ${t.pips >= 0 ? 'val-bull' : 'val-bear'}`} style={{ padding: '10px', fontWeight: 600 }}>
+                      {t.pips >= 0 ? '+' : ''}{t.pips.toFixed(1)}
+                    </td>
+                    <td className={`mono-nums ${t.pnl >= 0 ? 'val-bull' : 'val-bear'}`} style={{ padding: '10px', textAlign: 'right', fontWeight: 800 }}>
+                      {t.pnl >= 0 ? '+' : ''}${t.pnl.toFixed(2)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <div style={{ textAlign: 'center', padding: '24px 10px', color: 'var(--text-muted)', fontSize: '13px' }}>
+            No closed executions in the current session on the connected JustMarkets MT5 account.
+          </div>
+        )}
       </div>
 
       {/* "WHY THIS TRADE?" MODAL */}
@@ -539,41 +535,33 @@ export default function LiveTradingEngine() {
               Why this trade? (Ticket #{pos?.ticket})
             </h2>
             <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '20px' }}>
-              Strategy Version: <strong>{why.strategyVersion}</strong> &bull; Signal Time: {new Date(why.signalTimestamp).toLocaleString()}
+              Strategy: <strong>{why.strategyVersion}</strong> &bull; Signal Time: {new Date(why.signalTimestamp).toLocaleString()}
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', textAlign: 'left', fontSize: '13px' }}>
-              {/* Section 1: Observed Market Data */}
-              <div style={{ background: 'var(--bg-surface-1)', padding: '14px', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
-                <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--accent-green)', textTransform: 'uppercase', marginBottom: '4px' }}>
-                  Observed Market Data (Empirical)
-                </div>
-                <p style={{ margin: 0, color: 'var(--text-primary)', lineHeight: 1.55 }}>
-                  {why.observedMarketData}
-                </p>
-              </div>
-
-              {/* Section 2: Model Interpretation & Forecast */}
+              {/* Recorded Entry Rationale */}
               <div style={{ background: 'var(--bg-surface-1)', padding: '14px', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
                 <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--accent-gold)', textTransform: 'uppercase', marginBottom: '4px' }}>
-                  Model Interpretation &amp; Forecast (Hypothesis)
+                  Recorded Entry Rationale (At Order Creation)
                 </div>
                 <p style={{ margin: 0, color: 'var(--text-primary)', lineHeight: 1.55 }}>
-                  {why.modelInterpretation}
+                  {why.isRecorded ? why.entryRationale : 'Entry rationale unavailable'}
                 </p>
+                {!why.isRecorded && (
+                  <p style={{ margin: '6px 0 0', fontSize: '11.5px', color: 'var(--text-muted)' }}>
+                    Notice: This order was submitted without a tagged quantitative rationale, or the rationale was not recorded in the audit database at fill. Velarion does not infer reasons post-entry.
+                  </p>
+                )}
               </div>
 
-              {/* Section 3: Exit Conditions & Invalidation */}
+              {/* Exit Conditions */}
               <div style={{ background: 'var(--bg-surface-1)', padding: '14px', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
                 <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-primary)', textTransform: 'uppercase', marginBottom: '4px' }}>
-                  Exit Rules &amp; Invalidation Criteria
+                  Exit Rules &amp; Levels
                 </div>
                 <div style={{ fontSize: '12.5px', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
-                  <div>&bull; <strong>Stop-Loss Rule:</strong> {why.exitConditions.stopLossRule}</div>
-                  <div>&bull; <strong>Take-Profit Target:</strong> {why.exitConditions.takeProfitRule}</div>
-                  <div style={{ marginTop: '4px', color: why.exitConditions.isValid ? 'var(--accent-green)' : 'var(--accent-red)', fontWeight: 600 }}>
-                    Status: {why.exitConditions.isValid ? 'Valid & In Progress' : 'Invalidated'}
-                  </div>
+                  <div>&bull; <strong>Stop-Loss:</strong> {why.exitConditions.stopLossRule}</div>
+                  <div>&bull; <strong>Take-Profit:</strong> {why.exitConditions.takeProfitRule}</div>
                 </div>
               </div>
 
@@ -581,6 +569,108 @@ export default function LiveTradingEngine() {
               <div style={{ fontSize: '11.5px', color: 'var(--text-muted)', lineHeight: 1.5, borderTop: '1px solid var(--border-subtle)', paddingTop: '10px' }}>
                 Uncertainty Level: <strong>{why.uncertaintyLevel}</strong> &bull; Latency: {why.dataDelay}. Model rationales reflect real-time quantitative criteria evaluated at order submission.
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* PERSISTENT BACKEND / TERMINAL BRIDGE ARCHITECTURE MODAL */}
+      {showBridgeModal && (
+        <div
+          className="modal-overlay"
+          onClick={() => setShowBridgeModal(false)}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(15, 23, 42, 0.75)',
+            backdropFilter: 'blur(4px)',
+            zIndex: 9999,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '20px'
+          }}
+        >
+          <div
+            className="modal-card"
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              maxWidth: '620px',
+              width: '100%',
+              background: 'var(--bg-base)',
+              border: '1px solid var(--border-default)',
+              borderRadius: 'var(--radius-lg)',
+              padding: '28px',
+              boxShadow: '0 20px 48px rgba(15, 23, 42, 0.25)',
+              position: 'relative'
+            }}
+          >
+            <button
+              onClick={() => setShowBridgeModal(false)}
+              style={{
+                position: 'absolute',
+                top: '16px',
+                right: '18px',
+                background: 'transparent',
+                border: 'none',
+                color: 'var(--text-muted)',
+                fontSize: '22px',
+                cursor: 'pointer'
+              }}
+              aria-label="Close dialog"
+            >
+              &times;
+            </button>
+
+            <span className="section-eyebrow" style={{ fontSize: '11px', marginBottom: '8px' }}>
+              System Architecture &bull; Non-Custodial Protocol
+            </span>
+            <h2 style={{ fontSize: '20px', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '8px' }}>
+              Persistent MT5 Terminal Bridge Architecture
+            </h2>
+            <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '16px', lineHeight: 1.55 }}>
+              Understanding why a persistent bridge daemon is required for JustMarkets MT5 execution beyond standard serverless web hosting.
+            </p>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', textAlign: 'left', fontSize: '12.5px', color: 'var(--text-secondary)', lineHeight: 1.6 }}>
+              <div style={{ background: 'var(--bg-surface-1)', padding: '14px', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
+                <strong style={{ color: 'var(--text-primary)' }}>1. Decoupled Read-Only Data Stream:</strong>
+                <p style={{ margin: '4px 0 0' }}>
+                  The frontend terminal market data connection is strictly read-only. It polls broker OHLC candles, bid/ask spreads, and open positions without possessing the cryptographic ability to submit trading orders.
+                </p>
+              </div>
+
+              <div style={{ background: 'var(--bg-surface-1)', padding: '14px', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
+                <strong style={{ color: 'var(--text-primary)' }}>2. Why Serverless (Vercel) Cannot Execute Trades:</strong>
+                <p style={{ margin: '4px 0 0' }}>
+                  MetaTrader 5 requires a running desktop terminal instance and the native C-extension <code>MetaTrader5</code> on Windows. Vercel serverless functions run ephemeral Linux micro-containers without desktop displays, persistent TCP sockets, or local MT5 terminal installations.
+                </p>
+              </div>
+
+              <div style={{ background: 'var(--bg-surface-1)', padding: '14px', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
+                <strong style={{ color: 'var(--text-primary)' }}>3. The Persistent Python Bridge Daemon:</strong>
+                <p style={{ margin: '4px 0 0' }}>
+                  Execution is handled by a persistent Python daemon (<code>api/app.py</code>) running alongside the MetaTrader 5 terminal on your local Windows PC or institutional VPS. It binds to port 8000, maintains a live heartbeat with JustMarkets, and validates risk rules before dispatching any order.
+                </p>
+              </div>
+
+              <div style={{ background: 'var(--bg-surface-1)', padding: '14px', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
+                <strong style={{ color: 'var(--text-primary)' }}>4. Explicit Separate Execution Authorization:</strong>
+                <p style={{ margin: '4px 0 0' }}>
+                  Account linking alone will never place an order. Automated execution requires explicit separate authorization in Trading Safety Settings, governed by your lot caps and daily loss limits.
+                </p>
+              </div>
+            </div>
+
+            <div style={{ textAlign: 'right', marginTop: '18px' }}>
+              <button
+                type="button"
+                onClick={() => setShowBridgeModal(false)}
+                className="btn btn-primary"
+                style={{ fontSize: '12.5px', padding: '8px 18px' }}
+              >
+                Close Architecture Guide
+              </button>
             </div>
           </div>
         </div>

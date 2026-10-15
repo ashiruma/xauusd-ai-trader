@@ -501,6 +501,59 @@ class DatabaseStorage:
             cursor.execute("SELECT * FROM system_events ORDER BY timestamp DESC LIMIT ?", (limit,))
             return [dict(row) for row in cursor.fetchall()]
 
+    def get_order_by_ticket(self, ticket: int) -> Optional[Dict[str, Any]]:
+        """Retrieve order and recorded entry rationale by broker ticket."""
+        with self.get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT * FROM orders WHERE ticket = ? ORDER BY id DESC LIMIT 1", (ticket,))
+            row = cursor.fetchone()
+            if not row:
+                return None
+            order_data = dict(row)
+            signal_id = order_data.get("signal_id")
+            if signal_id:
+                order_data["entry_rationale"] = self.get_recorded_entry_rationale(signal_id)
+            return order_data
+
+    def get_recorded_entry_rationale(self, signal_id: str) -> Optional[str]:
+        """Fetch strictly recorded entry rationale for a specific signal at the time of order creation."""
+        if not signal_id:
+            return None
+        with self.get_connection() as conn:
+            cursor = conn.cursor()
+            # 1. Check fused signals table
+            cursor.execute("SELECT reasons_json FROM signals WHERE signal_id = ?", (signal_id,))
+            sig = cursor.fetchone()
+            if sig and sig["reasons_json"]:
+                try:
+                    reasons = json.loads(sig["reasons_json"])
+                    if isinstance(reasons, list) and reasons:
+                        return " ".join(str(r) for r in reasons if r)
+                    if isinstance(reasons, str) and reasons.strip():
+                        return reasons.strip()
+                except Exception:
+                    pass
+
+            # 2. Check candidate setups
+            cursor.execute("SELECT reason FROM candidate_setups WHERE setup_id = ?", (signal_id,))
+            setup = cursor.fetchone()
+            if setup and setup["reason"]:
+                return str(setup["reason"]).strip()
+
+            # 3. Check AI decisions
+            cursor.execute("SELECT reasons_json FROM ai_decisions WHERE ai_decision_id = ? OR setup_id = ?", (signal_id, signal_id))
+            ai_row = cursor.fetchone()
+            if ai_row and ai_row["reasons_json"]:
+                try:
+                    reasons = json.loads(ai_row["reasons_json"])
+                    if isinstance(reasons, list) and reasons:
+                        return " ".join(str(r) for r in reasons if r)
+                    if isinstance(reasons, str) and reasons.strip():
+                        return reasons.strip()
+                except Exception:
+                    pass
+        return None
+
     def register_user(
         self,
         full_name: str,

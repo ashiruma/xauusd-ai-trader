@@ -328,6 +328,24 @@ class MT5ExecutionAdapter(BaseExecutionAdapter):
         positions: List[Position] = []
         for p in raw_positions:
             side = OrderSide.BUY if p.type == mt5.ORDER_TYPE_BUY else OrderSide.SELL
+            strategy_id = p.comment.split("|")[0] if ("|" in (p.comment or "")) else None
+            signal_id = p.comment.split("|")[1] if ("|" in (p.comment or "") and len(p.comment.split("|")) > 1) else None
+
+            # Retrieve recorded entry rationale strictly for this specific position/order
+            order_rec = db.get_order_by_ticket(p.ticket)
+            entry_rationale = None
+            if order_rec and order_rec.get("entry_rationale"):
+                entry_rationale = order_rec["entry_rationale"]
+                if not signal_id and order_rec.get("signal_id"):
+                    signal_id = order_rec["signal_id"]
+                if not strategy_id and order_rec.get("strategy_id"):
+                    strategy_id = order_rec["strategy_id"]
+            elif signal_id:
+                entry_rationale = db.get_recorded_entry_rationale(signal_id)
+
+            if not entry_rationale:
+                entry_rationale = "Entry rationale unavailable"
+
             positions.append(Position(
                 ticket=p.ticket,
                 symbol=p.symbol,
@@ -340,8 +358,9 @@ class MT5ExecutionAdapter(BaseExecutionAdapter):
                 floating_pnl=round(p.profit, 2),
                 magic_number=p.magic,
                 open_time=datetime.fromtimestamp(p.time, tz=timezone.utc),
-                signal_id=None,
-                strategy_id=p.comment.split("|")[0] if "|" in p.comment else None
+                signal_id=signal_id,
+                strategy_id=strategy_id,
+                entry_rationale=entry_rationale
             ))
         return positions
 

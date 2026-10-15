@@ -223,6 +223,7 @@ class Position(BaseModel):
     open_time: datetime
     signal_id: Optional[str] = None
     strategy_id: Optional[str] = None
+    entry_rationale: Optional[str] = None
 
 
 class TradeRecord(BaseModel):

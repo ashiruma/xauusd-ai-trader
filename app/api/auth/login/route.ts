@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
+import { AUTH_COOKIE_NAME, signSession } from '@/lib/auth';
 
 export async function POST(request: Request) {
   try {
@@ -14,6 +15,26 @@ export async function POST(request: Request) {
       email.includes('abala');
 
     const cookieStore = await cookies();
+
+    // Set signed JWT session cookie
+    const sessionToken = await signSession({
+      accountId: accId || (isOwner ? '1200533810' : 'GUEST-TRADER'),
+      mt5Account: accId || (isOwner ? '1200533810' : 'GUEST-TRADER'),
+      email: email || (isOwner ? 'ashirumaabala@gmail.com' : 'trader@velarion.internal'),
+      role: isOwner ? 'admin' : 'trader',
+      partnerCode: 'tohstb0d83',
+      verified: true,
+    });
+
+    cookieStore.set({
+      name: AUTH_COOKIE_NAME,
+      value: sessionToken,
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 60 * 60 * 24 * 30, // 30 days
+      path: '/',
+    });
 
     // Set secure HTTP-only cookies
     cookieStore.set({

@@ -38,6 +38,33 @@ export async function POST(request: Request) {
 
     // Set secure HTTP-only cookie
     const cookieStore = await cookies();
+
+    // Check if this is the website owner account (Chrispine Abala Ashiruma)
+    const isOwner =
+      mt5AccountId === '1200533810' ||
+      email === 'ashirumaabala@gmail.com' ||
+      email.includes('ashiruma');
+
+    const { AUTH_COOKIE_NAME, signSession } = await import('@/lib/auth');
+    const sessionToken = await signSession({
+      accountId: mt5AccountId,
+      mt5Account: mt5AccountId,
+      email: email || (isOwner ? 'ashirumaabala@gmail.com' : 'trader@velarion.internal'),
+      role: isOwner ? 'admin' : 'trader',
+      partnerCode: 'tohstb0d83',
+      verified: true,
+    });
+
+    cookieStore.set({
+      name: AUTH_COOKIE_NAME,
+      value: sessionToken,
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 60 * 60 * 24 * 30, // 30 days
+      path: '/',
+    });
+
     cookieStore.set({
       name: 'velarion_mt5_verified',
       value: 'true',
@@ -47,12 +74,6 @@ export async function POST(request: Request) {
       maxAge: 60 * 60 * 24 * 30, // 30 days
       path: '/',
     });
-
-    // Check if this is the website owner account (Chrispine Abala Ashiruma)
-    const isOwner =
-      mt5AccountId === '1200533810' ||
-      email === 'ashirumaabala@gmail.com' ||
-      email.includes('ashiruma');
 
     if (isOwner) {
       const adminSecret = process.env.ADMIN_MASTER_SECRET || 'velarion-owner-master-2026';

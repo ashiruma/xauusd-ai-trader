@@ -3,9 +3,9 @@ import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { Metadata } from 'next';
 import { AUTH_COOKIE_NAME, verifySession } from '@/lib/auth';
-import { DEFAULT_PARTNER_CONFIG } from '@/lib/partner';
 import LiveSpotFeed from '@/components/LiveSpotFeed';
 import { getServerLiveQuote } from '@/lib/marketFeed';
+import TerminalChart from '@/components/terminal/TerminalChart';
 import LiveTradingEngine from '@/components/terminal/LiveTradingEngine';
 import TerminalPositions from '@/components/TerminalPositions';
 
@@ -30,6 +30,8 @@ export default async function TerminalPage() {
   }
 
   const accountId = session?.mt5Account || session?.accountId || (hasAdminToken ? '1200533810 (ADMIN)' : 'VERIFIED-TRADER');
+  const initialQuote = getServerLiveQuote();
+  const isLiveConnected = Boolean(initialQuote?.isConnected);
 
   return (
     <div style={{ maxWidth: '1280px', margin: '30px auto 80px', padding: '0 24px' }}>
@@ -78,17 +80,17 @@ export default async function TerminalPage() {
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <span className="status-badge status-completed">
-            LIVE MT5 GATEWAY ACTIVE
+          <span className={`status-badge ${isLiveConnected ? 'status-completed' : 'status-danger'}`}>
+            {isLiveConnected ? 'LIVE MT5 GATEWAY ACTIVE' : 'MT5 GATEWAY DISCONNECTED'}
           </span>
         </div>
       </div>
 
       {/* 2-Column Grid: Left Feed & Telemetry | Right Signals & Governor */}
-      <div style={{ display: 'grid', gridTemplateColumns: '420px 1fr', gap: '24px', alignItems: 'start' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '400px 1fr', gap: '24px', alignItems: 'start' }}>
         {/* Left Column: Live Spot Feed & Metrics */}
         <div>
-          <LiveSpotFeed initialQuote={getServerLiveQuote()} style={{ marginBottom: '20px' }} />
+          <LiveSpotFeed initialQuote={initialQuote} style={{ marginBottom: '20px' }} />
 
           {/* Market Status Card */}
           <div className="panel-card" style={{ padding: '20px' }}>
@@ -101,12 +103,14 @@ export default async function TerminalPage() {
                 <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>London / NY Overlap</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span style={{ color: 'var(--text-secondary)' }}>Daily ATR (14):</span>
-                <span className="mono-nums val-gold" style={{ fontWeight: 600 }}>$38.40 (384 Pips)</span>
+                <span style={{ color: 'var(--text-secondary)' }}>Execution Symbol:</span>
+                <span className="mono-nums val-gold" style={{ fontWeight: 600 }}>{initialQuote?.symbol || 'XAUUSD.m'}</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span style={{ color: 'var(--text-secondary)' }}>10Y Real Yield (TIPS):</span>
-                <span className="mono-nums" style={{ color: 'var(--text-primary)' }}>1.84% (-0.02%)</span>
+                <span style={{ color: 'var(--text-secondary)' }}>Gateway Telemetry:</span>
+                <span style={{ color: isLiveConnected ? 'var(--accent-green)' : 'var(--accent-red)', fontWeight: 600 }}>
+                  {isLiveConnected ? 'Verified Broker Stream' : 'Disconnected / Reconnecting'}
+                </span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                 <span style={{ color: 'var(--text-secondary)' }}>Order Routing:</span>
@@ -116,12 +120,16 @@ export default async function TerminalPage() {
           </div>
         </div>
 
-        {/* Right Column: Live Autonomous Trading Engine & Position Telemetry */}
+        {/* Right Column: Live Autonomous Trading Engine, Terminal Chart, & Position Telemetry */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-          <LiveTradingEngine />
+          {/* Real-time Candlestick Chart with Broker-Sourced OHLC and Positions Overlay */}
+          <TerminalChart symbol={initialQuote?.symbol || 'XAUUSD.m'} />
 
           {/* Connected Positions & Signal Telemetry from API */}
           <TerminalPositions />
+
+          {/* Live Autonomous Trading Engine */}
+          <LiveTradingEngine />
 
           {/* Active Model Consensus */}
           <div className="panel-card" style={{ padding: '24px' }}>
@@ -129,8 +137,8 @@ export default async function TerminalPage() {
               <h2 style={{ fontSize: '16px', fontWeight: 800, color: 'var(--text-primary)', margin: 0 }}>
                 AI Multi-Agent Consensus Engine
               </h2>
-              <span className="status-badge status-completed">
-                CONSENSUS CONFIRMED (3/4)
+              <span className={`status-badge ${isLiveConnected ? 'status-completed' : 'status-warning'}`}>
+                {isLiveConnected ? 'CONSENSUS ACTIVE' : 'CONSENSUS STANDBY (OFFLINE)'}
               </span>
             </div>
 
