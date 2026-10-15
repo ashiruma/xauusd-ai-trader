@@ -349,9 +349,10 @@ class UserRegistrationRequest(BaseModel):
     full_name: str
     email: str
     justmarkets_account_id: str
-    referral_code: str = "p4cui0wkfz"
+    referral_code: Optional[str] = None
     server: Optional[str] = "JustMarkets-Demo3"
     equity: Optional[float] = 100.0
+
 
 
 class UserStatusUpdateRequest(BaseModel):
@@ -362,8 +363,14 @@ class UserStatusUpdateRequest(BaseModel):
 
 
 class PartnerConfigUpdateRequest(BaseModel):
-    referral_code: str
-    referral_link: str
+    referral_code: Optional[str] = None
+    referral_link: Optional[str] = None
+    primary_code: Optional[str] = None
+    primary_link: Optional[str] = None
+    primary_limit: Optional[int] = None
+    secondary_code: Optional[str] = None
+    secondary_link: Optional[str] = None
+
 
 
 class KickUserRequest(BaseModel):
@@ -412,8 +419,8 @@ async def login_trader(req: TraderLoginRequest):
         }
 
     cfg = db.get_partner_config()
-    current_partner_code = cfg.get("referral_code", "p4cui0wkfz").strip().lower()
-    partner_link = cfg.get("referral_link", "https://one.justmarkets.link/a/p4cui0wkfz")
+    active_partner_code = cfg.get("active_code", "tohstb0d83")
+    active_link = cfg.get("active_link", "https://one.justmarkets.link/a/tohstb0d83")
 
     # The MT5 account number is the identity; the email must match the one on file for it.
     user = db.get_user_by_account_id(acc_id)
@@ -421,7 +428,7 @@ async def login_trader(req: TraderLoginRequest):
         return {
             "success": False,
             "error": "ACCOUNT_NOT_FOUND",
-            "message": f"JustMarkets Account #{acc_id} is not registered in our database. Please register under official partner code {current_partner_code} via {partner_link}."
+            "message": f"JustMarkets Account #{acc_id} is not registered in our database. Please register under official partner code {active_partner_code} via {active_link}."
         }
 
     if str(user.get("email", "")).strip().lower() != email:
@@ -460,10 +467,11 @@ async def login_trader(req: TraderLoginRequest):
         }
 
     # STRICT ACCESS GATING:
-    # Check if registered under the recommended partner code
+    # Check if registered under an official partner code (Primary tohstb0d83 or Secondary p4cui0wkfz)
+    user_ref = str(user.get("referral_code", "")).strip().lower()
     is_verified = (
         bool(user.get("is_referral_verified")) and 
-        str(user.get("referral_code", "")).strip().lower() == current_partner_code
+        db.is_valid_partner_code(user_ref)
     )
 
     if not is_verified:
@@ -471,18 +479,19 @@ async def login_trader(req: TraderLoginRequest):
             severity="WARNING",
             component="AUTH",
             event_type="UNAUTHORIZED_ACCESS_ATTEMPT",
-            message=f"Access denied for JustMarkets #{acc_id}. Not registered under partner code {current_partner_code}.",
+            message=f"Access denied for JustMarkets #{acc_id}. Not registered under valid partner code.",
             metadata={"account_id": acc_id, "referral_code": user.get("referral_code")}
         )
         return {
             "success": False,
             "error": "ACCESS_DENIED_NOT_RECOMMENDED_PARTNER",
             "message": (
-                f"ACCESS DENIED: JustMarkets Account #{acc_id} is not registered under our recommended partner code ({current_partner_code}). "
+                f"ACCESS DENIED: JustMarkets Account #{acc_id} is not registered under our recommended partner code ({active_partner_code}). "
                 "Anyone not registered under the recommended accounts gets NO access to the Forex School, AI Terminal, or Strategies. "
-                f"To gain access, open a new account via {partner_link}."
+                f"To gain access, open a new account via {active_link}."
             )
         }
+
 
     # Fetch live equity if available
     is_live = (settings.trading_mode == TradingMode.LIVE)
@@ -509,8 +518,9 @@ async def login_trader(req: TraderLoginRequest):
         "success": True,
         "token": f"JM_AUTH_{user.get('user_id')}",
         "user": user,
-        "message": f"Welcome back, {user.get('full_name')}! JustMarkets account #{acc_id} verified under recommended partner code {current_partner_code}."
+        "message": f"Welcome back, {user.get('full_name')}! JustMarkets account #{acc_id} verified under recommended partner code {user.get('referral_code') or active_partner_code}."
     }
+
 
 
 @app.get("/api/auth/session")
@@ -521,17 +531,17 @@ async def get_auth_session(account_id: Optional[str] = None):
     user = db.get_user_by_account_id(account_id.strip())
     if not user:
         return {"authenticated": False, "verified": False, "message": "Account not found"}
-    cfg = db.get_partner_config()
-    current_partner_code = cfg.get("referral_code", "p4cui0wkfz").strip().lower()
+    user_ref = str(user.get("referral_code", "")).strip().lower()
     is_kicked = (user.get("status") == "KICKED_INACTIVE")
     is_verified = (
         not is_kicked and
         bool(user.get("is_referral_verified")) and
-        str(user.get("referral_code", "")).strip().lower() == current_partner_code
+        db.is_valid_partner_code(user_ref)
     )
     return {
         "authenticated": True,
         "verified": is_verified,
+
         "user": user,
         "access_granted": is_verified
     }
@@ -595,9 +605,8 @@ async def register_trader(req: UserRegistrationRequest):
         }
 
     cfg = db.get_partner_config()
-    current_partner_code = cfg.get("referral_code", "p4cui0wkfz").strip().lower()
-    clean_code = req.referral_code.strip().lower()
-    is_ref_verified = (clean_code == current_partner_code)
+    clean_code = req.referral_code.strip() if req.referral_code else cfg.get("active_code", "tohstb0d83")
+    is_ref_verified = db.is_valid_partner_code(clean_code)
 
     if req.equity is not None and req.equity > 0:
         live_equity = req.equity
@@ -610,7 +619,7 @@ async def register_trader(req: UserRegistrationRequest):
         full_name=req.full_name.strip(),
         email=email,
         justmarkets_account_id=acc_id,
-        referral_code=req.referral_code.strip(),
+        referral_code=clean_code,
         server=req.server or "JustMarkets-Demo3",
         equity=live_equity
     )
@@ -620,19 +629,21 @@ async def register_trader(req: UserRegistrationRequest):
         component="ONBOARDING",
         event_type="TRADER_REGISTERED",
         message=f"Trader {req.full_name} registered with MT5 #{acc_id}. Referral verified: {is_ref_verified}",
-        metadata={"user_id": user["user_id"], "referral_code": req.referral_code, "verified": is_ref_verified}
+        metadata={"user_id": user["user_id"], "referral_code": clean_code, "verified": is_ref_verified}
     )
 
+    active_link = cfg.get("active_link", "https://one.justmarkets.link/a/tohstb0d83")
     return {
         "success": True,
         "user": user,
         "is_referral_verified": is_ref_verified,
         "message": (
-            f"Registration successful! Account #{acc_id} verified under JustMarkets partner link p4cui0wkfz. All terminal data and Forex School unlocked."
+            f"Registration successful! Account #{acc_id} verified under JustMarkets partner program ({clean_code}). All terminal data and Forex School unlocked."
             if is_ref_verified else
-            "Registration recorded, but referral code does not match official JustMarkets link. Access to internal data remains locked until verified via https://one.justmarkets.link/a/p4cui0wkfz."
+            f"Registration recorded, but referral code does not match an official JustMarkets link. Access to internal data remains locked until verified via {active_link}."
         )
     }
+
 
 
 @app.get("/api/users/me")
@@ -689,23 +700,28 @@ async def get_partner_config():
 
 @app.post("/api/partner/config")
 async def update_partner_config(req: PartnerConfigUpdateRequest):
-    """Updates the official JustMarkets partner code and referral link."""
-    code = req.referral_code.strip()
-    link = req.referral_link.strip()
-    if not code or not link:
-        raise HTTPException(status_code=400, detail="Referral code and referral link cannot be empty.")
-    res = db.update_partner_config(code, link)
+    """Updates the official JustMarkets partner code and referral link, primary or secondary."""
+    res = db.update_partner_config(
+        referral_code=req.referral_code,
+        referral_link=req.referral_link,
+        primary_code=req.primary_code,
+        primary_link=req.primary_link,
+        primary_limit=req.primary_limit,
+        secondary_code=req.secondary_code,
+        secondary_link=req.secondary_link
+    )
     db.record_system_event(
         severity="INFO",
         component="PARTNER_PORTAL",
         event_type="PARTNER_CONFIG_UPDATED",
-        message=f"Partner referral configuration updated. Code: {code}, Link: {link}"
+        message=f"Partner referral configuration updated. Active: {res.get('active_code')}, Link: {res.get('active_link')}"
     )
     return {
         "success": True,
         "config": res,
-        "message": f"Partner referral configuration updated successfully. Code: {code}"
+        "message": f"Partner referral configuration updated successfully. Active code: {res.get('active_code')}"
     }
+
 
 
 @app.get("/api/admin/users")
@@ -767,10 +783,12 @@ async def get_admin_users():
         "inactive_users": inactive_count,
         "kicked_users": kicked_count,
         "pending_users": len(enriched_users) - verified_count,
-        "partner_code": cfg.get("referral_code", "p4cui0wkfz"),
-        "partner_link": cfg.get("referral_link", "https://one.justmarkets.link/a/p4cui0wkfz"),
+        "partner_code": cfg.get("active_code", "tohstb0d83"),
+        "partner_link": cfg.get("active_link", "https://one.justmarkets.link/a/tohstb0d83"),
+        "partner_config": cfg,
         "users": enriched_users
     }
+
 
 
 @app.post("/api/admin/users/{user_id}/status")

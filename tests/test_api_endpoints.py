@@ -355,13 +355,106 @@ def test_partner_config_and_kick_user(client):
     finally:
         # Restore default partner code and clean up test records
         client.post("/api/partner/config", json={
-            "referral_code": "p4cui0wkfz",
-            "referral_link": "https://one.justmarkets.link/a/p4cui0wkfz"
+            "primary_code": "tohstb0d83",
+            "primary_link": "https://one.justmarkets.link/a/tohstb0d83",
+            "primary_limit": 10,
+            "secondary_code": "p4cui0wkfz",
+            "secondary_link": "https://one.justmarkets.link/a/p4cui0wkfz"
         })
         from api.app import db
         with db.get_connection() as conn:
             conn.execute("DELETE FROM users WHERE email IN ('marcus.aurelius@velarion.io', 'unverified@nowhere.com', 'vip.trader@goldfx.io', 'carlos.mendez@tradecorp.io') OR justmarkets_account_id IN ('88112233', '999888777', '77889900')")
             conn.commit()
+
+
+def test_partner_drip_down_routing(client):
+    from api.app import db
+    try:
+        # Reset to base primary and secondary config with 2 limit for test
+        client.post("/api/partner/config", json={
+            "primary_code": "tohstb0d83",
+            "primary_link": "https://one.justmarkets.link/a/tohstb0d83",
+            "primary_limit": 2,
+            "secondary_code": "p4cui0wkfz",
+            "secondary_link": "https://one.justmarkets.link/a/p4cui0wkfz"
+        })
+
+        cfg_res = client.get("/api/partner/config")
+        assert cfg_res.status_code == 200
+        cfg = cfg_res.json()
+        assert cfg["primary_code"] == "tohstb0d83"
+        assert cfg["primary_link"] == "https://one.justmarkets.link/a/tohstb0d83"
+        assert cfg["secondary_code"] == "p4cui0wkfz"
+        assert cfg["secondary_link"] == "https://one.justmarkets.link/a/p4cui0wkfz"
+        assert cfg["is_drip_active"] is False
+        assert cfg["active_code"] == "tohstb0d83"
+        assert cfg["active_link"] == "https://one.justmarkets.link/a/tohstb0d83"
+
+        # Register trader 1 under primary code
+        r1 = client.post("/api/users/register", json={
+            "full_name": "Primary Trader 1",
+            "email": "primary1@goldfx.io",
+            "justmarkets_account_id": "1110001",
+            "referral_code": "tohstb0d83"
+        })
+        assert r1.json()["success"] is True
+        assert r1.json()["is_referral_verified"] is True
+
+        # Register trader 2 under primary code (reaches limit of 2)
+        r2 = client.post("/api/users/register", json={
+            "full_name": "Primary Trader 2",
+            "email": "primary2@goldfx.io",
+            "justmarkets_account_id": "1110002",
+            "referral_code": "tohstb0d83"
+        })
+        assert r2.json()["success"] is True
+        assert r2.json()["is_referral_verified"] is True
+
+        # Check drip status now: should be active and routed to secondary link
+        cfg_res2 = client.get("/api/partner/config")
+        cfg2 = cfg_res2.json()
+        assert cfg2["primary_count"] == 2
+        assert cfg2["is_drip_active"] is True
+        assert cfg2["active_tier"] == "secondary"
+        assert cfg2["active_code"] == "p4cui0wkfz"
+        assert cfg2["active_link"] == "https://one.justmarkets.link/a/p4cui0wkfz"
+
+        # New user registering without explicit code drips down to secondary
+        r3 = client.post("/api/users/register", json={
+            "full_name": "Drip Overflow Trader",
+            "email": "drip.trader@goldfx.io",
+            "justmarkets_account_id": "1110003"
+        })
+        assert r3.json()["success"] is True
+        assert r3.json()["is_referral_verified"] is True
+        assert r3.json()["user"]["referral_code"] == "p4cui0wkfz"
+
+        # Both primary and secondary traders can log in successfully
+        login_p = client.post("/api/auth/login", json={
+            "justmarkets_account_id": "1110001",
+            "email": "primary1@goldfx.io"
+        })
+        assert login_p.json()["success"] is True
+
+        login_s = client.post("/api/auth/login", json={
+            "justmarkets_account_id": "1110003",
+            "email": "drip.trader@goldfx.io"
+        })
+        assert login_s.json()["success"] is True
+
+    finally:
+        # Restore default partner config (10 limit) and clean up
+        client.post("/api/partner/config", json={
+            "primary_code": "tohstb0d83",
+            "primary_link": "https://one.justmarkets.link/a/tohstb0d83",
+            "primary_limit": 10,
+            "secondary_code": "p4cui0wkfz",
+            "secondary_link": "https://one.justmarkets.link/a/p4cui0wkfz"
+        })
+        with db.get_connection() as conn:
+            conn.execute("DELETE FROM users WHERE justmarkets_account_id IN ('1110001', '1110002', '1110003')")
+            conn.commit()
+
 
 
 

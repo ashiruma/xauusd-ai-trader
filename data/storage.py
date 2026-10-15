@@ -247,7 +247,7 @@ class DatabaseStorage:
                 )
             """)
 
-            # 11. Partner Settings & Referral Configuration
+            # 11. Partner Settings & Referral Configuration (Primary: tohstb0d83, Secondary: p4cui0wkfz with 10 partner drip)
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS partner_config (
                     key TEXT PRIMARY KEY,
@@ -258,14 +258,27 @@ class DatabaseStorage:
             now_iso = datetime.now(timezone.utc).isoformat()
             cursor.execute("""
                 INSERT OR IGNORE INTO partner_config (key, value, updated_at)
-                VALUES ('referral_code', 'p4cui0wkfz', ?)
+                VALUES ('primary_code', 'tohstb0d83', ?)
             """, (now_iso,))
             cursor.execute("""
                 INSERT OR IGNORE INTO partner_config (key, value, updated_at)
-                VALUES ('referral_link', 'https://one.justmarkets.link/a/p4cui0wkfz', ?)
+                VALUES ('primary_link', 'https://one.justmarkets.link/a/tohstb0d83', ?)
+            """, (now_iso,))
+            cursor.execute("""
+                INSERT OR IGNORE INTO partner_config (key, value, updated_at)
+                VALUES ('primary_limit', '10', ?)
+            """, (now_iso,))
+            cursor.execute("""
+                INSERT OR IGNORE INTO partner_config (key, value, updated_at)
+                VALUES ('secondary_code', 'p4cui0wkfz', ?)
+            """, (now_iso,))
+            cursor.execute("""
+                INSERT OR IGNORE INTO partner_config (key, value, updated_at)
+                VALUES ('secondary_link', 'https://one.justmarkets.link/a/p4cui0wkfz', ?)
             """, (now_iso,))
 
             conn.commit()
+
 
     def record_market_state(self, state_id: str, state: MarketState) -> None:
         if not self.enabled:
@@ -493,15 +506,18 @@ class DatabaseStorage:
         full_name: str,
         email: str,
         justmarkets_account_id: str,
-        referral_code: str = "p4cui0wkfz",
+        referral_code: Optional[str] = None,
         server: str = "JustMarkets-Demo3",
         equity: float = 0.0,
         notes: str = ""
     ) -> Dict[str, Any]:
         user_id = f"USR_{uuid.uuid4().hex[:10].upper()}"
         now_iso = datetime.now(timezone.utc).isoformat()
-        current_code = self.get_partner_config().get("referral_code", "p4cui0wkfz").strip().lower()
-        is_verified = 1 if referral_code.strip().lower() == current_code else 0
+        cfg = self.get_partner_config()
+        if not referral_code:
+            referral_code = cfg.get("active_code", "tohstb0d83")
+
+        is_verified = 1 if self.is_valid_partner_code(referral_code) else 0
         status = "ACTIVE_VERIFIED" if is_verified else "UNVERIFIED_PENDING_REFERRAL"
 
         with self.get_connection() as conn:
@@ -528,6 +544,7 @@ class DatabaseStorage:
             "status": status,
             "registered_at": now_iso
         }
+
 
     def get_user_by_account_id(self, account_id: str) -> Optional[Dict[str, Any]]:
         with self.get_connection() as conn:
@@ -588,46 +605,133 @@ class DatabaseStorage:
             conn.commit()
             return cursor.rowcount > 0
 
-    def get_partner_config(self) -> Dict[str, str]:
+    def get_partner_config(self) -> Dict[str, Any]:
         defaults = {
-            "referral_code": "p4cui0wkfz",
-            "referral_link": "https://one.justmarkets.link/a/p4cui0wkfz",
+            "primary_code": "tohstb0d83",
+            "primary_link": "https://one.justmarkets.link/a/tohstb0d83",
+            "primary_limit": 10,
+            "secondary_code": "p4cui0wkfz",
+            "secondary_link": "https://one.justmarkets.link/a/p4cui0wkfz",
+            "referral_code": "tohstb0d83",
+            "referral_link": "https://one.justmarkets.link/a/tohstb0d83",
             "updated_at": datetime.now(timezone.utc).isoformat()
         }
         with self.get_connection() as conn:
             cursor = conn.cursor()
             cursor.execute("SELECT key, value, updated_at FROM partner_config")
             rows = cursor.fetchall()
-            if not rows:
-                return defaults
             res = dict(defaults)
             for r in rows:
-                res[r["key"]] = r["value"]
+                k = r["key"]
+                v = r["value"]
+                if k == "primary_limit":
+                    try:
+                        res[k] = int(v)
+                    except (ValueError, TypeError):
+                        res[k] = 10
+                else:
+                    res[k] = v
                 res["updated_at"] = r["updated_at"]
+
+            # Compute verified partner counts for both primary and secondary
+            p_code = str(res.get("primary_code", "tohstb0d83")).strip().lower()
+            s_code = str(res.get("secondary_code", "p4cui0wkfz")).strip().lower()
+
+            cursor.execute(
+                "SELECT COUNT(*) FROM users WHERE LOWER(referral_code) = ? AND is_referral_verified = 1",
+                (p_code,)
+            )
+            p_count = cursor.fetchone()[0]
+
+            cursor.execute(
+                "SELECT COUNT(*) FROM users WHERE LOWER(referral_code) = ? AND is_referral_verified = 1",
+                (s_code,)
+            )
+            s_count = cursor.fetchone()[0]
+
+            p_limit = int(res.get("primary_limit", 10))
+            is_drip_active = (p_count >= p_limit)
+
+            active_code = res.get("secondary_code", "p4cui0wkfz") if is_drip_active else res.get("primary_code", "tohstb0d83")
+            active_link = res.get("secondary_link", "https://one.justmarkets.link/a/p4cui0wkfz") if is_drip_active else res.get("primary_link", "https://one.justmarkets.link/a/tohstb0d83")
+
+            res["primary_count"] = p_count
+            res["primary_remaining"] = max(0, p_limit - p_count)
+            res["secondary_count"] = s_count
+            res["is_drip_active"] = is_drip_active
+            res["active_tier"] = "secondary" if is_drip_active else "primary"
+            res["active_code"] = active_code
+            res["active_link"] = active_link
+            # Backwards compatibility
+            res["referral_code"] = active_code
+            res["referral_link"] = active_link
+            res["valid_codes"] = [res.get("primary_code", "tohstb0d83"), res.get("secondary_code", "p4cui0wkfz")]
             return res
 
-    def update_partner_config(self, referral_code: str, referral_link: str) -> Dict[str, str]:
+    def is_valid_partner_code(self, code: Optional[str]) -> bool:
+        if not code:
+            return False
+        clean = code.strip().lower()
+        cfg = self.get_partner_config()
+        valid = {
+            str(cfg.get("primary_code", "tohstb0d83")).strip().lower(),
+            str(cfg.get("secondary_code", "p4cui0wkfz")).strip().lower(),
+            str(cfg.get("active_code", "tohstb0d83")).strip().lower(),
+            str(cfg.get("referral_code", "tohstb0d83")).strip().lower()
+        }
+        return clean in valid
+
+    def update_partner_config(
+        self,
+        referral_code: Optional[str] = None,
+        referral_link: Optional[str] = None,
+        primary_code: Optional[str] = None,
+        primary_link: Optional[str] = None,
+        primary_limit: Optional[int] = None,
+        secondary_code: Optional[str] = None,
+        secondary_link: Optional[str] = None
+    ) -> Dict[str, Any]:
         now_iso = datetime.now(timezone.utc).isoformat()
-        ref_code = referral_code.strip()
-        ref_link = referral_link.strip()
         with self.get_connection() as conn:
             cursor = conn.cursor()
-            cursor.execute("""
-                INSERT INTO partner_config (key, value, updated_at)
-                VALUES ('referral_code', ?, ?)
-                ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at
-            """, (ref_code, now_iso))
-            cursor.execute("""
-                INSERT INTO partner_config (key, value, updated_at)
-                VALUES ('referral_link', ?, ?)
-                ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at
-            """, (ref_link, now_iso))
+            if primary_code:
+                cursor.execute("""
+                    INSERT INTO partner_config (key, value, updated_at) VALUES ('primary_code', ?, ?)
+                    ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at
+                """, (primary_code.strip(), now_iso))
+            if primary_link:
+                cursor.execute("""
+                    INSERT INTO partner_config (key, value, updated_at) VALUES ('primary_link', ?, ?)
+                    ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at
+                """, (primary_link.strip(), now_iso))
+            if primary_limit is not None:
+                cursor.execute("""
+                    INSERT INTO partner_config (key, value, updated_at) VALUES ('primary_limit', ?, ?)
+                    ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at
+                """, (str(primary_limit), now_iso))
+            if secondary_code:
+                cursor.execute("""
+                    INSERT INTO partner_config (key, value, updated_at) VALUES ('secondary_code', ?, ?)
+                    ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at
+                """, (secondary_code.strip(), now_iso))
+            if secondary_link:
+                cursor.execute("""
+                    INSERT INTO partner_config (key, value, updated_at) VALUES ('secondary_link', ?, ?)
+                    ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at
+                """, (secondary_link.strip(), now_iso))
+            if referral_code and not primary_code:
+                cursor.execute("""
+                    INSERT INTO partner_config (key, value, updated_at) VALUES ('primary_code', ?, ?)
+                    ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at
+                """, (referral_code.strip(), now_iso))
+            if referral_link and not primary_link:
+                cursor.execute("""
+                    INSERT INTO partner_config (key, value, updated_at) VALUES ('primary_link', ?, ?)
+                    ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at
+                """, (referral_link.strip(), now_iso))
             conn.commit()
-        return {
-            "referral_code": ref_code,
-            "referral_link": ref_link,
-            "updated_at": now_iso
-        }
+        return self.get_partner_config()
+
 
     def kick_user(self, user_id: str, reason: str = "INACTIVE_DEACTIVATED") -> bool:
         """Deactivates and revokes platform access for an inactive user."""
