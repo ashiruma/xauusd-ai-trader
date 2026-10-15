@@ -296,7 +296,7 @@ export default async function LessonPage({ params }: LessonPageProps) {
               <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '6px 14px', background: 'var(--accent-gold-subtle)', border: '1px solid var(--border-accent)', borderRadius: '20px', marginBottom: '20px' }}>
                 <span className="dot-indicator" style={{ background: 'var(--accent-gold)' }} />
                 <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--accent-gold)', letterSpacing: '0.5px', textTransform: 'uppercase' }}>
-                  Sponsored by JustMarkets &bull; 100% Free
+                  Sponsored by JustMarkets &bull; No Subscription Fee
                 </span>
               </div>
 
@@ -305,22 +305,22 @@ export default async function LessonPage({ params }: LessonPageProps) {
               </h2>
 
               <p style={{ fontSize: '14.5px', color: 'var(--text-secondary)', lineHeight: 1.6, maxWidth: '580px', margin: '0 auto 24px' }}>
-                Lessons 6 through 30 (covering Institutional SMC Execution, Multi-Agent AI Confluence, and the 200-Pip Growth Matrix) plus our Live XAUUSD AI Terminal are <strong style={{ color: 'var(--accent-gold)' }}>100% Free</strong>&mdash;subsidized by our official broker partner, <strong>JustMarkets</strong>.
+                Lessons 6 through 30 (covering Institutional SMC Execution, Multi-Agent AI Confluence, and the 200-Pip Growth Matrix) plus our Live XAUUSD AI Terminal carry <strong style={{ color: 'var(--accent-gold)' }}>no platform subscription fee</strong>&mdash;subsidized by our Introducing Broker agreement with <strong>JustMarkets</strong>. Broker spreads and capital loss risks apply.
               </p>
 
               {/* Institutional Benefit Checkmarks */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxWidth: '460px', margin: '0 auto 28px', textAlign: 'left', fontSize: '13px', color: 'var(--text-primary)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                   <span style={{ color: 'var(--accent-gold)', fontWeight: 800 }}>&#10003;</span>
-                  <span>Zero subscription fees &bull; No payment cards required</span>
+                  <span>No subscription fees &bull; Non-custodial direct broker funding</span>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                   <span style={{ color: 'var(--accent-gold)', fontWeight: 800 }}>&#10003;</span>
-                  <span>100% Capital Custody &bull; Deposits stay inside your own regulated MT5 account</span>
+                  <span>Direct Broker Custody &bull; Deposits stay inside your own regulated MT5 account</span>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                   <span style={{ color: 'var(--accent-gold)', fontWeight: 800 }}>&#10003;</span>
-                  <span>Instant Full Unlock &bull; Complete 30 lessons + Autonomous AI Terminal</span>
+                  <span>Progressive Access &bull; Complete 30 lessons + Live Telemetry Terminal</span>
                 </div>
               </div>
 

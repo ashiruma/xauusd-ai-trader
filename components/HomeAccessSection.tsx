@@ -127,12 +127,12 @@ export default function HomeAccessSection({ initialSignedIn }: HomeAccessSection
     <section id="how-to-get-access" style={{ padding: '64px 0', background: 'var(--bg-surface-1)', borderBottom: '1px solid var(--border-default)' }}>
       <div className="container-main">
         <div style={{ textAlign: 'center', marginBottom: '40px' }}>
-          <span className="section-eyebrow">Zero Cost Institutional Access</span>
+          <span className="section-eyebrow">Structured Onboarding Funnel</span>
           <h2 style={{ fontSize: '30px', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.4px', marginBottom: '12px' }}>
-            How to Get 100% Free Access in 3 Steps
+            How to Unlock Subsidized Platform Access
           </h2>
           <p style={{ fontSize: '15px', color: 'var(--text-secondary)', maxWidth: '640px', margin: '0 auto', lineHeight: 1.6 }}>
-            Velarion Markets is completely subsidized through our regulated broker partnership with JustMarkets. You keep 100% custody of your trading deposit.
+            Velarion Markets charges no software subscription fees. Platform access is subsidized through our Introducing Broker partnership with JustMarkets. You retain 100% non-custodial control of your capital. Broker spreads and trading risk apply.
           </p>
         </div>
 
@@ -148,7 +148,7 @@ export default function HomeAccessSection({ initialSignedIn }: HomeAccessSection
                 Register on JustMarkets
               </h3>
               <p style={{ fontSize: '13.5px', color: 'var(--text-secondary)', lineHeight: 1.6 }}>
-                Open your MT5 trading account through our official partner link. Partner code <code className="mono-nums" style={{ color: 'var(--accent-gold)' }}>{DEFAULT_PARTNER_CONFIG.primaryCode}</code> is automatically applied to sponsor your full access.
+                Open your MT5 trading account through our official partner link. Partner code <code className="mono-nums" style={{ color: 'var(--accent-gold)' }}>{DEFAULT_PARTNER_CONFIG.primaryCode}</code> links your account to our Introducing Broker agreement, subsidizing software costs.
               </p>
             </div>
             <div style={{ marginTop: '24px' }}>
@@ -169,17 +169,17 @@ export default function HomeAccessSection({ initialSignedIn }: HomeAccessSection
             <div>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
                 <span className="mono-nums" style={{ fontSize: '24px', fontWeight: 800, color: 'var(--accent-gold)' }}>02</span>
-                <span className="status-badge status-completed">100% CUSTODY</span>
+                <span className="status-badge status-completed">NON-CUSTODIAL</span>
               </div>
               <h3 style={{ fontSize: '18px', fontWeight: 700, marginBottom: '10px', color: 'var(--text-primary)' }}>
                 Fund Your MT5 Account
               </h3>
               <p style={{ fontSize: '13.5px', color: 'var(--text-secondary)', lineHeight: 1.6 }}>
-                Make your initial trading deposit directly into your own JustMarkets account. Velarion Markets never touches your money—your trading capital remains securely inside your own regulated broker account.
+                Make your initial trading deposit directly into your own JustMarkets account. Velarion Markets never holds client deposits or withdrawal access—your capital remains strictly with the regulated broker.
               </p>
             </div>
             <div style={{ marginTop: '24px', padding: '12px 14px', background: 'var(--bg-surface-2)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)', fontSize: '12px', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
-              Zero management fees. 100% non-custodial capital security.
+              No management fees. Client funds held directly at broker.
             </div>
           </div>
 
@@ -188,13 +188,13 @@ export default function HomeAccessSection({ initialSignedIn }: HomeAccessSection
             <div>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
                 <span className="mono-nums" style={{ fontSize: '24px', fontWeight: 800, color: 'var(--accent-gold)' }}>03</span>
-                <span className="status-badge status-completed">INSTANT UNLOCK</span>
+                <span className="status-badge status-completed">MANDATORY PROTOCOL</span>
               </div>
               <h3 style={{ fontSize: '18px', fontWeight: 700, marginBottom: '10px', color: 'var(--text-primary)' }}>
-                Instant MT5 Verification
+                Verify, Learn &amp; Activate
               </h3>
               <p style={{ fontSize: '13.5px', color: 'var(--text-secondary)', lineHeight: 1.6 }}>
-                Enter your JustMarkets MT5 Account ID on our verification page. Once verified under partner code <code className="mono-nums" style={{ color: 'var(--accent-gold)' }}>{DEFAULT_PARTNER_CONFIG.primaryCode}</code>, you immediately unlock all 30 Forex lessons and the AI terminal.
+                Verify your MT5 Account ID, complete required risk modules, configure your lot caps and drawdown stops, and explicitly authorize automated execution when you are ready.
               </p>
             </div>
             <div style={{ marginTop: '24px' }}>
@@ -203,7 +203,7 @@ export default function HomeAccessSection({ initialSignedIn }: HomeAccessSection
                 className="btn btn-outline-gold"
                 style={{ width: '100%', fontSize: '13px', padding: '11px 16px' }}
               >
-                Verify Account &amp; Unlock &rarr;
+                Begin 5-Stage Onboarding &rarr;
               </Link>
             </div>
           </div>

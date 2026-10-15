@@ -7,10 +7,24 @@ export async function POST(request: Request) {
     const body = await request.json().catch(() => ({}));
     const mt5AccountId = String(body.mt5AccountId || body.mt5Account || '').trim();
     const email = String(body.email || '').trim().toLowerCase();
+    const utmSource = String(body.utmSource || body.utm_source || '').trim();
+    const utmMedium = String(body.utmMedium || body.utm_medium || '').trim();
+    const utmCampaign = String(body.utmCampaign || body.utm_campaign || '').trim();
+    const ref = String(body.ref || '').trim();
+    const newsletterOptIn = Boolean(body.newsletterOptIn);
 
     if (!mt5AccountId) {
       return NextResponse.json({ error: 'Invalid MT5 Account ID' }, { status: 400 });
     }
+
+    // Record attribution and consent telemetry
+    console.log('[Account Verification Telemetry]', JSON.stringify({
+      mt5AccountId,
+      email: email ? `${email.slice(0, 3)}***` : 'unspecified',
+      attribution: { utmSource, utmMedium, utmCampaign, ref },
+      newsletterOptIn,
+      verifiedAt: new Date().toISOString()
+    }));
 
     // Connect to JustMarkets Partner verification or database
     const isAffiliateValid = await verifyWithBrokerAPI(mt5AccountId, 'tohstb0d83');

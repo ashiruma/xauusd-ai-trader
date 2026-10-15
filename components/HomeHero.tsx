@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import LiveSpotFeed, { QuoteResponse } from '@/components/LiveSpotFeed';
+import { DEFAULT_PARTNER_CONFIG } from '@/lib/partner';
 
 interface HomeHeroProps {
   initialSignedIn: boolean;
@@ -114,33 +115,47 @@ export default function HomeHero({ initialSignedIn, initialQuote }: HomeHeroProp
                 </div>
 
                 <h1 className="hero-heading" style={{ fontSize: '38px', lineHeight: 1.2 }}>
-                  Institutional Spot Gold (XAUUSD) AI Analysis &amp; Complete 30-Lesson Forex Academy &mdash; 100% Free.
+                  Institutional Spot Gold (XAUUSD) AI Analysis &amp; 30-Lesson Forex Academy
                 </h1>
 
                 <p className="hero-description">
-                  Zero subscriptions. Zero hidden fees. Unlock full access to our 4 quantitative XAUUSD models and 30-lesson curriculum simply by opening and funding your trading account with our official partner, JustMarkets.
+                  No platform subscription fee. Access to our 4 quantitative XAUUSD models, live terminal telemetry, and 30-lesson curriculum is subsidized by our Introducing Broker partnership with JustMarkets when you register with partner code <code className="mono-nums" style={{ color: 'var(--accent-gold)' }}>{DEFAULT_PARTNER_CONFIG.primaryCode}</code> and maintain a verified funded account. Broker spreads and trading capital risk apply.
                 </p>
 
-                {/* CTAs */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap', marginBottom: '36px' }}>
-                  <a
-                    href="#how-to-get-access"
+                {/* CTAs & IB Relationship Transparency */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap', marginBottom: '18px' }}>
+                  <Link
+                    href="/onboarding"
                     className="btn btn-primary"
                     style={{ padding: '12px 24px', fontSize: '14px' }}
                   >
-                    Unlock Instant Access (Free) &rarr;
-                  </a>
+                    Begin Onboarding Protocol &rarr;
+                  </Link>
                   <Link
                     href="/tools/growth-calculator"
                     className="btn btn-secondary"
                     style={{ padding: '12px 24px', fontSize: '14px' }}
                   >
-                    Try the 200-Pip Growth Calculator
+                    200-Pip Growth Calculator
                   </Link>
                 </div>
 
+                {/* IB Relationship & Conflict Disclosure Note */}
+                <div style={{
+                  padding: '10px 14px',
+                  background: 'rgba(245, 158, 11, 0.05)',
+                  border: '1px solid rgba(245, 158, 11, 0.2)',
+                  borderRadius: 'var(--radius-sm)',
+                  fontSize: '11.5px',
+                  color: 'var(--text-secondary)',
+                  lineHeight: 1.5,
+                  marginBottom: '28px'
+                }}>
+                  <strong style={{ color: 'var(--accent-gold)' }}>Commercial Disclosure:</strong> Velarion Markets operates as an Introducing Broker (IB). When you open an account via partner code <span className="mono-nums">{DEFAULT_PARTNER_CONFIG.primaryCode}</span> and trade, Velarion receives volume-based commission/spread rebates from JustMarkets. This creates an economic incentive to promote trading activity. Your capital is at risk. <Link href="/legal/ib-disclosure" style={{ color: 'var(--accent-gold)', textDecoration: 'underline' }}>Read full IB Disclosure</Link>.
+                </div>
+
                 {/* 3 Trust Signals */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', borderTop: '1px solid var(--border-subtle)', paddingTop: '24px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', borderTop: '1px solid var(--border-subtle)', paddingTop: '20px' }}>
                   <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', fontSize: '13px' }}>
                     <div style={{
                       width: '18px',
@@ -159,7 +174,7 @@ export default function HomeHero({ initialSignedIn, initialQuote }: HomeHeroProp
                       &#10003;
                     </div>
                     <div>
-                      <strong style={{ color: 'var(--text-primary)' }}>Broker-Backed &amp; 100% Free:</strong> Subsidized by official broker partner JustMarkets with non-custodial protection.
+                      <strong style={{ color: 'var(--text-primary)' }}>No Platform Subscription Fee:</strong> Subsidized via JustMarkets IB volume compensation; broker spreads and deposit capital risk apply.
                     </div>
                   </div>
 

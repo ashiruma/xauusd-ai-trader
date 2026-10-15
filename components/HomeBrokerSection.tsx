@@ -40,10 +40,10 @@ export default function HomeBrokerSection({ initialSignedIn }: HomeBrokerSection
               OFFICIAL BROKER PARTNERSHIP
             </span>
             <h2 style={{ fontSize: '24px', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '12px', letterSpacing: '-0.3px' }}>
-              100% Subsidized Access via JustMarkets
+              Subsidized Platform Access via JustMarkets IB Partnership
             </h2>
             <p style={{ fontSize: '13.5px', color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: '20px' }}>
-              All quantitative trading models, live telemetry feeds, and 30-lesson academy modules are completely free for traders registered under our verified partner code. Capital remains 100% inside your regulated JustMarkets MT5 account with non-custodial protection.
+              No software subscription fee. Platform analytics, telemetry feeds, and 30-lesson academy modules are subsidized through our Introducing Broker relationship with JustMarkets. Velarion receives volume-based rebates from broker spreads when trades execute. Trading capital remains strictly in your regulated MT5 account. Broker spreads and trading risks apply.
             </p>
             <div style={{ display: 'flex', gap: '16px', alignItems: 'center', flexWrap: 'wrap' }}>
               <a
@@ -91,13 +91,14 @@ export default function HomeBrokerSection({ initialSignedIn }: HomeBrokerSection
             ) : (
               <div>
                 <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                  Onboarding Protocol
+                  5-Stage Activation Protocol
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '12px', color: 'var(--text-secondary)' }}>
-                  <div>1. Register at JustMarkets with partner code <strong className="mono-nums" style={{ color: 'var(--accent-gold)' }}>{DEFAULT_PARTNER_CONFIG.primaryCode}</strong></div>
-                  <div>2. Open an MT5 Standard or Pro account</div>
-                  <div>3. Verify your MT5 Account ID in Velarion</div>
-                  <div>4. Instant Subsidized Access to Terminal and Academy</div>
+                  <div>1. Register at JustMarkets with code <strong className="mono-nums" style={{ color: 'var(--accent-gold)' }}>{DEFAULT_PARTNER_CONFIG.primaryCode}</strong></div>
+                  <div>2. Fund your verified MT5 Standard or Pro account</div>
+                  <div>3. Complete mandatory Forex School risk modules</div>
+                  <div>4. Review IB disclosures &amp; configure safety stops</div>
+                  <div>5. Link account &amp; authorize automated execution</div>
                 </div>
               </div>
             )}

@@ -1,8 +1,9 @@
 import React from 'react';
 import Link from 'next/link';
+import { DEFAULT_PARTNER_CONFIG } from '@/lib/partner';
 
 export default function Footer() {
-  const partnerLink = 'https://one.justmarkets.link/a/tohstb0d83';
+  const partnerLink = DEFAULT_PARTNER_CONFIG.primaryLink;
 
   return (
     <footer style={{
@@ -14,42 +15,52 @@ export default function Footer() {
       <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
-          gap: '40px',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+          gap: '36px',
           marginBottom: '40px'
         }}>
           {/* Brand Column */}
           <div>
             <Link href="/" style={{ display: 'inline-flex', alignItems: 'center', marginBottom: '14px', textDecoration: 'none' }}>
               <picture>
-                <source srcSet="/velarion_brand_dark.webp" type="image/webp" />
                 <img
-                  src="/velarion_brand_dark.png"
-                  alt="VELARION MARKETS"
-                  width={130}
-                  height={36}
-                  style={{ height: '32px', width: 'auto', display: 'block' }}
+                  src="/velarion_emblem_navy.png"
+                  alt="Velarion Emblem"
+                  width={34}
+                  height={34}
+                  style={{ width: '34px', height: '34px', objectFit: 'contain', marginRight: '10px' }}
                 />
               </picture>
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                <span style={{ fontSize: '14px', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '0.8px' }}>
+                  VELARION MARKETS
+                </span>
+                <span style={{ fontSize: '9px', fontWeight: 600, color: 'var(--text-muted)', letterSpacing: '0.5px' }}>
+                  QUANTITATIVE TRADING &bull; XAUUSD
+                </span>
+              </div>
             </Link>
-            <p style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.65, maxWidth: '340px' }}>
-              Institutional algorithmic spot gold execution architecture and 30-lesson interactive Forex curriculum, 100% subsidized through our regulated broker partnership with JustMarkets.
+            <p style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.6, maxWidth: '340px' }}>
+              Quantitative Spot Gold (XAUUSD) execution technology and 30-lesson structured academy. No platform subscription fee; subsidized through an official Introducing Broker partnership with JustMarkets.
             </p>
             <div style={{ marginTop: '16px' }}>
               <span className="status-badge status-completed" style={{ fontSize: '10.5px' }}>
-                100% NON-CUSTODIAL &bull; REGULATED PARTNER
+                NON-CUSTODIAL &bull; REGULATED BROKER PARTNER
               </span>
             </div>
           </div>
 
           {/* Core Navigation */}
           <div>
-            <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '16px' }}>
+            <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '14px' }}>
               Platform Navigation
             </div>
-            <ul style={{ listStyle: 'none', padding: 0, margin: 0, fontSize: '13px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <ul style={{ listStyle: 'none', padding: 0, margin: 0, fontSize: '13px', display: 'flex', flexDirection: 'column', gap: '9px' }}>
               <li>
                 <Link href="/why-gold" style={{ color: 'var(--text-secondary)' }}>Why Spot Gold (XAUUSD)</Link>
+              </li>
+              <li>
+                <Link href="/strategies" style={{ color: 'var(--text-secondary)' }}>Quantitative Models</Link>
               </li>
               <li>
                 <Link href="/academy" style={{ color: 'var(--text-secondary)' }}>30-Lesson Forex School</Link>
@@ -58,75 +69,78 @@ export default function Footer() {
                 <Link href="/tools/growth-calculator" style={{ color: 'var(--text-secondary)' }}>200-Pip Growth Calculator</Link>
               </li>
               <li>
-                <Link href="/onboarding" style={{ color: 'var(--text-secondary)' }}>Unlock Free Access</Link>
+                <Link href="/onboarding" style={{ color: 'var(--text-secondary)' }}>Onboarding &amp; Verification</Link>
               </li>
               <li>
-                <Link href="/terminal" style={{ color: 'var(--text-secondary)' }}>Trading Terminal (Protected)</Link>
+                <Link href="/terminal" style={{ color: 'var(--text-secondary)' }}>Trading Terminal</Link>
               </li>
             </ul>
           </div>
 
-          {/* Forex Academy Highlights */}
+          {/* Legal & Compliance Disclosures */}
           <div>
-            <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '16px' }}>
-              Forex School (30 Lessons)
+            <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--accent-gold)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '14px' }}>
+              Legal &amp; Compliance
             </div>
-            <ul style={{ listStyle: 'none', padding: 0, margin: 0, fontSize: '13px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <ul style={{ listStyle: 'none', padding: 0, margin: 0, fontSize: '13px', display: 'flex', flexDirection: 'column', gap: '9px' }}>
               <li>
-                <Link href="/academy" style={{ color: 'var(--text-secondary)' }}>Curriculum Catalog</Link>
+                <Link href="/legal/terms" style={{ color: 'var(--text-secondary)' }}>Terms of Service</Link>
               </li>
               <li>
-                <Link href="/academy/lesson-1" style={{ color: 'var(--text-secondary)' }}>Lesson 01: What is Forex (Public)</Link>
+                <Link href="/legal/risk-disclosure" style={{ color: 'var(--text-secondary)' }}>Risk Disclosure</Link>
               </li>
               <li>
-                <Link href="/academy/lesson-5" style={{ color: 'var(--text-secondary)' }}>Lesson 05: Risk &amp; Leverage (Public)</Link>
+                <Link href="/legal/ib-disclosure" style={{ color: 'var(--text-secondary)', fontWeight: 600 }}>IB &amp; Conflict Disclosure</Link>
               </li>
               <li>
-                <Link href="/academy/lesson-13" style={{ color: 'var(--text-secondary)' }}>Lesson 13: Candlestick Mechanics</Link>
+                <Link href="/legal/privacy" style={{ color: 'var(--text-secondary)' }}>Privacy &amp; Security Policy</Link>
               </li>
               <li>
-                <Link href="/academy/lesson-30" style={{ color: 'var(--text-secondary)' }}>Lesson 30: Trading Plan Execution</Link>
+                <Link href="/legal/complaints" style={{ color: 'var(--text-secondary)' }}>Support &amp; Complaints Route</Link>
               </li>
             </ul>
           </div>
 
-          {/* Brokerage & Subsidized Access */}
+          {/* Official Broker Partner Column */}
           <div>
-            <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '16px' }}>
-              Official Broker Partner
+            <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '14px' }}>
+              Broker Sponsorship
             </div>
-            <p style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: '16px' }}>
-              All software tooling, AI analytics, and curriculum modules are 100% free when trading with our regulated broker partner, JustMarkets.
+            <p style={{ fontSize: '12.5px', color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: '14px' }}>
+              Subsidized access via JustMarkets with partner code <code className="mono-nums" style={{ color: 'var(--accent-gold)' }}>{DEFAULT_PARTNER_CONFIG.primaryCode}</code>. Non-custodial capital protection; zero platform subscription fees.
             </p>
             <a
               href={partnerLink}
               target="_blank"
               rel="noopener noreferrer"
               className="btn btn-primary"
-              style={{ fontSize: '12px', padding: '9px 16px', display: 'inline-block' }}
+              style={{ fontSize: '12px', padding: '8px 14px', display: 'inline-block' }}
             >
               Open JustMarkets MT5 &rarr;
             </a>
           </div>
         </div>
 
-        {/* Regulatory Risk Disclaimer */}
+        {/* Detailed Regulatory & IB Conflict Disclaimer */}
         <div style={{
           borderTop: '1px solid var(--border-default)',
-          paddingTop: '28px',
+          paddingTop: '24px',
           fontSize: '11.5px',
           color: 'var(--text-muted)',
           lineHeight: 1.7
         }}>
           <p style={{ marginBottom: '10px' }}>
-            <strong>Institutional Risk Disclaimer:</strong> Trading Spot Gold (XAUUSD) and leveraged financial instruments involves substantial risk of loss and is not suitable for all investors. The high degree of leverage can work against you as well as for you. Before deciding to trade foreign exchange or commodities, you must carefully evaluate your investment objectives, financial situation, experience level, and risk tolerance. There is a possibility that you could sustain a loss of some or all of your deposited capital. Do not speculate with capital you cannot afford to lose.
+            <strong>High-Risk Investment Warning:</strong> Trading foreign exchange and Spot Gold (XAUUSD) Contracts for Difference (CFDs) with leverage carries a high degree of risk and can result in the loss of your entire deposited capital. Spreads, overnight financing swaps, and market execution slippage apply to all broker orders. Past performance, hypothetical backtests, and growth compounding simulations are not indicative of future results.
+          </p>
+          <p style={{ marginBottom: '10px' }}>
+            <strong>Introducing Broker (IB) Relationship &amp; Conflict Notice:</strong> Velarion Markets acts as an independent technology affiliate and Introducing Broker for JustMarkets. Velarion Markets receives volume-based commission rebates and referral compensation when clients register with partner code <strong>{DEFAULT_PARTNER_CONFIG.primaryCode}</strong> and execute trades. This commercial structure represents an inherent conflict of interest. To protect capital, Velarion enforces user-controlled risk governors including lot caps, maximum daily loss limits, and emergency kill switches.
           </p>
           <p>
-            Velarion Markets operates solely as a quantitative algorithmic research and financial educational technology provider. Velarion Markets is not a broker-dealer or investment advisor and does not accept or hold customer deposits. All brokerage, execution, and custody services are provided exclusively by regulated broker partner JustMarkets Ltd.
+            <strong>Regulatory Jurisdiction Notice:</strong> Velarion Markets has not yet obtained an algorithmic trading license or retail investment advisor approval from the Capital Markets Authority (CMA) of Kenya. A formal legal and regulatory compliance review is designated as an essential pre-launch requirement prior to commercial deployment of the referral-plus-automated-execution model in Kenya.
           </p>
           <div style={{ marginTop: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
-            <span>&copy; {new Date().getFullYear()} Velarion Markets. All rights reserved.</span>
-            <span className="mono-nums">EN &bull; INSTITUTIONAL FEED</span>
+            <span>&copy; {new Date().getFullYear()} Velarion Markets. All rights reserved. Non-Custodial Algorithmic Technology.</span>
+            <span className="mono-nums">PARTNER: JUSTMARKETS (CODE: {DEFAULT_PARTNER_CONFIG.primaryCode})</span>
           </div>
         </div>
       </div>

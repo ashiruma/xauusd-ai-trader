@@ -59,7 +59,7 @@ export default function AcademyPage() {
       </h1>
 
       <p style={{ fontSize: '15px', color: 'var(--text-secondary)', lineHeight: 1.6, maxWidth: '820px', marginBottom: '32px' }}>
-        A progressive, institutional curriculum designed to build market literacy from first principles. Lessons 1 through 5 are open for instant public study. Lessons 6 through 30 are 100% free when verified with our official broker partner, JustMarkets.
+        A progressive, institutional curriculum designed to build market literacy from first principles. Lessons 1 through 5 are open for instant public study. Lessons 6 through 30 carry no software subscription fees and unlock upon partner verification with JustMarkets.
       </p>
 
       {/* Progress & Overview Panel */}
@@ -73,7 +73,7 @@ export default function AcademyPage() {
               {passedCount} of {totalLessons} Lessons Completed ({progressPercent}%)
             </h2>
             <div style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '4px' }}>
-              Subsidized 100% free through our official JustMarkets regulated broker partnership.
+              Subsidized with no platform subscription fee via our JustMarkets Introducing Broker partnership.
             </div>
           </div>
           <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
@@ -329,7 +329,7 @@ export default function AcademyPage() {
           Lifetime Subsidized Forex &amp; Spot Gold Education
         </div>
         <div style={{ fontSize: '13px', color: 'var(--text-secondary)', maxWidth: '640px', margin: '0 auto 20px', lineHeight: 1.6 }}>
-          Lessons 1 through 5 are open for instant public study. Lessons 6 through 30 and all quantitative assessments are 100% free when verified with our official regulated broker partner, JustMarkets.
+          Lessons 1 through 5 are open for instant public study. Lessons 6 through 30 carry no platform subscription fee when verified under our JustMarkets partner agreement. Broker spreads and trading risks apply.
         </div>
         <div style={{ display: 'flex', justifyContent: 'center', gap: '14px', flexWrap: 'wrap' }}>
           <Link
@@ -337,7 +337,7 @@ export default function AcademyPage() {
             className="btn btn-primary"
             style={{ fontSize: '13px', padding: '10px 20px' }}
           >
-            Unlock Free Access Now &rarr;
+            Unlock Full Curriculum &rarr;
           </Link>
           <a
             href="https://one.justmarkets.link/a/tohstb0d83"

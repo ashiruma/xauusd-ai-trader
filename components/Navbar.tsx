@@ -200,9 +200,9 @@ export default function Navbar() {
               <Link
                 href="/onboarding"
                 className="cta-verify"
-                aria-label="Unlock Free Access to Velarion Markets"
+                aria-label="Unlock Access to Velarion Markets"
               >
-                Unlock Free Access
+                Unlock Access
               </Link>
             )}
 
@@ -285,7 +285,7 @@ export default function Navbar() {
                   className="cta-verify"
                   style={{ width: '100%', padding: '12px', fontSize: '13px', textAlign: 'center' }}
                 >
-                  Unlock Free Access
+                  Unlock Access
                 </Link>
               ) : (
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
