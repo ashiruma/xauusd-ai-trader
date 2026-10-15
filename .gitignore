@@ -1,0 +1,45 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Environments & Dependencies
+.env
+.venv/
+env/
+venv/
+ENV/
+node_modules/
+dist/
+build/
+
+# Testing & Cache
+.pytest_cache/
+.pytest_temp/
+.coverage
+htmlcov/
+*.log
+
+# Databases & SQLite
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+data/*.db
+data/*.db-shm
+data/*.db-wal
+
+# Large Benchmark / Performance Reports
+lighthouse-*.json
+
+# OS / Editor files
+.DS_Store
+Thumbs.db
+# Agents internal
+.agents/
+.vscode/
+.idea/
+*.swp
+*~

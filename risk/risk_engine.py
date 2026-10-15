@@ -1,0 +1,272 @@
+"""
+Deterministic Risk Engine for XAUUSD.
+The unbypassable institutional gatekeeper between Strategy/AI proposals and Broker Execution.
+If ANY mandatory rule fails: REJECT TRADE.
+"""
+
+from datetime import datetime, timezone, timedelta
+import uuid
+from typing import Optional, Dict, Any, List
+from config.settings import settings, SessionName
+from data.models import FusedSignal, RiskDecision, MarketState, OrderSide
+from risk.position_sizer import PositionSizer
+from news.news_engine import news_engine, NewsImpactStatus
+from data.storage import db
+
+
+class RiskEngine:
+    def __init__(self, initial_equity: Optional[float] = None):
+        self._emergency_stop = settings.emergency_stop
+        self._emergency_reason = settings.emergency_stop_reason
+        self._recent_signals: Dict[str, datetime] = {}
+        
+        # State tracking for account drawdown & daily loss - dynamically initialized
+        self.initial_equity: Optional[float] = initial_equity
+        self.peak_equity: Optional[float] = initial_equity
+        self.daily_starting_equity: Optional[float] = initial_equity
+        self.daily_pnl: float = 0.0
+        self.consecutive_losses: int = 0
+        self.cooldown_until: Optional[datetime] = None
+        self.current_day = datetime.now(timezone.utc).date()
+
+    def set_emergency_stop(self, enabled: bool, reason: str = "Manual emergency stop triggered") -> None:
+        self._emergency_stop = enabled
+        self._emergency_reason = reason if enabled else None
+        db.record_system_event(
+            severity="CRITICAL" if enabled else "INFO",
+            component="RiskEngine",
+            event_type="EMERGENCY_STOP_TOGGLED",
+            message=f"Emergency stop set to {enabled}. Reason: {reason}"
+        )
+
+    def is_emergency_stop_active(self) -> tuple[bool, Optional[str]]:
+        return self._emergency_stop, self._emergency_reason
+
+    def update_account_metrics(self, current_equity: float, trade_pnl: Optional[float] = None, current_time: Optional[datetime] = None) -> None:
+        """Update peak equity, daily P&L, and consecutive loss tracking."""
+        today = (current_time or datetime.now(timezone.utc)).date()
+        if today != self.current_day:
+            self.current_day = today
+            self.daily_starting_equity = current_equity
+            self.daily_pnl = 0.0
+            self.consecutive_losses = 0
+            self.cooldown_until = None
+
+        if current_equity > 0:
+            if self.initial_equity is None or self.initial_equity <= 0:
+                self.initial_equity = current_equity
+            if self.peak_equity is None or self.peak_equity <= 0 or current_equity > self.peak_equity:
+                self.peak_equity = current_equity
+            if self.daily_starting_equity is None or self.daily_starting_equity <= 0:
+                self.daily_starting_equity = current_equity
+
+        if trade_pnl is not None:
+            self.daily_pnl += trade_pnl
+            if trade_pnl < 0:
+                # If already in cooldown, ignore further loss counting
+                now_time = current_time or datetime.now(timezone.utc)
+                if self.cooldown_until and now_time < self.cooldown_until:
+                    # do not increment consecutive losses during active cooldown
+                    pass
+                else:
+                    self.consecutive_losses += 1
+                    # Trigger cooldown only when losses exceed the allowed maximum
+                    if self.consecutive_losses > settings.risk.max_consecutive_losses:
+                        cooldown_dt = now_time
+                        self.cooldown_until = cooldown_dt + timedelta(hours=4)
+                        self.consecutive_losses = 0
+            else:
+                self.consecutive_losses = 0
+                self.cooldown_until = None
+
+    def reset_drawdown_baseline(self, current_equity: Optional[float] = None) -> None:
+        """Reset peak and starting equity baselines, e.g. after re-depositing or calibrating."""
+        if current_equity is not None and current_equity > 0:
+            self.initial_equity = current_equity
+            self.peak_equity = current_equity
+            self.daily_starting_equity = current_equity
+        elif self.initial_equity is not None and self.initial_equity > 0:
+            self.peak_equity = self.initial_equity
+            self.daily_starting_equity = self.initial_equity
+        self.daily_pnl = 0.0
+        self.consecutive_losses = 0
+        self.cooldown_until = None
+        db.record_system_event(
+            severity="INFO",
+            component="RiskEngine",
+            event_type="DRAWDOWN_BASELINE_RESET",
+            message=f"Drawdown baseline reset. Peak equity set to {self.peak_equity}"
+        )
+
+    def evaluate(
+        self,
+        signal: FusedSignal,
+        market_state: MarketState,
+        account_equity: float,
+        open_positions_count: int,
+        is_broker_connected: bool = True
+    ) -> RiskDecision:
+        """
+        Deterministic pre-trade risk evaluation.
+        Every proposed order must pass all 13 checks.
+        """
+        decision_id = f"RISK_{uuid.uuid4().hex[:12]}"
+        now = market_state.timestamp if (market_state and market_state.timestamp) else datetime.now(timezone.utc)
+        self.update_account_metrics(account_equity, current_time=now)
+
+        # Helper to construct rejection
+        def reject(code: str, reason: str) -> RiskDecision:
+            decision = RiskDecision(
+                signal_id=signal.signal_id,
+                timestamp=now,
+                approved=False,
+                rejection_code=code,
+                reason=reason,
+                lot_size=0.0,
+                risk_amount_usd=0.0,
+                stop_distance_points=0.0,
+                account_equity=account_equity
+            )
+            db.record_risk_decision(decision_id, decision)
+            db.record_system_event(
+                severity="WARNING",
+                component="RiskEngine",
+                event_type="TRADE_REJECTED",
+                message=f"Signal {signal.signal_id} rejected: [{code}] {reason}",
+                correlation_id=signal.signal_id
+            )
+            return decision
+
+        # 1. Global Emergency Stop
+        if self._emergency_stop:
+            return reject("REJECT_EMERGENCY_STOP", f"Emergency stop active: {self._emergency_reason}")
+
+        # 2. Broker Connection Status
+        if not is_broker_connected:
+            return reject("REJECT_BROKER_OFFLINE", "Execution gateway disconnected or unhealthy")
+
+        # 3. Signal Validity
+        if not signal.is_valid or signal.side == OrderSide.NO_TRADE:
+            return reject("REJECT_SIGNAL_INVALID", "Incoming signal is marked invalid or NO_TRADE")
+
+        # 4. Signal Expiry
+        if now > signal.expiry:
+            return reject("REJECT_SIGNAL_EXPIRED", f"Signal expired at {signal.expiry.isoformat()}")
+
+        # 5. Duplicate Signal Protection
+        last_sig_time = self._recent_signals.get(signal.strategy_id)
+        if last_sig_time:
+            time_since = (now - last_sig_time).total_seconds()
+            if time_since < settings.risk.duplicate_signal_window_seconds:
+                return reject("REJECT_DUPLICATE_SIGNAL", f"Duplicate signal within lockout window ({time_since:.0f}s < {settings.risk.duplicate_signal_window_seconds}s)")
+
+        # 6. Max Open Positions
+        if open_positions_count >= settings.risk.max_open_positions:
+            return reject("REJECT_MAX_POSITIONS", f"Open positions ({open_positions_count}) reached maximum allowed ({settings.risk.max_open_positions})")
+
+        # 7. Max Daily Loss Limit
+        daily_loss_pct = 0.0
+        if self.daily_starting_equity and self.daily_starting_equity > 0:
+            daily_loss_pct = max(0.0, -self.daily_pnl) / self.daily_starting_equity * 100.0
+        if daily_loss_pct >= settings.risk.max_daily_loss_pct:
+            return reject("REJECT_MAX_DAILY_LOSS", f"Daily loss limit reached ({daily_loss_pct:.2f}% >= {settings.risk.max_daily_loss_pct}%)")
+        # Daily profit target lockout
+        if hasattr(settings.risk, "daily_profit_target_usd"):
+            if self.daily_pnl >= settings.risk.daily_profit_target_usd:
+                return reject("REJECT_DAILY_PROFIT_GOAL_REACHED", f"Daily profit target reached (${self.daily_pnl:.2f} >= ${settings.risk.daily_profit_target_usd})")
+
+        # 8. Max Total Drawdown Limit
+        drawdown_pct = 0.0
+        if self.peak_equity and self.peak_equity > 0:
+            drawdown_pct = (self.peak_equity - account_equity) / self.peak_equity * 100.0
+        if drawdown_pct >= settings.risk.max_drawdown_pct:
+            return reject("REJECT_MAX_DRAWDOWN", f"Account drawdown limit exceeded ({drawdown_pct:.2f}% >= {settings.risk.max_drawdown_pct}%)")
+
+        # 9. Consecutive Losses Cooldown
+        if self.cooldown_until and now < self.cooldown_until:
+            mins_left = (self.cooldown_until - now).total_seconds() / 60.0
+            return reject("REJECT_CONSECUTIVE_LOSSES", f"Consecutive loss cooldown active ({mins_left:.0f}m remaining)")
+        elif self.cooldown_until and now >= self.cooldown_until:
+            self.cooldown_until = None
+
+        if self.consecutive_losses >= settings.risk.max_consecutive_losses:
+            return reject("REJECT_CONSECUTIVE_LOSSES", f"Consecutive loss cooldown active ({self.consecutive_losses} >= {settings.risk.max_consecutive_losses})")
+
+        # 10. Spread Limit
+        if market_state.spread_points > settings.risk.max_spread_points:
+            return reject("REJECT_SPREAD_TOO_HIGH", f"Current spread ({market_state.spread_points:.1f} pts) exceeds maximum ({settings.risk.max_spread_points} pts)")
+
+        # 11. Minimum Risk / Reward Ratio (Adaptive by Account Equity Tier)
+        tier_params = settings.risk.get_tier_parameters(account_equity)
+        min_required_rr = settings.risk.min_risk_reward_ratio
+        if signal.risk_reward < min_required_rr:
+            return reject("REJECT_MIN_RR_VIOLATED", f"Setup risk/reward {signal.risk_reward:.2f} is below required minimum {min_required_rr:.2f}")
+
+        # 12. Stop Distance Limits
+        stop_dist_pts = round(abs(signal.entry - signal.stop_loss) / settings.contract.point_size, 1)
+        if stop_dist_pts < settings.risk.min_stop_distance_points:
+            return reject("REJECT_STOP_TOO_TIGHT", f"Stop distance {stop_dist_pts:.1f} pts is below minimum {settings.risk.min_stop_distance_points} pts")
+        
+        effective_max_stop = settings.risk.max_stop_distance_points
+        if account_equity <= 250.0:
+            effective_max_stop = min(effective_max_stop, 500.0)
+
+        if stop_dist_pts > effective_max_stop:
+            return reject("REJECT_STOP_TOO_WIDE", f"Stop distance {stop_dist_pts:.1f} pts exceeds maximum allowed {effective_max_stop:.1f} pts")
+
+        # 13. Session Restrictions
+        if settings.risk.session_restrictions_enabled:
+            if market_state.session in (SessionName.ROLLOVER_CAUTION, SessionName.OFF_HOURS):
+                return reject("REJECT_SESSION_RESTRICTION", f"Trading barred during illiquid session: {market_state.session.value}")
+
+        # 14. High-Impact News Lockout
+        news_status, event, news_reason = news_engine.check_news_status(now)
+        if news_status == NewsImpactStatus.NEWS_LOCKOUT:
+            return reject("REJECT_NEWS_LOCKOUT", news_reason)
+
+        # 15. Deterministic Position Sizing Calculation
+        effective_risk_pct = getattr(self, "max_risk_per_trade_pct", settings.risk.max_risk_per_trade_pct)
+        if account_equity >= 1000.0 and effective_risk_pct > 2.0:
+            effective_risk_pct = 1.0
+
+        lot_size, risk_usd, stop_pts = PositionSizer.calculate_lot_size(
+            account_equity=account_equity,
+            entry_price=signal.entry,
+            stop_loss=signal.stop_loss,
+            risk_pct=effective_risk_pct,
+            contract_size=settings.contract.contract_size,
+            min_lot=settings.contract.min_lot,
+            max_lot=settings.contract.max_lot,
+            lot_step=settings.contract.lot_step,
+            allow_min_lot_override=settings.risk.allow_min_lot_override
+        )
+
+        if lot_size < settings.contract.min_lot:
+            return reject("REJECT_LOT_SIZE_ZERO", f"Calculated position size ({lot_size} lots) below broker minimum ({settings.contract.min_lot})")
+
+        # Trade Approved
+        self._recent_signals[signal.strategy_id] = now
+        approval = RiskDecision(
+            signal_id=signal.signal_id,
+            timestamp=now,
+            approved=True,
+            rejection_code=None,
+            reason=f"Approved {signal.side.value} {lot_size:.2f} lots at ${signal.entry:.2f} (Risk: ${risk_usd:.2f}, R:R: {signal.risk_reward:.2f})",
+            lot_size=lot_size,
+            risk_amount_usd=risk_usd,
+            stop_distance_points=stop_pts,
+            account_equity=account_equity
+        )
+        db.record_risk_decision(decision_id, approval)
+        db.record_system_event(
+            severity="INFO",
+            component="RiskEngine",
+            event_type="TRADE_APPROVED",
+            message=f"Signal {signal.signal_id} approved for {lot_size:.2f} lots",
+            correlation_id=signal.signal_id
+        )
+        return approval
+
+
+# Global default risk engine
+risk_engine = RiskEngine()
