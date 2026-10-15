@@ -5,6 +5,7 @@ import { Metadata } from 'next';
 import { AUTH_COOKIE_NAME, verifySession } from '@/lib/auth';
 import { DEFAULT_PARTNER_CONFIG } from '@/lib/partner';
 import LiveSpotFeed from '@/components/LiveSpotFeed';
+import { getServerLiveQuote } from '@/lib/marketFeed';
 
 export const metadata: Metadata = {
   title: 'Autonomous AI Trading Terminal | Velarion Markets',
@@ -84,7 +85,7 @@ export default async function TerminalPage() {
       <div style={{ display: 'grid', gridTemplateColumns: '420px 1fr', gap: '24px', alignItems: 'start' }}>
         {/* Left Column: Live Spot Feed & Metrics */}
         <div>
-          <LiveSpotFeed style={{ marginBottom: '20px' }} />
+          <LiveSpotFeed initialQuote={getServerLiveQuote()} style={{ marginBottom: '20px' }} />
 
           {/* Market Status Card */}
           <div className="panel-card" style={{ padding: '20px' }}>

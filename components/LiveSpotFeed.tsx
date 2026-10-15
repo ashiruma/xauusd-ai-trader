@@ -5,9 +5,10 @@ import React, { useState, useEffect, useRef } from 'react';
 interface LiveSpotFeedProps {
   className?: string;
   style?: React.CSSProperties;
+  initialQuote?: QuoteResponse | null;
 }
 
-interface QuoteResponse {
+export interface QuoteResponse {
   symbol: string;
   price: number;
   bid: number;
@@ -17,20 +18,26 @@ interface QuoteResponse {
   delta: string;
   timestamp: number;
   source: string;
+  status?: string;
 }
 
-export default function LiveSpotFeed({ className = '', style }: LiveSpotFeedProps) {
-  const [quote, setQuote] = useState<QuoteResponse | null>(null);
-  const [isConnecting, setIsConnecting] = useState(true);
+export default function LiveSpotFeed({ className = '', style, initialQuote }: LiveSpotFeedProps) {
+  const [quote, setQuote] = useState<QuoteResponse | null>(initialQuote || null);
+  const [isConnected, setIsConnected] = useState<boolean>(true);
   const [flashType, setFlashType] = useState<'up' | 'down' | null>(null);
-  const lastPriceRef = useRef<number | null>(null);
+  const lastPriceRef = useRef<number | null>(initialQuote?.price || null);
 
   useEffect(() => {
     let isMounted = true;
+    const controller = new AbortController();
 
     const fetchQuote = async () => {
       try {
-        const res = await fetch('/api/market/quote', { cache: 'no-store' });
+        const res = await fetch('/api/market/quote', {
+          cache: 'no-store',
+          signal: controller.signal
+        });
+
         if (res.ok && isMounted) {
           const data: QuoteResponse = await res.json();
           if (data && typeof data.price === 'number') {
@@ -38,35 +45,41 @@ export default function LiveSpotFeed({ className = '', style }: LiveSpotFeedProp
               setFlashType(data.price >= lastPriceRef.current ? 'up' : 'down');
               setTimeout(() => {
                 if (isMounted) setFlashType(null);
-              }, 250);
+              }, 300);
             }
             lastPriceRef.current = data.price;
             setQuote(data);
-            setIsConnecting(false);
+            setIsConnected(true);
           }
         }
-      } catch {
-        if (isMounted && !quote) {
-          setIsConnecting(false);
+      } catch (err: unknown) {
+        if (isMounted && (err as { name?: string })?.name !== 'AbortError') {
+          // If we fail multiple times without quote, mark offline
+          if (!lastPriceRef.current) {
+            setIsConnected(false);
+          }
         }
       }
     };
 
     fetchQuote();
-    const interval = setInterval(fetchQuote, 1500);
+    const interval = setInterval(fetchQuote, 1000); // 1-second real-time polling
 
     return () => {
       isMounted = false;
+      controller.abort();
       clearInterval(interval);
     };
   }, []);
 
-  const displayPrice = quote?.price ?? 4142.16;
-  const displayBid = quote?.bid ?? 4142.03;
-  const displayAsk = quote?.ask ?? 4142.29;
-  const displaySpread = quote?.spread ?? '2.6 PIPS';
-  const deltaVal = quote?.delta ?? '+0.04';
+  const displayPrice = quote?.price ?? (lastPriceRef.current || 4158.52);
+  const displayBid = quote?.bid ?? Number((displayPrice - 0.13).toFixed(2));
+  const displayAsk = quote?.ask ?? Number((displayPrice + 0.13).toFixed(2));
+  const displaySpread = quote?.spread ?? '4.1 PIPS';
+  const deltaVal = quote?.delta ?? '+51.23 (+1.25%)';
   const isNegative = deltaVal.startsWith('-');
+  const isDirectMT5 = quote?.source === 'JUSTMARKETS_MT5_DIRECT';
+  const isTradingView = quote?.source?.includes('TRADINGVIEW') ?? true;
 
   return (
     <div
@@ -84,7 +97,19 @@ export default function LiveSpotFeed({ className = '', style }: LiveSpotFeedProp
         marginBottom: '16px'
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span className={`dot-indicator ${isConnecting ? 'offline' : ''}`} />
+          {/* Status Dot: Emerald Green when live, Red ONLY when offline */}
+          <span
+            className={`dot-indicator ${isConnected ? 'live' : 'offline'}`}
+            style={{
+              width: '8px',
+              height: '8px',
+              borderRadius: '50%',
+              background: isConnected ? '#10B981' : '#F43F5E',
+              boxShadow: isConnected ? '0 0 8px rgba(16, 185, 129, 0.7)' : '0 0 8px rgba(244, 63, 94, 0.7)',
+              display: 'inline-block',
+              transition: 'background 0.3s ease'
+            }}
+          />
           <div>
             <span style={{ fontSize: '13px', fontWeight: 800, letterSpacing: '0.5px', color: 'var(--text-primary)' }}>
               XAUUSD.m
@@ -95,9 +120,46 @@ export default function LiveSpotFeed({ className = '', style }: LiveSpotFeedProp
           </div>
         </div>
 
-        <span className="status-badge status-neutral" style={{ fontSize: '10px' }}>
-          {isConnecting ? 'CONNECTING...' : quote?.source === 'JUSTMARKETS_MT5_DIRECT' ? 'JUSTMARKETS MT5' : 'LIVE FEED'}
-        </span>
+        {/* Live Source Badge */}
+        <a
+          href="https://www.tradingview.com/symbols/XAUUSD/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="status-badge"
+          title="Live Gold Spot Price via TradingView (XAUUSD)"
+          style={{
+            fontSize: '10px',
+            fontFamily: 'var(--font-mono, monospace)',
+            fontWeight: 700,
+            textDecoration: 'none',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '4px',
+            background: isConnected
+              ? isDirectMT5
+                ? 'rgba(245, 158, 11, 0.12)'
+                : 'rgba(16, 185, 129, 0.12)'
+              : 'rgba(244, 63, 94, 0.12)',
+            color: isConnected
+              ? isDirectMT5
+                ? '#F59E0B'
+                : '#10B981'
+              : '#F43F5E',
+            border: `1px solid ${
+              isConnected
+                ? isDirectMT5
+                  ? 'rgba(245, 158, 11, 0.3)'
+                  : 'rgba(16, 185, 129, 0.3)'
+                : 'rgba(244, 63, 94, 0.3)'
+            }`
+          }}
+        >
+          {isConnected
+            ? isDirectMT5
+              ? 'JUSTMARKETS MT5'
+              : 'TRADINGVIEW REALTIME'
+            : 'RECONNECTING...'}
+        </a>
       </div>
 
       {/* Primary Quote Display */}
@@ -109,10 +171,14 @@ export default function LiveSpotFeed({ className = '', style }: LiveSpotFeedProp
           <div
             className="mono-nums"
             style={{
-              fontSize: '32px',
+              fontSize: '34px',
               fontWeight: 800,
               lineHeight: 1.1,
-              color: flashType === 'up' ? 'var(--accent-green)' : flashType === 'down' ? 'var(--accent-red)' : 'var(--text-primary)',
+              color: flashType === 'up'
+                ? '#10B981'
+                : flashType === 'down'
+                ? '#F43F5E'
+                : 'var(--text-primary)',
               transition: 'color 0.15s ease'
             }}
           >
@@ -123,7 +189,7 @@ export default function LiveSpotFeed({ className = '', style }: LiveSpotFeedProp
             style={{
               fontSize: '13px',
               fontWeight: 700,
-              color: isNegative ? 'var(--accent-red)' : 'var(--accent-green)'
+              color: isNegative ? '#F43F5E' : '#10B981'
             }}
           >
             {deltaVal}
@@ -136,7 +202,7 @@ export default function LiveSpotFeed({ className = '', style }: LiveSpotFeedProp
         <div style={{ background: 'var(--bg-surface-2)', padding: '10px 12px', borderRadius: 'var(--radius-xs)', border: '1px solid var(--border-subtle)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2px' }}>
             <span style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Bid</span>
-            <span style={{ fontSize: '9px', fontWeight: 700, color: 'var(--accent-green)' }}>SELL</span>
+            <span style={{ fontSize: '9px', fontWeight: 700, color: '#10B981' }}>SELL</span>
           </div>
           <div className="mono-nums" style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)' }}>
             ${displayBid.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
@@ -146,7 +212,7 @@ export default function LiveSpotFeed({ className = '', style }: LiveSpotFeedProp
         <div style={{ background: 'var(--bg-surface-2)', padding: '10px 12px', borderRadius: 'var(--radius-xs)', border: '1px solid var(--border-subtle)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2px' }}>
             <span style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Ask</span>
-            <span style={{ fontSize: '9px', fontWeight: 700, color: 'var(--accent-gold)' }}>BUY</span>
+            <span style={{ fontSize: '9px', fontWeight: 700, color: '#F59E0B' }}>BUY</span>
           </div>
           <div className="mono-nums" style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)' }}>
             ${displayAsk.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
@@ -185,16 +251,26 @@ export default function LiveSpotFeed({ className = '', style }: LiveSpotFeedProp
         </div>
       </div>
 
-      {/* Footer Broker Transparency */}
+      {/* Footer Broker & TradingView Transparency */}
       <div style={{
         marginTop: '14px',
         fontSize: '11px',
         color: 'var(--text-muted)',
-        textAlign: 'center',
         borderTop: '1px solid var(--border-subtle)',
-        paddingTop: '10px'
+        paddingTop: '10px',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center'
       }}>
-        Execution via regulated broker partner JustMarkets MT5
+        <span>Execution: JustMarkets MT5</span>
+        <a
+          href="https://www.tradingview.com/symbols/XAUUSD/"
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{ color: 'var(--accent-gold)', textDecoration: 'none', fontWeight: 600 }}
+        >
+          TradingView XAUUSD &rarr;
+        </a>
       </div>
     </div>
   );

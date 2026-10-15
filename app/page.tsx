@@ -2,6 +2,7 @@ import React from 'react';
 import Link from 'next/link';
 import LiveSpotFeed from '@/components/LiveSpotFeed';
 import { DEFAULT_PARTNER_CONFIG } from '@/lib/partner';
+import { getServerLiveQuote } from '@/lib/marketFeed';
 
 export const metadata = {
   title: 'Velarion Markets | Institutional XAUUSD Quantitative Trading & Forex Academy',
@@ -9,6 +10,7 @@ export const metadata = {
 };
 
 export default function HomePage() {
+  const initialQuote = getServerLiveQuote();
   return (
     <div>
       {/* ============================================================== */}
@@ -121,7 +123,7 @@ export default function HomePage() {
 
             {/* Right Column: Clean Institutional Market Information Panel */}
             <div>
-              <LiveSpotFeed />
+              <LiveSpotFeed initialQuote={initialQuote} />
             </div>
           </div>
         </div>

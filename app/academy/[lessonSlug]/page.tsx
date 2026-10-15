@@ -5,6 +5,15 @@ import { Metadata } from 'next';
 import { cookies } from 'next/headers';
 import { getLessonById } from '@/lib/curriculum';
 import LessonQuiz from '@/components/LessonQuiz';
+import LessonCheatSheet from '@/components/academy/LessonCheatSheet';
+import {
+  SmcLiquiditySweepDiagram,
+  FvgOrderBlockDiagram,
+  SessionKillzonesDiagram,
+  RiskRewardMatrixDiagram,
+  DiagramTeaserPreview
+} from '@/components/academy/TradingDiagrams';
+import { getQuizForLesson, getCheatSheetData } from '@/lib/quizData';
 
 interface LessonPageProps {
   params: Promise<{
@@ -22,8 +31,6 @@ export async function generateMetadata({ params }: LessonPageProps): Promise<Met
     };
   }
 
-  const isPublicPreview = lesson.globalNum <= 5;
-
   return {
     title: `Lesson ${lesson.globalNum}: ${lesson.title} | Velarion Forex School`,
     description: lesson.summary,
@@ -33,9 +40,7 @@ export async function generateMetadata({ params }: LessonPageProps): Promise<Met
       url: `https://velarionmarkets.com/academy/lesson-${lesson.globalNum}`,
       type: 'article',
     },
-    robots: isPublicPreview
-      ? { index: true, follow: true }
-      : { index: true, follow: true }
+    robots: { index: true, follow: true }
   };
 }
 
@@ -56,10 +61,10 @@ export default async function LessonPage({ params }: LessonPageProps) {
   const wordCount = lesson.content ? lesson.content.split(/\s+/).length : 500;
   const estReadingTime = `${Math.max(3, Math.ceil(wordCount / 180))} min read`;
 
-  // First 250 characters as preview snippet if locked
-  const previewSnippet = lesson.content
-    ? lesson.content.slice(0, 320).replace(/\n/g, ' ') + '...'
-    : '';
+  // First introductory paragraph for SEO crawlers and preview
+  const firstParagraph = lesson.content
+    ? lesson.content.split('\n\n')[0]
+    : lesson.summary;
 
   const courseJsonLd = {
     '@context': 'https://schema.org',
@@ -76,6 +81,42 @@ export default async function LessonPage({ params }: LessonPageProps) {
     }
   };
 
+  // Select appropriate technical diagram based on lesson topic
+  const renderTechnicalDiagram = () => {
+    if (lesson.globalNum === 1) {
+      return <SessionKillzonesDiagram />;
+    }
+    if (lesson.globalNum === 2 || lesson.globalNum === 14 || lesson.globalNum === 17) {
+      return <SmcLiquiditySweepDiagram />;
+    }
+    if (lesson.globalNum === 3 || lesson.globalNum === 15 || lesson.globalNum === 18) {
+      return <FvgOrderBlockDiagram />;
+    }
+    if (lesson.globalNum === 4 || lesson.globalNum === 5 || lesson.globalNum === 23) {
+      return <RiskRewardMatrixDiagram />;
+    }
+
+    // Default fallback to SVG if present in curriculum data or SMC sweep diagram
+    if (lesson.diagram && lesson.diagram.includes('<svg')) {
+      return (
+        <div style={{
+          background: '#090D16',
+          border: '1px solid #1E293B',
+          borderRadius: 'var(--radius-sm)',
+          padding: '16px',
+          overflowX: 'auto'
+        }}>
+          <div dangerouslySetInnerHTML={{ __html: lesson.diagram }} />
+        </div>
+      );
+    }
+
+    return <SmcLiquiditySweepDiagram />;
+  };
+
+  const cheatSheet = getCheatSheetData(lesson.globalNum, lesson.title);
+  const quizQuestions = getQuizForLesson(lesson.globalNum, lesson.quiz);
+
   return (
     <>
       <script
@@ -83,7 +124,7 @@ export default async function LessonPage({ params }: LessonPageProps) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(courseJsonLd) }}
       />
 
-      <article style={{ maxWidth: '780px', margin: '40px auto 80px', padding: '0 20px' }}>
+      <article style={{ maxWidth: '820px', margin: '40px auto 80px', padding: '0 20px' }}>
         {/* Breadcrumb Navigation */}
         <nav aria-label="Breadcrumb" style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '20px' }}>
           <Link href="/" style={{ color: 'var(--text-secondary)' }}>Home</Link>
@@ -108,11 +149,11 @@ export default async function LessonPage({ params }: LessonPageProps) {
 
             {lesson.globalNum <= 5 ? (
               <span className="status-badge status-completed">
-                PUBLIC PREVIEW
+                FOUNDATION TRACK &bull; FREE
               </span>
             ) : (
               <span className="status-badge" style={{ background: 'rgba(245, 158, 11, 0.1)', color: 'var(--accent-gold)', borderColor: 'rgba(245, 158, 11, 0.3)' }}>
-                PARTNER SPONSORED &bull; 100% FREE
+                INSTITUTIONAL TRACK &bull; MT5 SPONSORED
               </span>
             )}
 
@@ -157,42 +198,36 @@ export default async function LessonPage({ params }: LessonPageProps) {
         {isLocked ? (
           /* ============================================================== */
           /* SERVER-SIDE SECURED PAYWALL CARD                               */
-          /* Notice: Full content and quiz are NOT sent in the HTML stream  */
+          /* Notice: Full content, diagram & quiz are omitted on the server */
           /* ============================================================== */
           <div style={{ position: 'relative', marginBottom: '40px' }}>
-            {/* Teaser Preview with Blur Fade */}
+            {/* Introductory Teaser Paragraph for SEO Crawlers */}
             <div style={{
               background: 'var(--bg-surface-1)',
               border: '1px solid var(--border-default)',
               borderRadius: 'var(--radius-md)',
-              padding: '28px',
-              position: 'relative',
-              overflow: 'hidden'
+              padding: '24px 28px',
+              marginBottom: '24px'
             }}>
-              <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '14px' }}>
-                Lesson Overview &bull; Preview
+              <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '10px' }}>
+                Lesson {lesson.globalNum} Overview
               </div>
               <p style={{ fontSize: '14.5px', color: 'var(--text-secondary)', lineHeight: 1.7, margin: 0 }}>
-                {previewSnippet}
+                {firstParagraph}
               </p>
-              <div style={{
-                height: '80px',
-                background: 'linear-gradient(to bottom, rgba(14,22,37,0) 0%, var(--bg-surface-1) 100%)',
-                marginTop: '-40px',
-                position: 'relative',
-                pointerEvents: 'none'
-              }} />
             </div>
+
+            {/* Blurred SVG Diagram Preview */}
+            <DiagramTeaserPreview lessonNum={lesson.globalNum} />
 
             {/* Unhackable Gate Overlay Card */}
             <div style={{
-              marginTop: '24px',
-              background: 'linear-gradient(180deg, rgba(14,22,37,0.95) 0%, rgba(9,13,22,0.98) 100%)',
-              border: '1px solid var(--border-gold)',
+              background: 'linear-gradient(180deg, rgba(14,22,37,0.96) 0%, rgba(9,13,22,0.98) 100%)',
+              border: '1.5px solid var(--border-gold, #C5A059)',
               borderRadius: 'var(--radius-lg)',
               padding: '36px 32px',
               textAlign: 'center',
-              boxShadow: '0 20px 40px rgba(0, 0, 0, 0.4)'
+              boxShadow: '0 20px 48px rgba(0, 0, 0, 0.5)'
             }}>
               <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '6px 14px', background: 'rgba(245, 158, 11, 0.1)', border: '1px solid rgba(245, 158, 11, 0.3)', borderRadius: '20px', marginBottom: '20px' }}>
                 <span className="status-indicator live" style={{ background: 'var(--accent-gold)' }} />
@@ -206,47 +241,47 @@ export default async function LessonPage({ params }: LessonPageProps) {
               </h2>
 
               <p style={{ fontSize: '14.5px', color: 'var(--text-secondary)', lineHeight: 1.6, maxWidth: '580px', margin: '0 auto 24px' }}>
-                Lessons 6 through 30, technical execution diagrams, real-time case studies, and quantitative assessments are 100% subsidized when you connect an MT5 account registered with our official broker partner.
+                Lessons 6 through 30 (covering Institutional SMC Execution, Multi-Agent AI Confluence, and the 200-Pip Growth Matrix) plus our Live XAUUSD AI Terminal are <strong style={{ color: 'var(--accent-gold)' }}>100% Free</strong>&mdash;subsidized by our official broker partner, <strong>JustMarkets</strong>.
               </p>
 
               {/* Institutional Benefit Checkmarks */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxWidth: '440px', margin: '0 auto 28px', textAlign: 'left', fontSize: '13px', color: 'var(--text-primary)' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxWidth: '460px', margin: '0 auto 28px', textAlign: 'left', fontSize: '13px', color: 'var(--text-primary)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                   <span style={{ color: 'var(--accent-gold)', fontWeight: 800 }}>&#10003;</span>
-                  <span>Zero subscription fees &bull; No credit card required</span>
+                  <span>Zero subscription fees &bull; No payment cards required</span>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                   <span style={{ color: 'var(--accent-gold)', fontWeight: 800 }}>&#10003;</span>
-                  <span>100% Capital Custody &bull; Deposits stay in your own MT5 account</span>
+                  <span>100% Capital Custody &bull; Deposits stay inside your own regulated MT5 account</span>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                   <span style={{ color: 'var(--accent-gold)', fontWeight: 800 }}>&#10003;</span>
-                  <span>Instant Unlock &bull; Complete 30 lessons + Autonomous AI Terminal</span>
+                  <span>Instant Full Unlock &bull; Complete 30 lessons + Autonomous AI Terminal</span>
                 </div>
               </div>
 
               {/* Action Buttons */}
               <div style={{ display: 'flex', justifyContent: 'center', gap: '14px', flexWrap: 'wrap' }}>
-                <Link
-                  href={`/onboarding?redirect=/academy/lesson-${lesson.globalNum}`}
-                  className="btn btn-primary"
-                  style={{ padding: '12px 24px', fontSize: '14px' }}
-                >
-                  Verify MT5 Account (Instant Unlock) &rarr;
-                </Link>
                 <a
                   href="https://one.justmarkets.link/a/tohstb0d83"
                   target="_blank"
                   rel="noopener noreferrer"
+                  className="btn btn-primary"
+                  style={{ padding: '12px 24px', fontSize: '14px' }}
+                >
+                  Open JustMarkets Account &amp; Unlock Lessons 6&ndash;30 &rarr;
+                </a>
+                <Link
+                  href={`/onboarding?redirect=/academy/lesson-${lesson.globalNum}`}
                   className="btn btn-outline-gold"
                   style={{ padding: '12px 24px', fontSize: '14px' }}
                 >
-                  Register on JustMarkets &rarr;
-                </a>
+                  Verify Existing MT5 ID &rarr;
+                </Link>
               </div>
 
               <div style={{ marginTop: '20px', fontSize: '12px', color: 'var(--text-muted)' }}>
-                Already registered under partner code <code className="mono-nums" style={{ color: 'var(--accent-gold)' }}>tohstb0d83</code>? Simply enter your MT5 account ID on the verification page.
+                Already registered under partner code <code className="mono-nums" style={{ color: 'var(--accent-gold)' }}>tohstb0d83</code>? Enter your MT5 Account ID for instant activation.
               </div>
             </div>
           </div>
@@ -266,36 +301,13 @@ export default async function LessonPage({ params }: LessonPageProps) {
               />
             </section>
 
-            {/* Section 2: Technical Application / Execution Diagram */}
-            {lesson.diagram && (
-              <section aria-label="Technical Application" className="panel-card" style={{ padding: '24px', marginBottom: '32px' }}>
-                <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--accent-gold)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '14px' }}>
-                  Technical Application &bull; Execution Diagram
-                </div>
-                <div style={{
-                  background: 'var(--bg-base)',
-                  border: '1px solid var(--border-subtle)',
-                  borderRadius: 'var(--radius-sm)',
-                  padding: '16px',
-                  overflowX: 'auto'
-                }}>
-                  {lesson.diagram.includes('<svg') ? (
-                    <div dangerouslySetInnerHTML={{ __html: lesson.diagram }} />
-                  ) : (
-                    <pre style={{
-                      margin: 0,
-                      fontSize: '12px',
-                      fontFamily: 'var(--font-mono)',
-                      color: 'var(--text-primary)',
-                      whiteSpace: 'pre-wrap',
-                      lineHeight: 1.5
-                    }}>
-                      {lesson.diagram}
-                    </pre>
-                  )}
-                </div>
-              </section>
-            )}
+            {/* Section 2: Technical Application / Custom Dark-Mode SVG Diagram */}
+            <section aria-label="Technical Application" style={{ marginBottom: '32px' }}>
+              <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--accent-gold)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '12px' }}>
+                Technical Application &bull; Execution Diagram
+              </div>
+              {renderTechnicalDiagram()}
+            </section>
 
             {/* Section 3: Real Market Example */}
             {lesson.example && (
@@ -310,7 +322,7 @@ export default async function LessonPage({ params }: LessonPageProps) {
                 marginBottom: '32px'
               }}>
                 <div style={{ fontSize: '11px', fontWeight: 800, color: 'var(--accent-gold)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '8px' }}>
-                  Real Market Example
+                  Real Market Example &bull; XAUUSD Execution
                 </div>
                 <div
                   style={{ fontSize: '13.5px', color: 'var(--text-secondary)', lineHeight: 1.65 }}
@@ -319,12 +331,22 @@ export default async function LessonPage({ params }: LessonPageProps) {
               </section>
             )}
 
-            {/* Section 4: Knowledge Check / Interactive Quiz */}
+            {/* Section 4: Shareable Key Takeaways Cheat Sheet */}
+            <section aria-label="Key Takeaways Cheat Sheet">
+              <LessonCheatSheet
+                lessonNum={lesson.globalNum}
+                title={lesson.title}
+                takeaways={cheatSheet.takeaways}
+                proTip={cheatSheet.proTip}
+              />
+            </section>
+
+            {/* Section 5: Interactive 3-Question Micro-Assessment */}
             <section aria-label="Knowledge Assessment">
               <LessonQuiz
                 lessonId={lesson.id}
                 globalNum={lesson.globalNum}
-                quiz={lesson.quiz}
+                quiz={quizQuestions}
                 nextLessonNum={nextLessonNum}
               />
             </section>
@@ -333,7 +355,7 @@ export default async function LessonPage({ params }: LessonPageProps) {
 
         {/* Prev / Next Navigation Controls */}
         <div style={{
-          marginTop: '36px',
+          marginTop: '40px',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
