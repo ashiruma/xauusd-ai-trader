@@ -46,7 +46,9 @@ export async function POST(request: Request) {
         justmarkets_account_id: accId || '1200533810',
         referral_code: 'tohstb0d83',
         role: isOwner ? 'admin' : 'trader',
+        is_referral_verified: true,
         is_verified: true,
+        status: 'ACTIVE',
       },
     });
   } catch {
