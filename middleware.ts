@@ -6,6 +6,11 @@ export function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname;
   const clientIp = request.headers.get('x-forwarded-for') || '127.0.0.1';
 
+  // 0. Public Admin Route blocked completely
+  if (path === '/admin' || (path.startsWith('/admin/') && !path.startsWith('/admin-secure-x9f8k2'))) {
+    return new NextResponse('Not Found', { status: 404 });
+  }
+
   // 1. Secret Admin Route (Hidden completely as a 404 unless authorized)
   if (path.startsWith('/admin-secure-x9f8k2')) {
     const trustedAdminIp = process.env.ADMIN_IP_ADDRESS || 'YOUR_HOME_IP';
@@ -34,5 +39,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/admin-secure-x9f8k2/:path*', '/terminal/:path*', '/academy/advanced/:path*'],
+  matcher: ['/admin', '/admin/:path*', '/admin-secure-x9f8k2/:path*', '/terminal/:path*', '/academy/advanced/:path*'],
 };

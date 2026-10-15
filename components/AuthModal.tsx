@@ -31,10 +31,6 @@ export default function AuthModal({
       setErrorMsg('Please enter your JustMarkets MT5 Account Number.');
       return;
     }
-    if (!email.trim() || !email.includes('@')) {
-      setErrorMsg('Please enter the email registered on JustMarkets.');
-      return;
-    }
 
     setLoading(true);
 
@@ -69,18 +65,13 @@ export default function AuthModal({
     }
   };
 
-  const handleDemoVerify = () => {
-    setMt5Account('1200533810');
-    setEmail('trader@velarion.com');
-  };
-
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-card" onClick={(e) => e.stopPropagation()}>
         {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '18px' }}>
           <div>
-            <span className="status-badge status-warning" style={{ marginBottom: '8px' }}>
+            <span className="status-badge status-completed" style={{ marginBottom: '8px' }}>
               JUSTMARKETS PARTNER VERIFICATION
             </span>
             <h2 style={{ fontSize: '20px', fontWeight: 800, color: 'var(--text-primary)', margin: '4px 0' }}>
@@ -121,14 +112,14 @@ export default function AuthModal({
               Step 1: Need a JustMarkets Account?
             </div>
             <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
-              Code: <strong style={{ color: 'var(--accent-gold)' }}>{DEFAULT_PARTNER_CONFIG.primaryCode}</strong>
+              100% Free Sponsored Access
             </div>
           </div>
           <a
-            href={DEFAULT_PARTNER_CONFIG.primaryLink}
+            href="https://one.justmarkets.link/a/tohstb0d83"
             target="_blank"
             rel="noopener noreferrer"
-            className="btn btn-outline-gold"
+            className="btn btn-primary"
             style={{ padding: '6px 12px', fontSize: '11px' }}
           >
             Open Account &rarr;
@@ -143,7 +134,7 @@ export default function AuthModal({
             </label>
             <input
               type="text"
-              placeholder="e.g. 1200533810"
+              placeholder="e.g. 21094821"
               value={mt5Account}
               onChange={(e) => setMt5Account(e.target.value)}
               className="calc-input mono-nums"
@@ -153,7 +144,7 @@ export default function AuthModal({
 
           <div style={{ marginBottom: '18px' }}>
             <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px' }}>
-              Registered Email Address (Must match JustMarkets)
+              Registered Email Address (Optional)
             </label>
             <input
               type="email"
@@ -161,11 +152,7 @@ export default function AuthModal({
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="calc-input"
-              required
             />
-            <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>
-              Notice: The registered email must match the account registered under partner code {DEFAULT_PARTNER_CONFIG.primaryCode}.
-            </div>
           </div>
 
           {errorMsg && (
@@ -182,24 +169,14 @@ export default function AuthModal({
             </div>
           )}
 
-          <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-            <button
-              type="submit"
-              disabled={loading}
-              className="btn btn-primary"
-              style={{ flex: 1, padding: '12px', fontSize: '13px' }}
-            >
-              {loading ? 'Verifying Gateway...' : 'Verify MT5 & Unlock Session'}
-            </button>
-            <button
-              type="button"
-              onClick={handleDemoVerify}
-              className="btn btn-secondary"
-              style={{ fontSize: '11.5px', padding: '12px' }}
-            >
-              Use Demo MT5
-            </button>
-          </div>
+          <button
+            type="submit"
+            disabled={loading}
+            className="btn btn-primary"
+            style={{ width: '100%', padding: '12px', fontSize: '13px' }}
+          >
+            {loading ? 'Verifying Gateway...' : 'Verify MT5 & Unlock Session'}
+          </button>
         </form>
 
         {/* Security Notice */}

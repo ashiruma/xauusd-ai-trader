@@ -47,16 +47,16 @@ export default function GrowthCalculatorPage() {
         gap: '12px'
       }}>
         <div style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
-          <strong style={{ color: 'var(--accent-gold)' }}>100% Subsidized Platform:</strong> Sponsored by official broker partner <strong>JustMarkets</strong>. Unlock complete terminal access with partner code <code className="mono-nums" style={{ color: 'var(--accent-gold)', background: 'var(--bg-surface-2)', padding: '2px 6px', borderRadius: '4px' }}>{DEFAULT_PARTNER_CONFIG.primaryCode}</code>.
+          <strong style={{ color: 'var(--accent-gold)' }}>100% Subsidized Platform:</strong> Subsidized by our official broker partner <strong>JustMarkets</strong>. Non-custodial capital security.
         </div>
         <a
-          href={DEFAULT_PARTNER_CONFIG.primaryLink}
+          href="https://one.justmarkets.link/a/tohstb0d83"
           target="_blank"
           rel="noopener noreferrer"
           className="btn btn-outline-gold"
           style={{ fontSize: '12px', padding: '6px 14px' }}
         >
-          Open Broker Account &rarr;
+          Open MT5 Account &rarr;
         </a>
       </div>
 

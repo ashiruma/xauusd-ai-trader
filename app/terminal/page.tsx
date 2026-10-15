@@ -25,7 +25,7 @@ export default async function TerminalPage() {
 
   const token = cookieStore.get(AUTH_COOKIE_NAME)?.value;
   const session = token ? await verifySession(token) : null;
-  const accountId = session?.mt5Account || session?.accountId || '1200533810';
+  const accountId = session?.mt5Account || session?.accountId || 'VERIFIED-TRADER';
 
   return (
     <div style={{ maxWidth: '1280px', margin: '30px auto 80px', padding: '0 24px' }}>

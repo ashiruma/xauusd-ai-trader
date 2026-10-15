@@ -1,11 +1,15 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, Suspense } from 'react';
 import Link from 'next/link';
-import { DEFAULT_PARTNER_CONFIG } from '@/lib/partner';
+import { useSearchParams } from 'next/navigation';
 
-export default function OnboardingPage() {
+function OnboardingContent() {
+  const searchParams = useSearchParams();
+  const redirectTarget = searchParams.get('redirect') || '/terminal';
+
   const [mt5Id, setMt5Id] = useState('');
+  const [email, setEmail] = useState('');
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [errorMessage, setErrorMessage] = useState('');
 
@@ -18,7 +22,7 @@ export default function OnboardingPage() {
       const res = await fetch('/api/verify-mt5', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ mt5AccountId: mt5Id }),
+        body: JSON.stringify({ mt5AccountId: mt5Id.trim(), email: email.trim() }),
       });
 
       const data = await res.json();
@@ -26,8 +30,8 @@ export default function OnboardingPage() {
 
       setStatus('success');
       setTimeout(() => {
-        window.location.href = '/terminal';
-      }, 1500);
+        window.location.href = redirectTarget;
+      }, 1200);
     } catch (err: unknown) {
       setStatus('error');
       const msg = err instanceof Error ? err.message : 'Verification failed';
@@ -41,7 +45,7 @@ export default function OnboardingPage() {
       <nav aria-label="Breadcrumb" style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '20px' }}>
         <Link href="/" style={{ color: 'var(--text-secondary)' }}>Home</Link>
         <span style={{ margin: '0 8px' }}>/</span>
-        <span style={{ color: 'var(--accent-gold)' }}>Broker Onboarding</span>
+        <span style={{ color: 'var(--accent-gold)' }}>Account Verification</span>
       </nav>
 
       <div style={{ textAlign: 'center', marginBottom: '36px' }}>
@@ -52,7 +56,7 @@ export default function OnboardingPage() {
           Unlock Velarion Markets for Free
         </h1>
         <p style={{ fontSize: '14.5px', color: 'var(--text-secondary)', lineHeight: 1.6 }}>
-          Our AI trading terminal, quantitative models, and 30-lesson Forex Academy are 100% free, subsidized directly by our official partner <strong style={{ color: 'var(--accent-gold)' }}>JustMarkets</strong>.
+          Our AI trading terminal, quantitative models, and 30-lesson Forex School are 100% free, subsidized directly through our partnership with regulated broker <strong style={{ color: 'var(--accent-gold)' }}>JustMarkets</strong>.
         </p>
       </div>
 
@@ -86,19 +90,19 @@ export default function OnboardingPage() {
           </div>
           <div>
             <h3 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px' }}>
-              Create &amp; Fund Your JustMarkets Account
+              Create &amp; Fund Your JustMarkets MT5 Account
             </h3>
             <p style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.5, marginBottom: '12px' }}>
-              Register using our official partner link with partner code <code className="mono-nums" style={{ color: 'var(--accent-gold)', background: 'var(--bg-surface-2)', padding: '2px 6px', borderRadius: '4px' }}>{DEFAULT_PARTNER_CONFIG.primaryCode}</code> and open an MT5 account.
+              Open an MT5 account through our official partner gateway. Non-custodial capital protection ensures your funds remain 100% in your own broker custody.
             </p>
             <a
-              href={DEFAULT_PARTNER_CONFIG.primaryLink}
+              href="https://one.justmarkets.link/a/tohstb0d83"
               target="_blank"
               rel="noopener noreferrer"
-              className="btn btn-outline-gold"
-              style={{ fontSize: '12px', padding: '6px 14px' }}
+              className="btn btn-primary"
+              style={{ fontSize: '12px', padding: '8px 16px' }}
             >
-              Open JustMarkets Partner Link &rarr;
+              Open JustMarkets MT5 Account &rarr;
             </a>
           </div>
         </div>
@@ -129,26 +133,44 @@ export default function OnboardingPage() {
               Verify Your MT5 Account ID
             </h3>
             <p style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.5, marginBottom: '16px' }}>
-              Enter your live or demo MT5 account number below for instant server verification.
+              Enter your live or demo MT5 account number below for instant cryptographic verification.
             </p>
 
             <form onSubmit={handleVerify} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              <input
-                type="text"
-                placeholder="e.g. 1200533810"
-                value={mt5Id}
-                onChange={(e) => setMt5Id(e.target.value)}
-                className="calc-input mono-nums"
-                required
-              />
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px' }}>
+                  JustMarkets MT5 Account ID
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. 21094821"
+                  value={mt5Id}
+                  onChange={(e) => setMt5Id(e.target.value)}
+                  className="calc-input mono-nums"
+                  required
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px' }}>
+                  Registered Email Address (Optional)
+                </label>
+                <input
+                  type="email"
+                  placeholder="e.g. yourname@example.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="calc-input"
+                />
+              </div>
 
               <button
                 type="submit"
                 disabled={status === 'loading'}
                 className="btn btn-primary"
-                style={{ width: '100%', padding: '12px', fontSize: '13.5px' }}
+                style={{ width: '100%', padding: '12px', fontSize: '13.5px', marginTop: '6px' }}
               >
-                {status === 'loading' ? 'Verifying with Broker Gateway...' : 'Verify & Unlock Instant Access'}
+                {status === 'loading' ? 'Verifying Gateway...' : 'Verify & Unlock Instant Access'}
               </button>
 
               {status === 'success' && (
@@ -161,7 +183,7 @@ export default function OnboardingPage() {
                   borderRadius: 'var(--radius-sm)',
                   textAlign: 'center'
                 }}>
-                  Verified successfully. Redirecting to trading terminal...
+                  Verified successfully. Redirecting to platform...
                 </div>
               )}
 
@@ -188,5 +210,13 @@ export default function OnboardingPage() {
         Non-custodial cryptographic verification. No passwords required. Your trading funds remain 100% inside regulated JustMarkets MT5 custody.
       </div>
     </main>
+  );
+}
+
+export default function OnboardingPage() {
+  return (
+    <Suspense fallback={<div style={{ minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)' }}>Loading verification gateway...</div>}>
+      <OnboardingContent />
+    </Suspense>
   );
 }

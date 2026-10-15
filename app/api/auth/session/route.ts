@@ -22,14 +22,27 @@ export async function GET() {
     });
   }
 
-  if (isMt5Verified || hasAdminToken) {
+  if (hasAdminToken) {
     return NextResponse.json({
       authenticated: true,
       user: {
         accountId: '1200533810',
         mt5Account: '1200533810',
         email: 'ashirumaabala@gmail.com',
-        role: hasAdminToken ? 'admin' : 'trader',
+        role: 'admin',
+        partnerCode: 'tohstb0d83',
+        verified: true,
+      },
+    });
+  }
+
+  if (isMt5Verified) {
+    return NextResponse.json({
+      authenticated: true,
+      user: {
+        accountId: 'VERIFIED-TRADER',
+        mt5Account: 'VERIFIED-TRADER',
+        role: 'trader',
         partnerCode: 'tohstb0d83',
         verified: true,
       },

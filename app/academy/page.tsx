@@ -4,7 +4,6 @@ import React, { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import CourseSchema from '@/components/CourseSchema';
 import { getAllLessons } from '@/lib/curriculum';
-import { DEFAULT_PARTNER_CONFIG } from '@/lib/partner';
 
 export default function AcademyPage() {
   const [selectedLevel, setSelectedLevel] = useState<'all' | 'beginner' | 'intermediate' | 'advanced'>('all');
@@ -43,7 +42,7 @@ export default function AcademyPage() {
       <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '16px' }}>
         <Link href="/" style={{ color: 'var(--text-secondary)' }}>Home</Link>
         <span style={{ margin: '0 8px' }}>/</span>
-        <span style={{ color: 'var(--text-primary)' }}>Forex Academy</span>
+        <span style={{ color: 'var(--text-primary)' }}>30-Lesson Forex School</span>
       </div>
 
       <div className="section-eyebrow">
@@ -51,11 +50,11 @@ export default function AcademyPage() {
       </div>
 
       <h1 style={{ fontSize: '36px', fontWeight: 800, color: 'var(--text-primary)', lineHeight: 1.2, marginBottom: '14px', letterSpacing: '-0.5px' }}>
-        Velarion Forex Academy
+        Forex School &bull; Quantitative Curriculum
       </h1>
 
       <p style={{ fontSize: '15px', color: 'var(--text-secondary)', lineHeight: 1.6, maxWidth: '820px', marginBottom: '32px' }}>
-        A progressive, institutional curriculum designed to build market literacy from first principles. Master currency mechanics, market structure, liquidity sweeps, and mathematical position sizing with mandatory comprehension assessments.
+        A progressive, institutional curriculum designed to build market literacy from first principles. Lessons 1 through 5 are open for instant public study. Lessons 6 through 30 are 100% free when verified with our official broker partner, JustMarkets.
       </p>
 
       {/* Progress & Overview Panel */}
@@ -69,16 +68,25 @@ export default function AcademyPage() {
               {passedCount} of {totalLessons} Lessons Completed ({progressPercent}%)
             </h2>
             <div style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '4px' }}>
-              Subsidized 100% free through our official JustMarkets partnership.
+              Subsidized 100% free through our official JustMarkets regulated broker partnership.
             </div>
           </div>
-          <Link
-            href="/academy/lesson-1"
-            className="btn btn-primary"
-            style={{ padding: '10px 20px', fontSize: '13px' }}
-          >
-            {passedCount > 0 ? 'Continue Curriculum' : 'Start Lesson 01'} &rarr;
-          </Link>
+          <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+            <Link
+              href="/academy/lesson-1"
+              className="btn btn-primary"
+              style={{ padding: '10px 20px', fontSize: '13px' }}
+            >
+              {passedCount > 0 ? 'Continue Curriculum' : 'Start Lesson 01 (Public)'} &rarr;
+            </Link>
+            <Link
+              href="/onboarding"
+              className="btn btn-outline-gold"
+              style={{ padding: '10px 18px', fontSize: '13px' }}
+            >
+              Unlock All Lessons (Free) &rarr;
+            </Link>
+          </div>
         </div>
 
         {/* Visual Progress Bar */}
@@ -118,7 +126,7 @@ export default function AcademyPage() {
             Forex Foundations
           </h3>
           <p style={{ fontSize: '12.5px', color: 'var(--text-secondary)', lineHeight: 1.5, marginBottom: '14px' }}>
-            Currency pairs, bid/ask spreads, pip values, lot sizing, margin, leverage, and MT5 order types.
+            Currency pairs, bid/ask spreads, pip values, lot sizing, margin, leverage, and MT5 order types. Lessons 1–5 publicly open.
           </p>
           <div className="mono-nums" style={{ fontSize: '12px', fontWeight: 700, color: 'var(--accent-green)' }}>
             {beginnerCount} Lessons (Lessons 1&ndash;12)
@@ -209,13 +217,27 @@ export default function AcademyPage() {
           const isCompleted = completedLessons.includes(lesson.id) || completedLessons.includes(`lesson-${lesson.globalNum}`);
           const wordCount = lesson.content ? lesson.content.split(/\s+/).length : 500;
           const estReadingTime = `${Math.max(3, Math.ceil(wordCount / 180))} min read`;
+          const isPublic = lesson.globalNum <= 5;
 
           // Determine status label
-          let statusLabel = 'Available';
-          let statusBadgeClass = 'status-neutral';
+          let statusBadge = (
+            <span className="status-badge" style={{ fontSize: '10px', background: 'rgba(245, 158, 11, 0.1)', color: 'var(--accent-gold)', borderColor: 'rgba(245, 158, 11, 0.3)' }}>
+              PARTNER (FREE)
+            </span>
+          );
+
           if (isCompleted) {
-            statusLabel = 'Completed';
-            statusBadgeClass = 'status-completed';
+            statusBadge = (
+              <span className="status-badge status-completed" style={{ fontSize: '10px' }}>
+                COMPLETED
+              </span>
+            );
+          } else if (isPublic) {
+            statusBadge = (
+              <span className="status-badge status-completed" style={{ fontSize: '10px' }}>
+                PUBLIC PREVIEW
+              </span>
+            );
           }
 
           return (
@@ -237,9 +259,7 @@ export default function AcademyPage() {
                     <span className="mono-nums" style={{ fontSize: '10px', color: 'var(--text-muted)' }}>
                       {estReadingTime}
                     </span>
-                    <span className={`status-badge ${statusBadgeClass}`} style={{ fontSize: '10px' }}>
-                      {statusLabel}
-                    </span>
+                    {statusBadge}
                   </div>
                 </div>
 
@@ -267,7 +287,7 @@ export default function AcademyPage() {
                   className="btn btn-outline-gold"
                   style={{ padding: '6px 14px', fontSize: '12px' }}
                 >
-                  {isCompleted ? 'Review Lesson' : 'Study Lesson'} &rarr;
+                  {isCompleted ? 'Review Lesson' : isPublic ? 'Study (Public)' : 'Access Lesson'} &rarr;
                 </Link>
               </div>
             </div>
@@ -281,24 +301,33 @@ export default function AcademyPage() {
         background: 'var(--bg-surface-1)',
         border: '1px solid var(--border-default)',
         borderRadius: 'var(--radius-md)',
-        padding: '24px',
+        padding: '28px',
         textAlign: 'center'
       }}>
-        <div style={{ fontSize: '14px', color: 'var(--text-primary)', fontWeight: 600, marginBottom: '4px' }}>
-          Lifetime Subsidized Forex Education
+        <div style={{ fontSize: '15px', color: 'var(--text-primary)', fontWeight: 700, marginBottom: '6px' }}>
+          Lifetime Subsidized Forex &amp; Spot Gold Education
         </div>
-        <div style={{ fontSize: '12.5px', color: 'var(--text-secondary)', maxWidth: '640px', margin: '0 auto 16px' }}>
-          Zero paywalls, zero subscription fees. All 30 lessons and knowledge assessments are sponsored directly by JustMarkets under partner code <strong>{DEFAULT_PARTNER_CONFIG.primaryCode}</strong>.
+        <div style={{ fontSize: '13px', color: 'var(--text-secondary)', maxWidth: '640px', margin: '0 auto 20px', lineHeight: 1.6 }}>
+          Lessons 1 through 5 are open for instant public study. Lessons 6 through 30 and all quantitative assessments are 100% free when verified with our official regulated broker partner, JustMarkets.
         </div>
-        <a
-          href={DEFAULT_PARTNER_CONFIG.primaryLink}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="btn btn-primary"
-          style={{ fontSize: '12px', padding: '8px 16px' }}
-        >
-          Open JustMarkets Partner MT5 Account &rarr;
-        </a>
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '14px', flexWrap: 'wrap' }}>
+          <Link
+            href="/onboarding"
+            className="btn btn-primary"
+            style={{ fontSize: '13px', padding: '10px 20px' }}
+          >
+            Unlock Free Access Now &rarr;
+          </Link>
+          <a
+            href="https://one.justmarkets.link/a/tohstb0d83"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn btn-outline-gold"
+            style={{ fontSize: '13px', padding: '10px 20px' }}
+          >
+            Register on JustMarkets &rarr;
+          </a>
+        </div>
       </div>
     </div>
   );

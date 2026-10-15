@@ -23,30 +23,29 @@ export default function HomePage() {
                 <span>Velarion Markets &bull; Spot Gold (XAUUSD)</span>
               </div>
 
-              <h1 className="hero-heading">
-                Trade with Clarity.<br />
-                Learn with Discipline.
+              <h1 className="hero-heading" style={{ fontSize: '38px', lineHeight: 1.2 }}>
+                Institutional Spot Gold (XAUUSD) AI Analysis &amp; Complete 30-Lesson Forex Academy &mdash; 100% Free.
               </h1>
 
               <p className="hero-description">
-                Velarion Markets is an institutional-grade platform combining advanced XAUUSD market analysis, four quantitative execution models, and a structured 30-lesson Forex academy. Built for disciplined traders.
+                Zero subscriptions. Zero hidden fees. Unlock full access to our 4 quantitative XAUUSD models and 30-lesson curriculum simply by opening and funding your trading account with our official partner, JustMarkets.
               </p>
 
               {/* CTAs */}
               <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap', marginBottom: '36px' }}>
-                <Link
-                  href="/terminal"
+                <a
+                  href="#how-to-get-access"
                   className="btn btn-primary"
                   style={{ padding: '12px 24px', fontSize: '14px' }}
                 >
-                  Explore Trading Terminal &rarr;
-                </Link>
+                  Unlock Instant Access (Free) &rarr;
+                </a>
                 <Link
-                  href="/academy"
+                  href="/tools/growth-calculator"
                   className="btn btn-secondary"
                   style={{ padding: '12px 24px', fontSize: '14px' }}
                 >
-                  Explore Forex Education
+                  Try the 200-Pip Growth Calculator
                 </Link>
               </div>
 
@@ -70,7 +69,7 @@ export default function HomePage() {
                     &#10003;
                   </div>
                   <div>
-                    <strong style={{ color: 'var(--text-primary)' }}>Broker-Backed &amp; 100% Free:</strong> Subsidized by official broker partner JustMarkets (Partner Code: <code className="mono-nums" style={{ color: 'var(--accent-gold)' }}>{DEFAULT_PARTNER_CONFIG.primaryCode}</code>).
+                    <strong style={{ color: 'var(--text-primary)' }}>Broker-Backed &amp; 100% Free:</strong> Subsidized by official broker partner JustMarkets with non-custodial protection.
                   </div>
                 </div>
 
@@ -120,9 +119,99 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* Right Column: Bloomberg/Reuters-style Market Information Panel */}
+            {/* Right Column: Clean Institutional Market Information Panel */}
             <div>
               <LiveSpotFeed />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ============================================================== */}
+      {/* HOW TO GET FREE ACCESS: 3-STEP CONVERSION FUNNEL               */}
+      {/* ============================================================== */}
+      <section id="how-to-get-access" style={{ padding: '64px 0', background: 'var(--bg-surface-1)', borderBottom: '1px solid var(--border-default)' }}>
+        <div className="container-main">
+          <div style={{ textAlign: 'center', marginBottom: '40px' }}>
+            <span className="section-eyebrow">Zero Cost Institutional Access</span>
+            <h2 style={{ fontSize: '30px', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.4px', marginBottom: '12px' }}>
+              How to Get 100% Free Access in 3 Steps
+            </h2>
+            <p style={{ fontSize: '15px', color: 'var(--text-secondary)', maxWidth: '640px', margin: '0 auto', lineHeight: 1.6 }}>
+              Velarion Markets is completely subsidized through our regulated broker partnership with JustMarkets. You keep 100% custody of your trading deposit.
+            </p>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '24px' }}>
+            {/* Step 1 */}
+            <div className="feature-card-clean" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', padding: '28px' }}>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+                  <span className="mono-nums" style={{ fontSize: '24px', fontWeight: 800, color: 'var(--accent-gold)' }}>01</span>
+                  <span className="status-badge status-completed">PARTNER GATEWAY</span>
+                </div>
+                <h3 style={{ fontSize: '18px', fontWeight: 700, marginBottom: '10px', color: 'var(--text-primary)' }}>
+                  Register on JustMarkets
+                </h3>
+                <p style={{ fontSize: '13.5px', color: 'var(--text-secondary)', lineHeight: 1.6 }}>
+                  Open your MT5 trading account through our official partner link. Partner code <code className="mono-nums" style={{ color: 'var(--accent-gold)' }}>tohstb0d83</code> is automatically applied to sponsor your full access.
+                </p>
+              </div>
+              <div style={{ marginTop: '24px' }}>
+                <a
+                  href="https://one.justmarkets.link/a/tohstb0d83"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn btn-primary"
+                  style={{ width: '100%', fontSize: '13px', padding: '11px 16px' }}
+                >
+                  Register on JustMarkets &rarr;
+                </a>
+              </div>
+            </div>
+
+            {/* Step 2 */}
+            <div className="feature-card-clean" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', padding: '28px' }}>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+                  <span className="mono-nums" style={{ fontSize: '24px', fontWeight: 800, color: 'var(--accent-gold)' }}>02</span>
+                  <span className="status-badge status-completed">100% CUSTODY</span>
+                </div>
+                <h3 style={{ fontSize: '18px', fontWeight: 700, marginBottom: '10px', color: 'var(--text-primary)' }}>
+                  Fund Your MT5 Account
+                </h3>
+                <p style={{ fontSize: '13.5px', color: 'var(--text-secondary)', lineHeight: 1.6 }}>
+                  Make your initial trading deposit directly into your own JustMarkets account. Velarion Markets never touches your money—your trading capital remains securely inside your own regulated broker account.
+                </p>
+              </div>
+              <div style={{ marginTop: '24px', padding: '12px 14px', background: 'var(--bg-surface-2)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)', fontSize: '12px', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+                Zero management fees. 100% non-custodial capital security.
+              </div>
+            </div>
+
+            {/* Step 3 */}
+            <div className="feature-card-clean" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', padding: '28px' }}>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+                  <span className="mono-nums" style={{ fontSize: '24px', fontWeight: 800, color: 'var(--accent-gold)' }}>03</span>
+                  <span className="status-badge status-completed">INSTANT UNLOCK</span>
+                </div>
+                <h3 style={{ fontSize: '18px', fontWeight: 700, marginBottom: '10px', color: 'var(--text-primary)' }}>
+                  Instant MT5 Verification
+                </h3>
+                <p style={{ fontSize: '13.5px', color: 'var(--text-secondary)', lineHeight: 1.6 }}>
+                  Enter your JustMarkets MT5 Account ID on our verification page. Once verified under partner code <code className="mono-nums" style={{ color: 'var(--accent-gold)' }}>tohstb0d83</code>, you immediately unlock all 30 Forex lessons and the AI terminal.
+                </p>
+              </div>
+              <div style={{ marginTop: '24px' }}>
+                <Link
+                  href="/onboarding"
+                  className="btn btn-outline-gold"
+                  style={{ width: '100%', fontSize: '13px', padding: '11px 16px' }}
+                >
+                  Verify Account &amp; Unlock &rarr;
+                </Link>
+              </div>
             </div>
           </div>
         </div>

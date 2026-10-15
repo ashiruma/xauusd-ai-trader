@@ -6,9 +6,9 @@ import CookieConsent from '@/components/CookieConsent';
 import FinancialProductSchema from '@/components/FinancialProductSchema';
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://xauusd-ai-trader.vercel.app'),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://velarionmarkets.com'),
   title: {
-    default: 'Velarion Markets | Institutional XAUUSD Quantitative Trading & Forex Academy',
+    default: 'Velarion Markets | Institutional XAUUSD Quantitative Trading & Forex School',
     template: '%s | Velarion Markets'
   },
   description: 'AI-assisted XAUUSD spot gold market structure analysis, 4 quantitative execution models, 200-pip compounding calculator, and 30-lesson interactive Forex school subsidized by JustMarkets.',
@@ -36,7 +36,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     locale: 'en_US',
-    url: 'https://xauusd-ai-trader.vercel.app',
+    url: 'https://velarionmarkets.com',
     siteName: 'Velarion Markets',
     title: 'Velarion Markets | Institutional XAUUSD Quantitative Trading & Forex Academy',
     description: 'Autonomous Spot Gold quantitative execution, 200-pip compounding calculator, and 30-lesson gated Forex school. Non-custodial MT5 execution subsidized through JustMarkets.',

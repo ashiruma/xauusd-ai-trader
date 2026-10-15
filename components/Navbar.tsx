@@ -15,41 +15,7 @@ export default function Navbar() {
     role?: string;
   } | null>(null);
 
-  const [connectionStatus, setConnectionStatus] = useState<'checking' | 'connected' | 'gateway' | 'offline'>('checking');
 
-  // Fetch real MT5 quote connection status
-  useEffect(() => {
-    let isMounted = true;
-    const checkConnection = async () => {
-      try {
-        const res = await fetch('/api/market/quote', { cache: 'no-store' });
-        if (!res.ok) throw new Error('Offline');
-        const data = await res.json();
-        if (isMounted) {
-          if (data && typeof data.price === 'number') {
-            if (data.source === 'JUSTMARKETS_MT5_DIRECT') {
-              setConnectionStatus('connected');
-            } else {
-              setConnectionStatus('gateway');
-            }
-          } else {
-            setConnectionStatus('offline');
-          }
-        }
-      } catch {
-        if (isMounted) {
-          setConnectionStatus('offline');
-        }
-      }
-    };
-
-    checkConnection();
-    const interval = setInterval(checkConnection, 10000);
-    return () => {
-      isMounted = false;
-      clearInterval(interval);
-    };
-  }, []);
 
   // Fetch session from server cookie
   useEffect(() => {
@@ -92,57 +58,31 @@ export default function Navbar() {
   };
 
   const navLinks = [
-    { href: '/', label: 'Overview' },
-    { href: '/why-gold', label: 'Why Gold' },
-    { href: '/strategies', label: 'Quant Models' },
-    { href: '/academy', label: 'Forex School' },
+    { href: '/why-gold', label: 'Why Spot Gold' },
+    { href: '/academy', label: '30-Lesson Forex School' },
     { href: '/tools/growth-calculator', label: '200-Pip Calculator' },
-    { href: '/terminal', label: 'Terminal', protected: true },
-    { href: '/onboarding', label: 'Onboarding' },
-    ...(session?.role === 'admin' ? [{ href: '/admin-secure-x9f8k2', label: 'Partner Portal' }] : [])
   ];
-
-  const statusLabel =
-    connectionStatus === 'connected'
-      ? 'MT5 CONNECTED'
-      : connectionStatus === 'gateway'
-      ? 'MT5 GATEWAY'
-      : connectionStatus === 'checking'
-      ? 'CHECKING UPLINK'
-      : 'MT5 OFFLINE';
-
-  const dotClass =
-    connectionStatus === 'connected' || connectionStatus === 'gateway'
-      ? 'connected'
-      : connectionStatus === 'checking'
-      ? 'checking'
-      : 'offline';
 
   return (
     <>
       <header className="header-wrapper" role="banner">
         <div className="header-container">
-          {/* Brand Identity on the Left */}
-          <Link href="/" className="brand-group" aria-label="Velarion Markets Homepage" style={{ cursor: 'pointer' }}>
-            <div className="brand-logo" aria-hidden="true">
-              <picture>
-                <source srcSet="/velarion_emblem_dark.webp" type="image/webp" />
-                <img
-                  src="/velarion_emblem_dark.png"
-                  alt="Velarion Markets Logo"
-                  width="42"
-                  height="42"
-                  style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }}
-                />
-              </picture>
-            </div>
-            <div className="brand-text">
-              <span className="brand-title">VELARION MARKETS</span>
-              <span className="brand-subtitle">QUANTITATIVE TRADING &amp; ACADEMY</span>
-            </div>
+          {/* Brand Identity on the Left - Prominent Official Picture Element */}
+          <Link href="/" className="brand-group" aria-label="Velarion Markets Homepage" style={{ cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
+            <picture>
+              <source srcSet="/velarion_brand_dark.webp" type="image/webp" />
+              <img
+                src="/velarion_brand_dark.png"
+                alt="VELARION MARKETS"
+                width={130}
+                height={36}
+                style={{ height: '36px', width: 'auto', display: 'block' }}
+                fetchPriority="high"
+              />
+            </picture>
           </Link>
 
-          {/* Desktop Navigation on a Single Horizontal Line */}
+          {/* Desktop Navigation on a Single Horizontal Line - 3 High Impact Links */}
           <nav className="nav-desktop" aria-label="Main Navigation">
             {navLinks.map((item) => {
               const isActive = pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href));
@@ -159,41 +99,34 @@ export default function Navbar() {
             })}
           </nav>
 
-          {/* Right Action Group: MT5 Status & Verification CTA */}
+          {/* Right Action Group: High-Contrast Gold CTA */}
           <div className="header-actions">
-            {/* Real Connection Status Pill */}
-            <div
-              className="mt5-status-pill"
-              title={`Market Feed Uplink Status: ${statusLabel}`}
-              role="status"
-              aria-live="polite"
-            >
-              <span className={`mt5-indicator-dot ${dotClass}`} aria-hidden="true" />
-              <span>{statusLabel}</span>
-            </div>
-
             {session?.verified ? (
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span className="verified-account-badge">
-                  MT5: #{session.mt5Account}
-                </span>
+                <Link
+                  href="/terminal"
+                  className="btn btn-secondary"
+                  style={{ padding: '8px 14px', fontSize: '12px' }}
+                >
+                  AI Terminal &rarr;
+                </Link>
                 <button
                   onClick={handleLogout}
-                  className="btn btn-secondary"
-                  style={{ padding: '6px 12px', fontSize: '11.5px' }}
+                  className="btn btn-ghost"
+                  style={{ padding: '6px 10px', fontSize: '11px', color: 'var(--text-muted)' }}
                   aria-label="Logout from MT5 Session"
                 >
                   Logout
                 </button>
               </div>
             ) : (
-              <button
-                onClick={() => setAuthModalOpen(true)}
+              <Link
+                href="/onboarding"
                 className="cta-verify"
-                aria-label="Verify MT5 Account"
+                aria-label="Unlock Free Access to Velarion Markets"
               >
-                Verify MT5 Account
-              </button>
+                Unlock Free Access
+              </Link>
             )}
 
             {/* Mobile Hamburger Toggle Button */}
@@ -257,28 +190,17 @@ export default function Navbar() {
               );
             })}
 
-            {/* Mobile Drawer Footer with Connection Status & CTA */}
+            {/* Mobile Drawer Footer with High-Impact CTA */}
             <div className="mobile-drawer-footer">
-              <div
-                className="mt5-status-pill"
-                style={{ width: 'fit-content', padding: '6px 12px' }}
-                role="status"
-              >
-                <span className={`mt5-indicator-dot ${dotClass}`} aria-hidden="true" />
-                <span>{statusLabel}</span>
-              </div>
-
               {!session?.verified ? (
-                <button
-                  onClick={() => {
-                    setMobileMenuOpen(false);
-                    setAuthModalOpen(true);
-                  }}
+                <Link
+                  href="/onboarding"
+                  onClick={() => setMobileMenuOpen(false)}
                   className="cta-verify"
-                  style={{ width: '100%', padding: '12px', fontSize: '13px' }}
+                  style={{ width: '100%', padding: '12px', fontSize: '13px', textAlign: 'center' }}
                 >
-                  Verify MT5 Account
-                </button>
+                  Unlock Free Access
+                </Link>
               ) : (
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <span className="verified-account-badge">
