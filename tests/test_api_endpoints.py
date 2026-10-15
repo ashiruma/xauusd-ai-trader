@@ -214,7 +214,7 @@ def test_user_registration_and_admin_endpoints(client):
     reg_res = client.post("/api/users/register", json={
         "full_name": "Marcus Aurelius",
         "email": "marcus.aurelius@velarion.io",
-        "justmarkets_account_id": "1200533810",
+        "justmarkets_account_id": "88112233",
         "referral_code": "p4cui0wkfz",
         "server": "JustMarkets-Demo3"
     })
@@ -222,10 +222,10 @@ def test_user_registration_and_admin_endpoints(client):
     reg_data = reg_res.json()
     assert reg_data["success"] is True
     assert reg_data["is_referral_verified"] is True
-    assert reg_data["user"]["justmarkets_account_id"] == "1200533810"
+    assert reg_data["user"]["justmarkets_account_id"] == "88112233"
 
     # Profile me endpoint
-    me_res = client.get("/api/users/me?account_id=1200533810")
+    me_res = client.get("/api/users/me?account_id=88112233")
     assert me_res.status_code == 200
     me_data = me_res.json()
     assert me_data["success"] is True
@@ -257,6 +257,7 @@ def test_justmarkets_login_and_gating(client):
     # 1. Login with demo account #1200533810 (recommended partner code) -> SUCCESS
     login_ok = client.post("/api/auth/login", json={
         "justmarkets_account_id": "1200533810",
+        "email": "alex.vance@velarion.io",
         "server": "JustMarkets-Demo3"
     })
     assert login_ok.status_code == 200
@@ -268,6 +269,7 @@ def test_justmarkets_login_and_gating(client):
     # 2. Login with unverified account #999888777 (wrong referral code) -> STRICT DENIAL
     login_bad = client.post("/api/auth/login", json={
         "justmarkets_account_id": "999888777",
+        "email": "unverified@nowhere.com",
         "server": "JustMarkets-Demo3"
     })
     assert login_bad.status_code == 200
@@ -279,6 +281,7 @@ def test_justmarkets_login_and_gating(client):
     # 3. Login with non-existent account -> ACCOUNT_NOT_FOUND
     login_none = client.post("/api/auth/login", json={
         "justmarkets_account_id": "404404404",
+        "email": "nonexistent@nowhere.com",
         "server": "JustMarkets-Demo3"
     })
     assert login_none.status_code == 200
@@ -297,64 +300,70 @@ def test_justmarkets_login_and_gating(client):
 
 
 def test_partner_config_and_kick_user(client):
-    # 1. Get initial partner config
-    cfg_res = client.get("/api/partner/config")
-    assert cfg_res.status_code == 200
-    initial_code = cfg_res.json()["referral_code"]
-    assert initial_code == "p4cui0wkfz"
+    try:
+        # 1. Reset/Get initial partner config
+        client.post("/api/partner/config", json={
+            "referral_code": "p4cui0wkfz",
+            "referral_link": "https://one.justmarkets.link/a/p4cui0wkfz"
+        })
+        cfg_res = client.get("/api/partner/config")
+        assert cfg_res.status_code == 200
+        initial_code = cfg_res.json()["referral_code"]
+        assert initial_code == "p4cui0wkfz"
 
-    # 2. Update partner config
-    update_res = client.post("/api/partner/config", json={
-        "referral_code": "partner_vip_2026",
-        "referral_link": "https://one.justmarkets.link/a/partner_vip_2026"
-    })
-    assert update_res.status_code == 200
-    assert update_res.json()["success"] is True
-    assert update_res.json()["config"]["referral_code"] == "partner_vip_2026"
+        # 2. Update partner config
+        update_res = client.post("/api/partner/config", json={
+            "referral_code": "partner_vip_2026",
+            "referral_link": "https://one.justmarkets.link/a/partner_vip_2026"
+        })
+        assert update_res.status_code == 200
+        assert update_res.json()["success"] is True
+        assert update_res.json()["config"]["referral_code"] == "partner_vip_2026"
 
-    # 3. Register user with new code -> Verified
-    reg_res = client.post("/api/users/register", json={
-        "full_name": "VIP Trader",
-        "email": "vip.trader@goldfx.io",
-        "justmarkets_account_id": "77889900",
-        "referral_code": "partner_vip_2026"
-    })
-    assert reg_res.status_code == 200
-    reg_data = reg_res.json()
-    assert reg_data["is_referral_verified"] is True
-    user_id = reg_data["user"]["user_id"]
+        # 3. Register user with new code -> Verified
+        reg_res = client.post("/api/users/register", json={
+            "full_name": "VIP Trader",
+            "email": "vip.trader@goldfx.io",
+            "justmarkets_account_id": "77889900",
+            "referral_code": "partner_vip_2026"
+        })
+        assert reg_res.status_code == 200
+        reg_data = reg_res.json()
+        assert reg_data["is_referral_verified"] is True
+        user_id = reg_data["user"]["user_id"]
 
-    # 4. Kick the user out for inactivity
-    kick_res = client.post(f"/api/admin/users/{user_id}/kick", json={
-        "reason": "Inactive - zero trades executed"
-    })
-    assert kick_res.status_code == 200
-    assert kick_res.json()["status"] == "KICKED_INACTIVE"
+        # 4. Kick the user out for inactivity
+        kick_res = client.post(f"/api/admin/users/{user_id}/kick", json={
+            "reason": "Inactive - zero trades executed"
+        })
+        assert kick_res.status_code == 200
+        assert kick_res.json()["status"] == "KICKED_INACTIVE"
 
-    # 5. Try login with kicked account -> STRICT ACCESS DENIAL
-    login_kicked = client.post("/api/auth/login", json={
-        "justmarkets_account_id": "77889900"
-    })
-    assert login_kicked.status_code == 200
-    assert login_kicked.json()["success"] is False
-    assert "ACCESS DENIED" in login_kicked.json()["message"]
+        # 5. Try login with kicked account -> STRICT ACCESS DENIAL
+        login_kicked = client.post("/api/auth/login", json={
+            "justmarkets_account_id": "77889900",
+            "email": "vip.trader@goldfx.io"
+        })
+        assert login_kicked.status_code == 200
+        assert login_kicked.json()["success"] is False
+        assert "ACCESS DENIED" in login_kicked.json()["message"]
 
-    # 6. Reactivate user
-    react_res = client.post(f"/api/admin/users/{user_id}/reactivate")
-    assert react_res.status_code == 200
-    assert react_res.json()["status"] == "ACTIVE_VERIFIED"
+        # 6. Reactivate user
+        react_res = client.post(f"/api/admin/users/{user_id}/reactivate")
+        assert react_res.status_code == 200
+        assert react_res.json()["status"] == "ACTIVE_VERIFIED"
+    finally:
+        # Restore default partner code and clean up test records
+        client.post("/api/partner/config", json={
+            "referral_code": "p4cui0wkfz",
+            "referral_link": "https://one.justmarkets.link/a/p4cui0wkfz"
+        })
+        from api.app import db
+        with db.get_connection() as conn:
+            conn.execute("DELETE FROM users WHERE email IN ('marcus.aurelius@velarion.io', 'unverified@nowhere.com', 'vip.trader@goldfx.io', 'carlos.mendez@tradecorp.io') OR justmarkets_account_id IN ('88112233', '999888777', '77889900')")
+            conn.commit()
 
-    # 7. Restore default partner code
-    client.post("/api/partner/config", json={
-        "referral_code": "p4cui0wkfz",
-        "referral_link": "https://one.justmarkets.link/a/p4cui0wkfz"
-    })
 
-    # 8. Clean up test accounts so live database roster remains pristine
-    from api.app import db
-    with db.get_connection() as conn:
-        conn.execute("DELETE FROM users WHERE email IN ('marcus.aurelius@velarion.io', 'unverified@nowhere.com', 'vip.trader@goldfx.io', 'carlos.mendez@tradecorp.io')")
-        conn.commit()
 
 
 

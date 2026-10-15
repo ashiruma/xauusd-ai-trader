@@ -1,5 +1,9 @@
-from mangum import Mangum
 from api.app import app
 
-# Vercel will use the exported handler
-handler = Mangum(app)
+# Vercel natively executes ASGI apps via 'app'
+try:
+    from mangum import Mangum
+    handler = Mangum(app)
+except ImportError:
+    handler = app
+
