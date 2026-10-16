@@ -59,14 +59,19 @@ if (-not $TunnelToken) {
     exit 0
 }
 
+Write-Host "Uninstalling any existing cloudflared Windows service..." -ForegroundColor Cyan
+& $cloudflaredBin service uninstall 2>&1 | Out-Null
+Start-Sleep -Seconds 2
+
 Write-Host "Installing cloudflared as a Windows Service with provided token..." -ForegroundColor Cyan
 & $cloudflaredBin service install $TunnelToken
 
 if ($LASTEXITCODE -eq 0) {
+    Start-Sleep -Seconds 1
     Start-Service -Name "cloudflared" -ErrorAction SilentlyContinue
     Write-Host "[OK] Cloudflare Tunnel installed and running as a persistent Windows Service!" -ForegroundColor Green
     Write-Host "Traffic on your Cloudflare public hostname is now securely routed to http://127.0.0.1:8000" -ForegroundColor Green
 } else {
-    Write-Host "[WARNING] Service install exited with code $LASTEXITCODE. If service already exists, updating..." -ForegroundColor Yellow
-    Restart-Service -Name "cloudflared" -ErrorAction SilentlyContinue
+    Write-Host "[WARNING] Service install exited with code $LASTEXITCODE. Attempting to start service..." -ForegroundColor Yellow
+    Start-Service -Name "cloudflared" -ErrorAction SilentlyContinue
 }
