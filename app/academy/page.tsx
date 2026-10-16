@@ -149,17 +149,17 @@ export default function AcademyPage() {
           </div>
 
           <div className="herbaria-triptych">
-            {/* Tier 1: Forest Green */}
+            {/* Tier 1: Foundations */}
             <div
               onClick={() => setSelectedLevel('beginner')}
               className={`herbaria-triptych-col ${selectedLevel === 'beginner' ? 'herbaria-panel-green' : 'herbaria-panel-dark'}`}
               style={{ cursor: 'pointer' }}
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-                <span className="herbaria-badge-sharp" style={{ background: 'rgba(200, 212, 0, 0.15)', color: '#C8D400', border: '1px solid rgba(200, 212, 0, 0.3)' }}>
+                <span className="herbaria-badge-sharp" style={{ background: 'rgba(234, 177, 103, 0.15)', color: '#eab167', border: '1px solid rgba(234, 177, 103, 0.35)' }}>
                   TIER 1
                 </span>
-                <span style={{ fontFamily: 'var(--font-herbaria-mono)', fontSize: '11px', color: 'var(--hb-accent-citron)' }}>
+                <span style={{ fontFamily: 'var(--font-herbaria-mono)', fontSize: '11px', color: '#eab167' }}>
                   FOUNDATIONS
                 </span>
               </div>
@@ -168,7 +168,7 @@ export default function AcademyPage() {
                 {beginnerCount} Units
               </div>
 
-              <h3 style={{ fontFamily: 'var(--font-herbaria-display)', fontSize: '22px', fontWeight: 400, color: '#F2EADA', margin: '0 0 10px' }}>
+              <h3 style={{ fontFamily: 'var(--font-herbaria-display)', fontSize: '22px', fontWeight: 500, color: '#F8FAFC', margin: '0 0 10px' }}>
                 Forex Foundations
               </h3>
 
@@ -176,54 +176,54 @@ export default function AcademyPage() {
                 Currency pairs, bid/ask spreads, pip values, lot sizing, margin, leverage, and MT5 order types. Lessons 1&ndash;5 are open for instant public study.
               </p>
 
-              <div style={{ fontFamily: 'var(--font-herbaria-mono)', fontSize: '11px', color: 'var(--hb-accent-citron)', borderTop: '1px dotted var(--hb-hairline-amber)', paddingTop: '10px' }}>
+              <div style={{ fontFamily: 'var(--font-herbaria-mono)', fontSize: '11px', color: '#eab167', borderTop: '1px solid rgba(234, 177, 103, 0.2)', paddingTop: '10px' }}>
                 Lessons 01&ndash;12 / Foundational
               </div>
             </div>
 
-            {/* Tier 2: Parchment Cream */}
+            {/* Tier 2: Dynamics */}
             <div
               onClick={() => setSelectedLevel('intermediate')}
               className={`herbaria-triptych-col ${selectedLevel === 'intermediate' ? 'herbaria-panel-cream' : 'herbaria-panel-dark'}`}
               style={{ cursor: 'pointer' }}
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-                <span className="herbaria-badge-sharp" style={{ background: '#1A4D2E', color: '#F2EADA' }}>
+                <span className="herbaria-badge-sharp" style={{ background: 'rgba(56, 189, 248, 0.14)', color: '#38BDF8', border: '1px solid rgba(56, 189, 248, 0.35)' }}>
                   TIER 2
                 </span>
-                <span style={{ fontFamily: 'var(--font-herbaria-mono)', fontSize: '11px', color: selectedLevel === 'intermediate' ? '#8B5E0A' : 'var(--hb-accent-citron)' }}>
+                <span style={{ fontFamily: 'var(--font-herbaria-mono)', fontSize: '11px', color: '#eab167' }}>
                   DYNAMICS
                 </span>
               </div>
 
-              <div className="herbaria-numeral" style={{ color: selectedLevel === 'intermediate' ? '#1A4D2E' : 'var(--hb-accent-citron)', marginBottom: '10px' }}>
+              <div className="herbaria-numeral" style={{ color: '#eab167', marginBottom: '10px' }}>
                 {intermediateCount} Units
               </div>
 
-              <h3 style={{ fontFamily: 'var(--font-herbaria-display)', fontSize: '22px', fontWeight: 400, color: selectedLevel === 'intermediate' ? '#1C1612' : '#F2EADA', margin: '0 0 10px' }}>
+              <h3 style={{ fontFamily: 'var(--font-herbaria-display)', fontSize: '22px', fontWeight: 500, color: '#F8FAFC', margin: '0 0 10px' }}>
                 Analysis &amp; Market Structure
               </h3>
 
-              <p style={{ fontSize: '13.5px', lineHeight: 1.6, color: selectedLevel === 'intermediate' ? '#382E25' : '#CBD5E1', flex: 1, margin: '0 0 16px' }}>
+              <p style={{ fontSize: '13.5px', lineHeight: 1.6, color: '#CBD5E1', flex: 1, margin: '0 0 16px' }}>
                 Candlestick anatomy, market structure, support/resistance, multi-timeframe analysis, and session liquidity windows.
               </p>
 
-              <div style={{ fontFamily: 'var(--font-herbaria-mono)', fontSize: '11px', color: selectedLevel === 'intermediate' ? '#8B5E0A' : 'var(--hb-accent-citron)', borderTop: '1px dotted var(--hb-hairline-amber)', paddingTop: '10px' }}>
+              <div style={{ fontFamily: 'var(--font-herbaria-mono)', fontSize: '11px', color: '#eab167', borderTop: '1px solid rgba(234, 177, 103, 0.2)', paddingTop: '10px' }}>
                 Lessons 13&ndash;22 / Gated by IB Link
               </div>
             </div>
 
-            {/* Tier 3: Dark Card */}
+            {/* Tier 3: Institutional */}
             <div
               onClick={() => setSelectedLevel('advanced')}
               className={`herbaria-triptych-col ${selectedLevel === 'advanced' ? 'herbaria-panel-green' : 'herbaria-panel-dark'}`}
               style={{ cursor: 'pointer' }}
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-                <span className="herbaria-badge-sharp" style={{ background: 'rgba(184, 58, 26, 0.2)', color: '#FF7B60', border: '1px solid rgba(184, 58, 26, 0.4)' }}>
+                <span className="herbaria-badge-sharp" style={{ background: 'rgba(16, 185, 129, 0.14)', color: '#10B981', border: '1px solid rgba(16, 185, 129, 0.35)' }}>
                   TIER 3
                 </span>
-                <span style={{ fontFamily: 'var(--font-herbaria-mono)', fontSize: '11px', color: 'var(--hb-accent-citron)' }}>
+                <span style={{ fontFamily: 'var(--font-herbaria-mono)', fontSize: '11px', color: '#eab167' }}>
                   INSTITUTIONAL
                 </span>
               </div>
@@ -232,7 +232,7 @@ export default function AcademyPage() {
                 {advancedCount} Units
               </div>
 
-              <h3 style={{ fontFamily: 'var(--font-herbaria-display)', fontSize: '22px', fontWeight: 400, color: '#F2EADA', margin: '0 0 10px' }}>
+              <h3 style={{ fontFamily: 'var(--font-herbaria-display)', fontSize: '22px', fontWeight: 500, color: '#F8FAFC', margin: '0 0 10px' }}>
                 Asymmetric Risk &amp; Strategy
               </h3>
 
@@ -240,7 +240,7 @@ export default function AcademyPage() {
                 Mathematical position sizing, asymmetric drawdown mechanics, execution psychology, backtesting rigor, and XAUUSD mechanics.
               </p>
 
-              <div style={{ fontFamily: 'var(--font-herbaria-mono)', fontSize: '11px', color: 'var(--hb-accent-citron)', borderTop: '1px dotted var(--hb-hairline-amber)', paddingTop: '10px' }}>
+              <div style={{ fontFamily: 'var(--font-herbaria-mono)', fontSize: '11px', color: '#eab167', borderTop: '1px solid rgba(234, 177, 103, 0.2)', paddingTop: '10px' }}>
                 Lessons 23&ndash;30 / Master Quantitative
               </div>
             </div>

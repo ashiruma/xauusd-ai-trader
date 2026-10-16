@@ -1787,49 +1787,46 @@ body:has(.terminal-workspace-wrapper) .nav-link-item.active {
 }
 
 /* =========================================================================
-   HERBARIA BOTANICAL APOTHECARY EDITORIAL DESIGN SYSTEM
-   Reference: Kombai herbaria (import-template:herbaria)
-   - Colors: Deep Forest Green (#1A4D2E), Parchment Cream (#F2EADA), Warmer Cream (#EDE4CC)
-   - Citron (#C8D400), Vermillion (#B83A1A), Burnt Amber (#8B5E0A)
-   - Typography: Gilda Display serif, Archivo Narrow body, Azeret Mono kicker/specs
-   - 0px sharp corner radius uniformly
+   UNIFIED VELARION NOVA INSTITUTIONAL EDITORIAL DESIGN SYSTEM
+   - Colors: Deep Navy (#0B0F19), Elevated Dark Slate (#111827 / #0D1320 / #162032)
+   - Bullion Amber-Gold (#eab167 / #e0a24e / #C5A059)
+   - Typography: Fraunces display serif, Inter body, JetBrains Mono kicker/specs
    - Strict Zero-Dot Policy & Zero Emojis
    ========================================================================= */
 
 :root {
-  --hb-bg-primary: #1A4D2E;
-  --hb-bg-secondary: #F2EADA;
-  --hb-bg-surface: #EDE4CC;
-  --hb-bg-dark: #0E1812;
-  --hb-bg-dark-card: #14221A;
-  --hb-text-primary: #1C1612;
-  --hb-text-cream: #F2EADA;
-  --hb-text-muted: #8E7F71;
-  --hb-accent-citron: #C8D400;
-  --hb-accent-vermillion: #B83A1A;
-  --hb-accent-amber: #8B5E0A;
-  --hb-hairline-amber: rgba(139, 94, 10, 0.35);
-  --hb-hairline-citron: rgba(200, 212, 0, 0.25);
-  --hb-hairline-cream: rgba(242, 234, 218, 0.18);
-  --font-herbaria-display: 'Gilda Display', Georgia, serif;
-  --font-herbaria-body: 'Archivo Narrow', sans-serif;
-  --font-herbaria-mono: 'Azeret Mono', monospace;
+  --hb-bg-primary: #111827;
+  --hb-bg-secondary: #0E1525;
+  --hb-bg-surface: #162032;
+  --hb-bg-dark: #0B0F19;
+  --hb-bg-dark-card: #0D1320;
+  --hb-text-primary: #F8FAFC;
+  --hb-text-cream: #F8FAFC;
+  --hb-text-muted: #94A3B8;
+  --hb-accent-citron: #eab167;
+  --hb-accent-vermillion: #eab167;
+  --hb-accent-amber: #C5A059;
+  --hb-hairline-amber: rgba(234, 177, 103, 0.22);
+  --hb-hairline-citron: rgba(234, 177, 103, 0.28);
+  --hb-hairline-cream: rgba(255, 255, 255, 0.12);
+  --font-herbaria-display: var(--font-display, 'Fraunces', Georgia, serif);
+  --font-herbaria-body: var(--font-sans, 'Inter', sans-serif);
+  --font-herbaria-mono: var(--font-mono, 'JetBrains Mono', monospace);
 }
 
 .herbaria-page {
   background-color: var(--hb-bg-dark);
   color: var(--hb-text-cream);
   font-family: var(--font-herbaria-body);
-  border-radius: 0px !important;
 }
 
 .herbaria-plate-kicker {
   font-family: var(--font-herbaria-mono);
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.25em;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--hb-accent-vermillion);
+  color: #eab167;
   margin-bottom: 12px;
   display: flex;
   align-items: center;
@@ -1838,62 +1835,61 @@ body:has(.terminal-workspace-wrapper) .nav-link-item.active {
 
 .herbaria-title {
   font-family: var(--font-herbaria-display);
-  font-size: clamp(38px, 4.8vw, 68px);
-  font-weight: 400;
-  line-height: 1.05;
-  letter-spacing: 0.015em;
-  color: var(--hb-text-cream);
+  font-size: clamp(36px, 4.4vw, 60px);
+  font-weight: 500;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: #F8FAFC;
   margin: 0 0 16px;
 }
 
 .herbaria-italic-quote {
   font-family: var(--font-herbaria-display);
   font-style: italic;
-  font-size: clamp(19px, 2.2vw, 27px);
-  line-height: 1.35;
-  color: var(--hb-text-cream);
-  border-left: 2px solid var(--hb-accent-vermillion);
+  font-size: clamp(18px, 2vw, 24px);
+  line-height: 1.45;
+  color: #CBD5E1;
+  border-left: 2px solid #eab167;
   padding-left: 20px;
   margin: 24px 0 32px;
 }
 
 .herbaria-btn-citron {
-  background-color: var(--hb-accent-citron);
-  color: var(--hb-text-primary);
-  font-family: var(--font-herbaria-mono);
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  border-radius: 0px !important;
+  background: linear-gradient(180deg, #eab167 0%, #e0a24e 100%);
+  color: #2b1c08;
+  font-family: var(--font-sans, 'Inter', sans-serif);
+  font-size: 13px;
+  font-weight: 750;
+  letter-spacing: 0.02em;
+  border-radius: 9px !important;
   padding: 12px 24px;
-  border: 1px solid var(--hb-accent-citron);
+  border: none;
+  box-shadow: 0 8px 24px rgba(224, 162, 78, 0.24);
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
   text-decoration: none;
-  transition: all 0.2s ease;
+  transition: filter 0.2s ease, transform 0.15s ease;
 }
 
 .herbaria-btn-citron:hover {
-  background-color: #b0ba00;
-  border-color: #b0ba00;
-  color: var(--hb-text-primary);
+  filter: brightness(1.08);
+  transform: translateY(-1px);
+  color: #2b1c08;
 }
 
 .herbaria-btn-secondary {
-  background-color: transparent;
-  color: var(--hb-text-cream);
-  font-family: var(--font-herbaria-mono);
-  font-size: 11px;
+  background-color: rgba(255, 255, 255, 0.04);
+  color: #F8FAFC;
+  font-family: var(--font-sans, 'Inter', sans-serif);
+  font-size: 13px;
   font-weight: 600;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  border-radius: 0px !important;
+  letter-spacing: 0.02em;
+  border-radius: 9px !important;
   padding: 12px 22px;
-  border: 1px solid var(--hb-hairline-cream);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   cursor: pointer;
   display: inline-flex;
   align-items: center;
@@ -1904,17 +1900,18 @@ body:has(.terminal-workspace-wrapper) .nav-link-item.active {
 }
 
 .herbaria-btn-secondary:hover {
-  border-color: var(--hb-accent-citron);
-  color: var(--hb-accent-citron);
+  background-color: rgba(255, 255, 255, 0.08);
+  border-color: rgba(234, 177, 103, 0.4);
+  color: #eab167;
 }
 
 .herbaria-btn-underline {
   background: transparent;
-  color: var(--hb-accent-citron);
+  color: #eab167;
   font-family: var(--font-herbaria-mono);
   font-size: 11px;
   font-weight: 600;
-  letter-spacing: 0.18em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   text-decoration: underline;
   text-underline-offset: 4px;
@@ -1932,49 +1929,49 @@ body:has(.terminal-workspace-wrapper) .nav-link-item.active {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 20px;
-  border-radius: 0px !important;
 }
 
 .herbaria-triptych-col {
-  border-radius: 0px !important;
-  border: 1px solid var(--hb-hairline-amber);
+  border-radius: 10px !important;
+  border: 1px solid rgba(234, 177, 103, 0.2);
   padding: 30px 26px;
   position: relative;
   display: flex;
   flex-direction: column;
-  transition: border-color 0.2s ease;
+  transition: border-color 0.2s ease, transform 0.2s ease;
+  backdrop-filter: blur(16px);
 }
 
 .herbaria-triptych-col:hover {
-  border-color: var(--hb-accent-citron);
+  border-color: #eab167;
 }
 
 .herbaria-panel-green {
-  background-color: var(--hb-bg-primary);
-  color: var(--hb-text-cream);
-  border: 1px solid var(--hb-hairline-citron);
+  background-color: rgba(17, 24, 39, 0.88);
+  color: #F8FAFC;
+  border: 1px solid rgba(234, 177, 103, 0.24);
 }
 
 .herbaria-panel-cream {
-  background-color: var(--hb-bg-secondary);
-  color: var(--hb-text-primary);
-  border: 1px solid var(--hb-hairline-amber);
+  background-color: rgba(22, 32, 50, 0.85);
+  color: #F8FAFC;
+  border: 1px solid rgba(234, 177, 103, 0.32);
 }
 
 .herbaria-panel-cream h2,
 .herbaria-panel-cream h3,
 .herbaria-panel-cream h4 {
-  color: var(--hb-text-primary) !important;
+  color: #F8FAFC !important;
 }
 
 .herbaria-panel-cream p {
-  color: #382E25 !important;
+  color: #CBD5E1 !important;
 }
 
 .herbaria-panel-dark {
-  background-color: var(--hb-bg-dark-card);
-  color: var(--hb-text-cream);
-  border: 1px solid var(--hb-hairline-amber);
+  background-color: rgba(13, 19, 32, 0.92);
+  color: #F8FAFC;
+  border: 1px solid rgba(255, 255, 255, 0.12);
 }
 
 .herbaria-dossier-table {
@@ -1986,7 +1983,7 @@ body:has(.terminal-workspace-wrapper) .nav-link-item.active {
 }
 
 .herbaria-dossier-table tr {
-  border-bottom: 1px dotted var(--hb-hairline-amber);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .herbaria-dossier-table td {
@@ -1995,31 +1992,31 @@ body:has(.terminal-workspace-wrapper) .nav-link-item.active {
 
 .herbaria-dossier-table td:last-child {
   text-align: right;
-  color: var(--hb-accent-citron);
+  color: #eab167;
   font-weight: 600;
 }
 
 .herbaria-panel-cream .herbaria-dossier-table td:last-child {
-  color: var(--hb-accent-amber);
+  color: #eab167;
 }
 
 .herbaria-numeral {
   font-family: var(--font-herbaria-mono);
   font-size: clamp(32px, 3.8vw, 52px);
   font-weight: 700;
-  color: var(--hb-accent-citron);
+  color: #eab167;
   line-height: 1;
   letter-spacing: -0.02em;
 }
 
 .herbaria-badge-sharp {
   font-family: var(--font-herbaria-mono);
-  font-size: 9.5px;
+  font-size: 10px;
   font-weight: 700;
-  letter-spacing: 0.2em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  padding: 4px 8px;
-  border-radius: 0px !important;
+  padding: 4px 10px;
+  border-radius: 4px !important;
   display: inline-block;
 }
 

@@ -77,13 +77,13 @@ export default function WhyGoldPage() {
           </div>
 
           <div className="herbaria-triptych">
-            {/* Column 1: Deep Forest Green Apothecary Panel */}
+            {/* Column 1: Deep Navy Panel */}
             <article className="herbaria-triptych-col herbaria-panel-green">
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                <span className="herbaria-badge-sharp" style={{ background: 'rgba(200, 212, 0, 0.15)', color: '#C8D400', border: '1px solid rgba(200, 212, 0, 0.3)' }}>
-                  SPECIMEN A
+                <span className="herbaria-badge-sharp" style={{ background: 'rgba(234, 177, 103, 0.15)', color: '#eab167', border: '1px solid rgba(234, 177, 103, 0.35)' }}>
+                  PILLAR 01
                 </span>
-                <span style={{ fontFamily: 'var(--font-herbaria-mono)', fontSize: '11px', color: 'var(--hb-accent-citron)' }}>
+                <span style={{ fontFamily: 'var(--font-herbaria-mono)', fontSize: '11px', color: '#eab167' }}>
                   LIQUIDITY DEPTH
                 </span>
               </div>
@@ -92,11 +92,11 @@ export default function WhyGoldPage() {
                 $130B+
               </div>
 
-              <h2 style={{ fontFamily: 'var(--font-herbaria-display)', fontSize: '24px', fontWeight: 400, color: '#F2EADA', margin: '0 0 12px', lineHeight: 1.2 }}>
+              <h2 style={{ fontFamily: 'var(--font-herbaria-display)', fontSize: '24px', fontWeight: 500, color: '#F8FAFC', margin: '0 0 12px', lineHeight: 1.2 }}>
                 Continuous Daily Turnover
               </h2>
 
-              <p style={{ fontSize: '14px', lineHeight: 1.6, color: '#E2E8F0', flex: 1 }}>
+              <p style={{ fontSize: '14px', lineHeight: 1.6, color: '#CBD5E1', flex: 1 }}>
                 Spot Gold is one of the deepest financial instruments on earth. Deep institutional order books ensure immediate execution with zero dealer re-quotes and minimal slippage during high-impact US economic releases.
               </p>
 
@@ -122,58 +122,58 @@ export default function WhyGoldPage() {
               </table>
             </article>
 
-            {/* Column 2: Parchment Cream Panel */}
+            {/* Column 2: Elevated Midnight Navy Panel */}
             <article className="herbaria-triptych-col herbaria-panel-cream">
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                <span className="herbaria-badge-sharp" style={{ background: '#1A4D2E', color: '#F2EADA' }}>
-                  SPECIMEN B
+                <span className="herbaria-badge-sharp" style={{ background: 'rgba(56, 189, 248, 0.14)', color: '#38BDF8', border: '1px solid rgba(56, 189, 248, 0.35)' }}>
+                  PILLAR 02
                 </span>
-                <span style={{ fontFamily: 'var(--font-herbaria-mono)', fontSize: '11px', color: '#8B5E0A', fontWeight: 600 }}>
+                <span style={{ fontFamily: 'var(--font-herbaria-mono)', fontSize: '11px', color: '#eab167', fontWeight: 600 }}>
                   SOVEREIGN RESERVES
                 </span>
               </div>
 
-              <div className="herbaria-numeral" style={{ color: '#1A4D2E', marginBottom: '12px' }}>
+              <div className="herbaria-numeral" style={{ color: '#eab167', marginBottom: '12px' }}>
                 1,000+ T
               </div>
 
-              <h2 style={{ fontFamily: 'var(--font-herbaria-display)', fontSize: '24px', fontWeight: 400, color: '#1C1612', margin: '0 0 12px', lineHeight: 1.2 }}>
+              <h2 style={{ fontFamily: 'var(--font-herbaria-display)', fontSize: '24px', fontWeight: 500, color: '#F8FAFC', margin: '0 0 12px', lineHeight: 1.2 }}>
                 Central Bank Accumulation
               </h2>
 
-              <p style={{ fontSize: '14px', lineHeight: 1.6, color: '#382E25', flex: 1 }}>
+              <p style={{ fontSize: '14px', lineHeight: 1.6, color: '#CBD5E1', flex: 1 }}>
                 Sovereign central banks are systematically reallocating reserves from fiat foreign treasuries into physical bullion, providing structural, non-cyclical institutional demand floor under every pull-back.
               </p>
 
               <table className="herbaria-dossier-table">
                 <tbody>
                   <tr>
-                    <td style={{ color: '#5C4A3A' }}>Annual Inflow</td>
-                    <td style={{ color: '#8B5E0A' }}>1,000+ Metric Tonnes / Year</td>
+                    <td style={{ color: '#94A3B8' }}>Annual Inflow</td>
+                    <td style={{ color: '#eab167' }}>1,000+ Metric Tonnes / Year</td>
                   </tr>
                   <tr>
-                    <td style={{ color: '#5C4A3A' }}>Credit Default Risk</td>
-                    <td style={{ color: '#8B5E0A' }}>0.00% Non-Debasable</td>
+                    <td style={{ color: '#94A3B8' }}>Credit Default Risk</td>
+                    <td style={{ color: '#eab167' }}>0.00% Non-Debasable</td>
                   </tr>
                   <tr>
-                    <td style={{ color: '#5C4A3A' }}>Sanction Invariance</td>
-                    <td style={{ color: '#8B5E0A' }}>100% Physical Sovereign</td>
+                    <td style={{ color: '#94A3B8' }}>Sanction Invariance</td>
+                    <td style={{ color: '#eab167' }}>100% Physical Sovereign</td>
                   </tr>
                   <tr>
-                    <td style={{ color: '#5C4A3A' }}>Institutional Buyer</td>
-                    <td style={{ color: '#8B5E0A' }}>Global Central Bank Treasuries</td>
+                    <td style={{ color: '#94A3B8' }}>Institutional Buyer</td>
+                    <td style={{ color: '#eab167' }}>Global Central Bank Treasuries</td>
                   </tr>
                 </tbody>
               </table>
             </article>
 
-            {/* Column 3: Dark Card Panel */}
+            {/* Column 3: Dark Obsidian Panel */}
             <article className="herbaria-triptych-col herbaria-panel-dark">
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                <span className="herbaria-badge-sharp" style={{ background: 'rgba(184, 58, 26, 0.2)', color: '#FF7B60', border: '1px solid rgba(184, 58, 26, 0.4)' }}>
-                  SPECIMEN C
+                <span className="herbaria-badge-sharp" style={{ background: 'rgba(16, 185, 129, 0.14)', color: '#10B981', border: '1px solid rgba(16, 185, 129, 0.35)' }}>
+                  PILLAR 03
                 </span>
-                <span style={{ fontFamily: 'var(--font-herbaria-mono)', fontSize: '11px', color: 'var(--hb-accent-citron)' }}>
+                <span style={{ fontFamily: 'var(--font-herbaria-mono)', fontSize: '11px', color: '#eab167' }}>
                   MACRO REGIME
                 </span>
               </div>
@@ -182,7 +182,7 @@ export default function WhyGoldPage() {
                 -0.82
               </div>
 
-              <h2 style={{ fontFamily: 'var(--font-herbaria-display)', fontSize: '24px', fontWeight: 400, color: '#F2EADA', margin: '0 0 12px', lineHeight: 1.2 }}>
+              <h2 style={{ fontFamily: 'var(--font-herbaria-display)', fontSize: '24px', fontWeight: 500, color: '#F8FAFC', margin: '0 0 12px', lineHeight: 1.2 }}>
                 Real Yield Sensitivity
               </h2>
 
