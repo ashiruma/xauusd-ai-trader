@@ -78,11 +78,12 @@ class MT5ExecutionAdapter(BaseExecutionAdapter):
         symbols = [self._symbol] + settings.contract.alternate_symbols + ["XAUUSD.m", "XAUUSDm", "XAUUSD_raw"]
         found_symbol = None
         for s in symbols:
-            info = mt5.symbol_info(s)
+            info = mt5.symbol_info(s) if hasattr(mt5, "symbol_info") else None
             if info is not None:
                 found_symbol = s
-                if not info.visible:
-                    mt5.symbol_select(s, True)
+                if not getattr(info, "visible", True):
+                    if hasattr(mt5, "symbol_select"):
+                        mt5.symbol_select(s, True)
                 break
 
         if not found_symbol:

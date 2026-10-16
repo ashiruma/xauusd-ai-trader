@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import AuthModal from './AuthModal';
+import TerminalAccountStatus from './TerminalAccountStatus';
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -75,15 +76,11 @@ export default function Navbar() {
       <header
         className={`header-wrapper ${isTerminalPage ? 'header-terminal' : ''}`}
         role="banner"
-        style={
-          isTerminalPage
-            ? {
-                backgroundColor: '#0B0F19',
-                borderColor: '#1E293B',
-                color: '#F8FAFC',
-              }
-            : undefined
-        }
+        style={{
+          backgroundColor: '#0B0F19',
+          borderBottom: '1px solid #1E293B',
+          color: '#F8FAFC',
+        }}
       >
         <div className="header-container" style={isTerminalPage ? { maxWidth: '1680px' } : undefined}>
           {/* Brand Identity on the Left */}
@@ -133,13 +130,10 @@ export default function Navbar() {
                   href={item.href}
                   className={`nav-link-item ${isActive ? 'active' : ''}`}
                   aria-current={isActive ? 'page' : undefined}
-                  style={
-                    isTerminalPage
-                      ? {
-                          color: isActive ? 'var(--accent-gold, #C5A059)' : '#94A3B8',
-                        }
-                      : undefined
-                  }
+                  style={{
+                    color: isActive ? 'var(--accent-gold, #C5A059)' : '#94A3B8',
+                    fontWeight: isActive ? 600 : 500,
+                  }}
                 >
                   {item.label}
                 </Link>
@@ -151,6 +145,8 @@ export default function Navbar() {
           <div className="header-actions">
             {isAuthenticated ? (
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                {isTerminalPage && <TerminalAccountStatus />}
+
                 <span
                   style={{
                     fontSize: '11px',
@@ -249,7 +245,7 @@ export default function Navbar() {
           <nav
             className="mobile-drawer-content"
             aria-label="Mobile Navigation"
-            style={isTerminalPage ? { background: '#0B0F19', borderColor: '#1E293B' } : undefined}
+            style={{ background: '#0B0F19', borderBottom: '1px solid #1E293B' }}
           >
             {navLinks.map((item) => {
               const isActive = pathname === item.href;
@@ -260,7 +256,7 @@ export default function Navbar() {
                   onClick={() => setMobileMenuOpen(false)}
                   className={`mobile-nav-link ${isActive ? 'active' : ''}`}
                   aria-current={isActive ? 'page' : undefined}
-                  style={isTerminalPage ? { color: isActive ? 'var(--accent-gold)' : '#94A3B8' } : undefined}
+                  style={{ color: isActive ? 'var(--accent-gold, #C5A059)' : '#94A3B8' }}
                 >
                   <span>{item.label}</span>
                 </Link>

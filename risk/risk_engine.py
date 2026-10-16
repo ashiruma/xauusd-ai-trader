@@ -104,7 +104,8 @@ class RiskEngine:
         market_state: MarketState,
         account_equity: float,
         open_positions_count: int,
-        is_broker_connected: bool = True
+        is_broker_connected: bool = True,
+        symbol_specs: Optional[Any] = None
     ) -> RiskDecision:
         """
         Deterministic pre-trade risk evaluation.
@@ -170,10 +171,16 @@ class RiskEngine:
             daily_loss_pct = max(0.0, -self.daily_pnl) / self.daily_starting_equity * 100.0
         if daily_loss_pct >= settings.risk.max_daily_loss_pct:
             return reject("REJECT_MAX_DAILY_LOSS", f"Daily loss limit reached ({daily_loss_pct:.2f}% >= {settings.risk.max_daily_loss_pct}%)")
-        # Daily profit target lockout
-        if hasattr(settings.risk, "daily_profit_target_usd"):
-            if self.daily_pnl >= settings.risk.daily_profit_target_usd:
-                return reject("REJECT_DAILY_PROFIT_GOAL_REACHED", f"Daily profit target reached (${self.daily_pnl:.2f} >= ${settings.risk.daily_profit_target_usd})")
+        # Daily profit target lockout: scale dynamically by percentage for accounts < $400
+        # (avoiding an inappropriate $20 implied target on a $10 micro account)
+        daily_target_pct = getattr(settings.risk, "daily_profit_target_pct", 5.0)
+        if self.daily_starting_equity and self.daily_starting_equity < 400.0:
+            target_usd = round(self.daily_starting_equity * (daily_target_pct / 100.0), 2)
+        else:
+            target_usd = getattr(settings.risk, "daily_profit_target_usd", 20.0)
+
+        if target_usd is not None and self.daily_pnl >= target_usd:
+            return reject("REJECT_DAILY_PROFIT_GOAL_REACHED", f"Daily profit target reached (${self.daily_pnl:.2f} >= ${target_usd:.2f})")
 
         # 8. Max Total Drawdown Limit
         drawdown_pct = 0.0
@@ -204,8 +211,11 @@ class RiskEngine:
 
         # 12. Stop Distance Limits
         stop_dist_pts = round(abs(signal.entry - signal.stop_loss) / settings.contract.point_size, 1)
-        if stop_dist_pts < settings.risk.min_stop_distance_points:
-            return reject("REJECT_STOP_TOO_TIGHT", f"Stop distance {stop_dist_pts:.1f} pts is below minimum {settings.risk.min_stop_distance_points} pts")
+        min_stop_allowed = settings.risk.min_stop_distance_points
+        if symbol_specs and hasattr(symbol_specs, "stops_level_points") and symbol_specs.stops_level_points > 0:
+            min_stop_allowed = max(min_stop_allowed, symbol_specs.stops_level_points)
+        if stop_dist_pts < min_stop_allowed:
+            return reject("REJECT_STOP_TOO_TIGHT", f"Stop distance {stop_dist_pts:.1f} pts is below minimum {min_stop_allowed:.1f} pts")
         
         effective_max_stop = settings.risk.max_stop_distance_points
         if account_equity <= 250.0:
@@ -229,20 +239,42 @@ class RiskEngine:
         if account_equity >= 1000.0 and effective_risk_pct > 2.0:
             effective_risk_pct = 1.0
 
+        contract_sz = getattr(symbol_specs, "contract_size", settings.contract.contract_size) if symbol_specs else settings.contract.contract_size
+        pt_sz = getattr(symbol_specs, "point_size", settings.contract.point_size) if symbol_specs else settings.contract.point_size
+        min_v = getattr(symbol_specs, "min_volume", settings.contract.min_lot) if symbol_specs else settings.contract.min_lot
+        max_v = getattr(symbol_specs, "max_volume", settings.contract.max_lot) if symbol_specs else settings.contract.max_lot
+        v_step = getattr(symbol_specs, "volume_step", settings.contract.lot_step) if symbol_specs else settings.contract.lot_step
+        spread_pts = getattr(symbol_specs, "estimated_spread_points", 0.0) if symbol_specs else 0.0
+        comm_lot = getattr(symbol_specs, "commission_per_lot_usd", 0.0) if symbol_specs else 0.0
+        slip_pts = getattr(symbol_specs, "slippage_allowance_points", 0.0) if symbol_specs else 0.0
+        hard_cap = tier_params.get("hard_risk_cap_pct", settings.risk.max_micro_risk_pct)
+
         lot_size, risk_usd, stop_pts = PositionSizer.calculate_lot_size(
             account_equity=account_equity,
             entry_price=signal.entry,
             stop_loss=signal.stop_loss,
             risk_pct=effective_risk_pct,
-            contract_size=settings.contract.contract_size,
-            min_lot=settings.contract.min_lot,
-            max_lot=settings.contract.max_lot,
-            lot_step=settings.contract.lot_step,
+            risk_ceiling_pct=hard_cap,
+            contract_size=contract_sz,
+            point_size=pt_sz,
+            min_lot=min_v,
+            max_lot=max_v,
+            lot_step=v_step,
+            spread_points=spread_pts,
+            commission_per_lot=comm_lot,
+            slippage_points=slip_pts,
             allow_min_lot_override=settings.risk.allow_min_lot_override
         )
 
-        if lot_size < settings.contract.min_lot:
-            return reject("REJECT_LOT_SIZE_ZERO", f"Calculated position size ({lot_size} lots) below broker minimum ({settings.contract.min_lot})")
+        if lot_size < min_v:
+            return reject("REJECT_LOT_SIZE_ZERO", f"Calculated position size ({lot_size} lots) below broker minimum ({min_v}) or exceeds risk ceiling")
+
+        # 16. Free Margin Check
+        if symbol_specs:
+            lev = getattr(symbol_specs, "leverage", 500.0)
+            req_margin = round((lot_size * contract_sz * signal.entry) / max(lev, 1.0), 2)
+            if req_margin > account_equity:
+                return reject("REJECT_INSUFFICIENT_MARGIN", f"Required margin (${req_margin:.2f}) exceeds account equity (${account_equity:.2f})")
 
         # Trade Approved
         self._recent_signals[signal.strategy_id] = now

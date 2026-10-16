@@ -5,6 +5,7 @@ import Link from 'next/link';
 import CourseSchema from '@/components/CourseSchema';
 import { getAllLessons } from '@/lib/curriculum';
 import { COURSE_PROGRESS_CHANGED_EVENT, COURSE_PROGRESS_STORAGE_KEY, nextCourseLesson, parseCourseProgress } from '@/lib/courseProgress';
+import { DEFAULT_PARTNER_CONFIG } from '@/lib/partner';
 
 export default function AcademyPage() {
   const [selectedLevel, setSelectedLevel] = useState<'all' | 'beginner' | 'intermediate' | 'advanced'>('all');
@@ -38,328 +39,413 @@ export default function AcademyPage() {
   const courseComplete = firstIncompleteLesson > totalLessons;
 
   return (
-    <div className="academy-page" style={{ maxWidth: '1200px', margin: '40px auto 80px', padding: '0 24px' }}>
+    <div className="herbaria-page" style={{ minHeight: '100vh', padding: '48px 24px 96px', borderTop: '1px solid var(--hb-hairline-amber)' }}>
       <CourseSchema />
 
-      {/* Breadcrumb */}
-      <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '16px' }}>
-        <Link href="/" style={{ color: 'var(--text-secondary)' }}>Home</Link>
-        <span style={{ margin: '0 8px' }}>/</span>
-        <span style={{ color: 'var(--text-primary)' }}>30-Lesson Forex School</span>
-      </div>
+      <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
+        {/* Navigation / Breadcrumb */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px', borderBottom: '1px solid var(--hb-hairline-amber)', paddingBottom: '16px' }}>
+          <div style={{ fontFamily: 'var(--font-herbaria-mono)', fontSize: '11px', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--hb-accent-amber)' }}>
+            <Link href="/" style={{ color: 'var(--hb-text-cream)', textDecoration: 'none' }}>VELARION</Link>
+            <span style={{ margin: '0 8px', color: 'var(--hb-hairline-amber)' }}>/</span>
+            <span style={{ color: 'var(--hb-accent-citron)' }}>FOREX SCHOOL CURRICULUM</span>
+          </div>
+          <div style={{ fontFamily: 'var(--font-herbaria-mono)', fontSize: '10px', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--hb-accent-vermillion)' }}>
+            CURRICULUM SPECIMEN FOLIO
+          </div>
+        </div>
 
-      <div className="section-eyebrow">
-        <span>30-Lesson Structured Curriculum</span>
-      </div>
+        {/* Section 01: Hero Header */}
+        <header style={{ marginBottom: '56px' }}>
+          <div className="herbaria-plate-kicker">
+            <span>&sect; 01</span>
+            <span style={{ color: 'var(--hb-accent-amber)' }}>/</span>
+            <span>EVIDENCE-BASED TRADING ACADEMY</span>
+          </div>
 
-      <h1 style={{ fontSize: '36px', fontWeight: 800, color: 'var(--text-primary)', lineHeight: 1.2, marginBottom: '14px', letterSpacing: '-0.5px' }}>
-        Forex School &bull; Quantitative Curriculum
-      </h1>
+          <h1 className="herbaria-title">
+            Forex School: The 30-Lesson Quantitative Curriculum
+          </h1>
 
-      <p style={{ fontSize: '15px', color: 'var(--text-secondary)', lineHeight: 1.6, maxWidth: '820px', marginBottom: '32px' }}>
-        A progressive, institutional curriculum designed to build market literacy from first principles. Lessons 1 through 5 are open for instant public study. Lessons 6 through 30 carry no platform subscription fee when verified with our official Introducing Broker partner, JustMarkets.
-      </p>
+          <div className="herbaria-italic-quote">
+            &ldquo;A progressive, evidence-based syllabus engineered to build systematic execution discipline from first principles &mdash; subsidized through our official Introducing Broker partnership.&rdquo;
+          </div>
 
-      {/* Progress & Overview Panel */}
-      <div className="panel-card academy-progress-card" style={{ padding: '24px 28px', marginBottom: '36px', background: 'var(--bg-surface-1)' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '20px', marginBottom: '18px' }}>
-          <div>
-            <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--accent-gold)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '6px' }}>
-              Curriculum Progress Tracking
+          <p style={{ fontSize: '16px', lineHeight: 1.7, color: '#CBD5E1', maxWidth: '820px', marginBottom: '32px' }}>
+            Lessons 1 through 5 are open for instant public study. Lessons 6 through 30 carry no platform subscription fee when verified with our official Introducing Broker partner, JustMarkets. Non-custodial MT5 execution with disciplined risk sizing.
+          </p>
+        </header>
+
+        {/* Section 02: Progress Dossier (Plate II) */}
+        <section style={{
+          border: '1px solid var(--hb-hairline-citron)',
+          backgroundColor: 'var(--hb-bg-primary)',
+          padding: '36px 32px',
+          marginBottom: '56px',
+          borderRadius: 0,
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '24px', marginBottom: '24px' }}>
+            <div>
+              <div style={{ fontFamily: 'var(--font-herbaria-mono)', fontSize: '10px', letterSpacing: '0.25em', color: 'var(--hb-accent-citron)', textTransform: 'uppercase', marginBottom: '8px' }}>
+                &sect; 02 / CURRICULUM PROGRESS TRACKER
+              </div>
+              <h2 style={{ fontFamily: 'var(--font-herbaria-display)', fontSize: '26px', color: '#F2EADA', margin: '0 0 6px', fontWeight: 400 }}>
+                {passedCount} of {totalLessons} Units Certified ({progressPercent}%)
+              </h2>
+              <div style={{ fontSize: '13.5px', color: '#CBD5E1' }}>
+                Fully subsidized through JustMarkets IB partner code <strong style={{ color: 'var(--hb-accent-citron)', fontFamily: 'var(--font-herbaria-mono)' }}>tohstb0d83</strong>
+              </div>
             </div>
-            <h2 style={{ fontSize: '18px', fontWeight: 800, color: 'var(--text-primary)', margin: 0 }}>
-              {passedCount} of {totalLessons} Lessons Completed ({progressPercent}%)
-            </h2>
-            <div style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '4px' }}>
-              Subsidized with no platform subscription fee through our official JustMarkets regulated broker partnership.
+
+            <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap' }}>
+              <Link
+                href={courseComplete ? '/academy' : `/academy/lesson-${firstIncompleteLesson}`}
+                className="herbaria-btn-citron"
+              >
+                {courseComplete ? 'Curriculum Complete' : passedCount > 0 ? `Resume Lesson ${String(firstIncompleteLesson).padStart(2, '0')}` : 'Begin Lesson 01 (Public)'} &rarr;
+              </Link>
+              <Link
+                href="/onboarding"
+                className="herbaria-btn-secondary"
+              >
+                Unlock Gated Modules &rarr;
+              </Link>
             </div>
           </div>
-          <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-            <Link
-              href={courseComplete ? '/academy' : `/academy/lesson-${firstIncompleteLesson}`}
-              className="btn btn-primary"
-              style={{ padding: '10px 20px', fontSize: '13px' }}
+
+          {/* Sharp Progress Bar */}
+          <div
+            role="progressbar"
+            aria-label="Course progress"
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-valuenow={progressPercent}
+            style={{
+              width: '100%',
+              height: '8px',
+              background: 'rgba(0, 0, 0, 0.4)',
+              border: '1px solid var(--hb-hairline-amber)',
+              borderRadius: 0,
+              overflow: 'hidden'
+            }}
+          >
+            <div
+              style={{
+                width: `${progressPercent}%`,
+                height: '100%',
+                background: 'var(--hb-accent-citron)',
+                transition: 'width 0.4s ease'
+              }}
+            />
+          </div>
+        </section>
+
+        {/* Section 03: Three-Tier Specimen Triptych (Plate III) */}
+        <section style={{ marginBottom: '56px' }}>
+          <div className="herbaria-plate-kicker">
+            <span>&sect; 03</span>
+            <span style={{ color: 'var(--hb-accent-amber)' }}>/</span>
+            <span>THREE CURRICULUM TIERS</span>
+          </div>
+
+          <div className="herbaria-triptych">
+            {/* Tier 1: Forest Green */}
+            <div
+              onClick={() => setSelectedLevel('beginner')}
+              className={`herbaria-triptych-col ${selectedLevel === 'beginner' ? 'herbaria-panel-green' : 'herbaria-panel-dark'}`}
+              style={{ cursor: 'pointer' }}
             >
-              {courseComplete ? 'Course Complete' : passedCount > 0 ? `Continue Lesson ${String(firstIncompleteLesson).padStart(2, '0')}` : 'Start Lesson 01 (Public)'} &rarr;
-            </Link>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+                <span className="herbaria-badge-sharp" style={{ background: 'rgba(200, 212, 0, 0.15)', color: '#C8D400', border: '1px solid rgba(200, 212, 0, 0.3)' }}>
+                  TIER 1
+                </span>
+                <span style={{ fontFamily: 'var(--font-herbaria-mono)', fontSize: '11px', color: 'var(--hb-accent-citron)' }}>
+                  FOUNDATIONS
+                </span>
+              </div>
+
+              <div className="herbaria-numeral" style={{ marginBottom: '10px' }}>
+                {beginnerCount} Units
+              </div>
+
+              <h3 style={{ fontFamily: 'var(--font-herbaria-display)', fontSize: '22px', fontWeight: 400, color: '#F2EADA', margin: '0 0 10px' }}>
+                Forex Foundations
+              </h3>
+
+              <p style={{ fontSize: '13.5px', lineHeight: 1.6, color: '#CBD5E1', flex: 1, margin: '0 0 16px' }}>
+                Currency pairs, bid/ask spreads, pip values, lot sizing, margin, leverage, and MT5 order types. Lessons 1&ndash;5 are open for instant public study.
+              </p>
+
+              <div style={{ fontFamily: 'var(--font-herbaria-mono)', fontSize: '11px', color: 'var(--hb-accent-citron)', borderTop: '1px dotted var(--hb-hairline-amber)', paddingTop: '10px' }}>
+                Lessons 01&ndash;12 / Foundational
+              </div>
+            </div>
+
+            {/* Tier 2: Parchment Cream */}
+            <div
+              onClick={() => setSelectedLevel('intermediate')}
+              className={`herbaria-triptych-col ${selectedLevel === 'intermediate' ? 'herbaria-panel-cream' : 'herbaria-panel-dark'}`}
+              style={{ cursor: 'pointer' }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+                <span className="herbaria-badge-sharp" style={{ background: '#1A4D2E', color: '#F2EADA' }}>
+                  TIER 2
+                </span>
+                <span style={{ fontFamily: 'var(--font-herbaria-mono)', fontSize: '11px', color: selectedLevel === 'intermediate' ? '#8B5E0A' : 'var(--hb-accent-citron)' }}>
+                  DYNAMICS
+                </span>
+              </div>
+
+              <div className="herbaria-numeral" style={{ color: selectedLevel === 'intermediate' ? '#1A4D2E' : 'var(--hb-accent-citron)', marginBottom: '10px' }}>
+                {intermediateCount} Units
+              </div>
+
+              <h3 style={{ fontFamily: 'var(--font-herbaria-display)', fontSize: '22px', fontWeight: 400, color: selectedLevel === 'intermediate' ? '#1C1612' : '#F2EADA', margin: '0 0 10px' }}>
+                Analysis &amp; Market Structure
+              </h3>
+
+              <p style={{ fontSize: '13.5px', lineHeight: 1.6, color: selectedLevel === 'intermediate' ? '#382E25' : '#CBD5E1', flex: 1, margin: '0 0 16px' }}>
+                Candlestick anatomy, market structure, support/resistance, multi-timeframe analysis, and session liquidity windows.
+              </p>
+
+              <div style={{ fontFamily: 'var(--font-herbaria-mono)', fontSize: '11px', color: selectedLevel === 'intermediate' ? '#8B5E0A' : 'var(--hb-accent-citron)', borderTop: '1px dotted var(--hb-hairline-amber)', paddingTop: '10px' }}>
+                Lessons 13&ndash;22 / Gated by IB Link
+              </div>
+            </div>
+
+            {/* Tier 3: Dark Card */}
+            <div
+              onClick={() => setSelectedLevel('advanced')}
+              className={`herbaria-triptych-col ${selectedLevel === 'advanced' ? 'herbaria-panel-green' : 'herbaria-panel-dark'}`}
+              style={{ cursor: 'pointer' }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+                <span className="herbaria-badge-sharp" style={{ background: 'rgba(184, 58, 26, 0.2)', color: '#FF7B60', border: '1px solid rgba(184, 58, 26, 0.4)' }}>
+                  TIER 3
+                </span>
+                <span style={{ fontFamily: 'var(--font-herbaria-mono)', fontSize: '11px', color: 'var(--hb-accent-citron)' }}>
+                  INSTITUTIONAL
+                </span>
+              </div>
+
+              <div className="herbaria-numeral" style={{ marginBottom: '10px' }}>
+                {advancedCount} Units
+              </div>
+
+              <h3 style={{ fontFamily: 'var(--font-herbaria-display)', fontSize: '22px', fontWeight: 400, color: '#F2EADA', margin: '0 0 10px' }}>
+                Asymmetric Risk &amp; Strategy
+              </h3>
+
+              <p style={{ fontSize: '13.5px', lineHeight: 1.6, color: '#CBD5E1', flex: 1, margin: '0 0 16px' }}>
+                Mathematical position sizing, asymmetric drawdown mechanics, execution psychology, backtesting rigor, and XAUUSD mechanics.
+              </p>
+
+              <div style={{ fontFamily: 'var(--font-herbaria-mono)', fontSize: '11px', color: 'var(--hb-accent-citron)', borderTop: '1px dotted var(--hb-hairline-amber)', paddingTop: '10px' }}>
+                Lessons 23&ndash;30 / Master Quantitative
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Section 04: Filter Bar & Catalog (Plate IV) */}
+        <section style={{ marginBottom: '72px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px', marginBottom: '24px', borderBottom: '1px solid var(--hb-hairline-amber)', paddingBottom: '16px' }}>
+            <div className="herbaria-plate-kicker" style={{ margin: 0 }}>
+              <span>&sect; 04</span>
+              <span style={{ color: 'var(--hb-accent-amber)' }}>/</span>
+              <span>CURRICULUM SPECIMEN CATALOG ({filteredLessons.length} UNITS)</span>
+            </div>
+
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+              {(['all', 'beginner', 'intermediate', 'advanced'] as const).map((lvl) => (
+                <button
+                  key={lvl}
+                  onClick={() => setSelectedLevel(lvl)}
+                  style={{
+                    fontFamily: 'var(--font-herbaria-mono)',
+                    fontSize: '11px',
+                    fontWeight: 600,
+                    letterSpacing: '0.15em',
+                    textTransform: 'uppercase',
+                    padding: '8px 16px',
+                    borderRadius: 0,
+                    border: '1px solid',
+                    borderColor: selectedLevel === lvl ? 'var(--hb-accent-citron)' : 'var(--hb-hairline-amber)',
+                    backgroundColor: selectedLevel === lvl ? 'var(--hb-accent-citron)' : 'transparent',
+                    color: selectedLevel === lvl ? '#1C1612' : '#CBD5E1',
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease'
+                  }}
+                >
+                  {lvl === 'all' ? 'ALL MODULES' : lvl.toUpperCase()} ({lvl === 'all' ? 30 : lvl === 'beginner' ? 12 : lvl === 'intermediate' ? 10 : 8})
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* 30 Lesson Grid */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: '20px' }}>
+            {filteredLessons.map((lesson) => {
+              const isCompleted = completedLessons.includes(lesson.globalNum);
+              const wordCount = lesson.content ? lesson.content.split(/\s+/).length : 500;
+              const estReadingTime = `${Math.max(3, Math.ceil(wordCount / 180))} min read`;
+              const isPublic = lesson.globalNum <= 5;
+              const isSequenceLocked = lesson.globalNum > firstIncompleteLesson;
+
+              let statusBadge = (
+                <span className="herbaria-badge-sharp" style={{ background: 'rgba(234, 177, 103, 0.12)', color: 'var(--hb-accent-citron)', border: '1px solid rgba(234, 177, 103, 0.3)' }}>
+                  PARTNER SUBSIDIZED
+                </span>
+              );
+
+              if (isCompleted) {
+                statusBadge = (
+                  <span className="herbaria-badge-sharp" style={{ background: 'rgba(200, 212, 0, 0.2)', color: 'var(--hb-accent-citron)', border: '1px solid var(--hb-accent-citron)' }}>
+                    PASSED
+                  </span>
+                );
+              } else if (isSequenceLocked) {
+                statusBadge = (
+                  <span className="herbaria-badge-sharp" style={{ background: 'rgba(255, 255, 255, 0.04)', color: '#94A3B8', border: '1px solid rgba(255, 255, 255, 0.12)' }}>
+                    LOCKED - PASS PRIOR UNIT
+                  </span>
+                );
+              } else if (lesson.globalNum === firstIncompleteLesson) {
+                statusBadge = (
+                  <span className="herbaria-badge-sharp" style={{ background: 'rgba(200, 212, 0, 0.2)', color: 'var(--hb-accent-citron)', border: '1px solid var(--hb-accent-citron)' }}>
+                    NEXT IN SEQUENCE
+                  </span>
+                );
+              } else if (isPublic) {
+                statusBadge = (
+                  <span className="herbaria-badge-sharp" style={{ background: 'rgba(242, 234, 218, 0.1)', color: '#F2EADA', border: '1px solid var(--hb-hairline-cream)' }}>
+                    PUBLIC ACCESS
+                  </span>
+                );
+              }
+
+              return (
+                <article
+                  key={lesson.id}
+                  style={{
+                    backgroundColor: 'var(--hb-bg-dark-card)',
+                    border: '1px solid var(--hb-hairline-amber)',
+                    borderRadius: 0,
+                    padding: '24px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'space-between',
+                    transition: 'border-color 0.2s ease',
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.borderColor = 'var(--hb-accent-citron)')}
+                  onMouseLeave={(e) => (e.currentTarget.style.borderColor = 'var(--hb-hairline-amber)')}
+                >
+                  <div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', borderBottom: '1px dotted var(--hb-hairline-amber)', paddingBottom: '10px' }}>
+                      <span style={{ fontFamily: 'var(--font-herbaria-mono)', fontSize: '11px', color: 'var(--hb-accent-citron)', fontWeight: 700 }}>
+                        &sect; {lesson.globalNum < 10 ? `0${lesson.globalNum}` : lesson.globalNum}
+                      </span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span style={{ fontFamily: 'var(--font-herbaria-mono)', fontSize: '10px', color: '#94A3B8' }}>
+                          {estReadingTime}
+                        </span>
+                        {statusBadge}
+                      </div>
+                    </div>
+
+                    <h3 style={{ fontFamily: 'var(--font-herbaria-display)', fontSize: '18px', fontWeight: 400, color: '#F2EADA', margin: '0 0 10px', lineHeight: 1.3 }}>
+                      {lesson.title}
+                    </h3>
+
+                    <p style={{ fontSize: '13px', color: '#94A3B8', lineHeight: 1.6, marginBottom: '20px' }}>
+                      {lesson.summary}
+                    </p>
+                  </div>
+
+                  <div style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    paddingTop: '14px',
+                    borderTop: '1px solid var(--hb-hairline-amber)'
+                  }}>
+                    <span style={{ fontFamily: 'var(--font-herbaria-mono)', fontSize: '10.5px', color: 'var(--hb-accent-amber)', textTransform: 'uppercase' }}>
+                      Tier {lesson.level === 'beginner' ? '1 Foundations' : lesson.level === 'intermediate' ? '2 Dynamics' : '3 Asymmetric'}
+                    </span>
+
+                    {isSequenceLocked ? (
+                      <span style={{ fontFamily: 'var(--font-herbaria-mono)', fontSize: '10.5px', color: '#64748B' }}>
+                        Unlock via Unit {firstIncompleteLesson}
+                      </span>
+                    ) : (
+                      <Link
+                        href={`/academy/lesson-${lesson.globalNum}`}
+                        style={{
+                          fontFamily: 'var(--font-herbaria-mono)',
+                          fontSize: '11px',
+                          fontWeight: 700,
+                          letterSpacing: '0.15em',
+                          textTransform: 'uppercase',
+                          textDecoration: 'none',
+                          color: '#1C1612',
+                          backgroundColor: 'var(--hb-accent-citron)',
+                          padding: '6px 14px',
+                          borderRadius: 0,
+                          transition: 'background 0.2s ease'
+                        }}
+                      >
+                        {isCompleted ? 'Review Unit' : isPublic ? 'Study (Public)' : 'Study Unit'} &rarr;
+                      </Link>
+                    )}
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+        </section>
+
+        {/* Section 05: Subsidized Footnote & IB Verification */}
+        <section style={{
+          border: '1px solid var(--hb-hairline-amber)',
+          backgroundColor: 'var(--hb-bg-primary)',
+          borderRadius: 0,
+          padding: '36px',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: '24px'
+        }}>
+          <div style={{ maxWidth: '640px' }}>
+            <div style={{ fontFamily: 'var(--font-herbaria-mono)', fontSize: '10px', letterSpacing: '0.25em', color: 'var(--hb-accent-citron)', textTransform: 'uppercase', marginBottom: '8px' }}>
+              &sect; 05 / LIFETIME SPONSORED TRADING EDUCATION
+            </div>
+            <h3 style={{ fontFamily: 'var(--font-herbaria-display)', fontSize: '24px', color: '#F2EADA', margin: '0 0 10px', fontWeight: 400 }}>
+              Zero Subscription Fees &mdash; Subsidized by JustMarkets
+            </h3>
+            <p style={{ fontSize: '13.5px', color: '#E2E8F0', lineHeight: 1.6, margin: 0 }}>
+              Units 1 through 5 are open for instant public study. Units 6 through 30 carry no subscription fees when verified under our JustMarkets Introducing Broker partner agreement (code tohstb0d83).
+            </p>
+          </div>
+
+          <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap' }}>
             <Link
               href="/onboarding"
-              className="btn btn-outline-gold"
-              style={{ padding: '10px 18px', fontSize: '13px' }}
+              className="herbaria-btn-citron"
             >
-              Unlock Remaining Lessons &rarr;
+              Unlock Full Curriculum &rarr;
             </Link>
-          </div>
-        </div>
-
-        {/* Visual Progress Bar */}
-        <div role="progressbar" aria-label="Course progress" aria-valuemin={0} aria-valuemax={100} aria-valuenow={progressPercent} style={{
-          width: '100%',
-          height: '6px',
-          background: 'var(--bg-surface-3)',
-          borderRadius: '3px',
-          overflow: 'hidden'
-        }}>
-          <div style={{
-            width: `${progressPercent}%`,
-            height: '100%',
-            background: 'var(--accent-gold)',
-            transition: 'width 0.3s ease'
-          }} />
-        </div>
-      </div>
-
-      {/* 3 Tier Navigation Cards */}
-      <div className="academy-tier-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px', marginBottom: '36px' }}>
-        <button
-          type="button"
-          className="academy-tier-card"
-          aria-pressed={selectedLevel === 'beginner'}
-          onClick={() => setSelectedLevel('beginner')}
-          style={{
-            background: selectedLevel === 'beginner' ? 'var(--bg-surface-3)' : 'var(--bg-surface-1)',
-            border: selectedLevel === 'beginner' ? '1px solid var(--accent-green)' : '1px solid var(--border-default)',
-            borderRadius: 'var(--radius-md)',
-            padding: '20px',
-            cursor: 'pointer',
-            transition: 'all 0.15s ease'
-          }}
-        >
-          <span className="status-badge status-completed" style={{ marginBottom: '10px' }}>
-            TIER 1 &bull; FOUNDATIONS
-          </span>
-          <h3 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '8px' }}>
-            Forex Foundations
-          </h3>
-          <p style={{ fontSize: '12.5px', color: 'var(--text-secondary)', lineHeight: 1.5, marginBottom: '14px' }}>
-            Currency pairs, bid/ask spreads, pip values, lot sizing, margin, leverage, and MT5 order types. Lessons 1–5 publicly open.
-          </p>
-          <div className="mono-nums" style={{ fontSize: '12px', fontWeight: 700, color: 'var(--accent-green)' }}>
-            {beginnerCount} Lessons (Lessons 1&ndash;12)
-          </div>
-        </button>
-
-        <button
-          type="button"
-          className="academy-tier-card"
-          aria-pressed={selectedLevel === 'intermediate'}
-          onClick={() => setSelectedLevel('intermediate')}
-          style={{
-            background: selectedLevel === 'intermediate' ? 'var(--bg-surface-3)' : 'var(--bg-surface-1)',
-            border: selectedLevel === 'intermediate' ? '1px solid var(--accent-gold)' : '1px solid var(--border-default)',
-            borderRadius: 'var(--radius-md)',
-            padding: '20px',
-            cursor: 'pointer',
-            transition: 'all 0.15s ease'
-          }}
-        >
-          <span className="status-badge status-warning" style={{ marginBottom: '10px' }}>
-            TIER 2 &bull; ANALYSIS &amp; DYNAMICS
-          </span>
-          <h3 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '8px' }}>
-            Analysis &amp; Market Dynamics
-          </h3>
-          <p style={{ fontSize: '12.5px', color: 'var(--text-secondary)', lineHeight: 1.5, marginBottom: '14px' }}>
-            Candlestick anatomy, market structure, support/resistance, multi-timeframe analysis, and session liquidity windows.
-          </p>
-          <div className="mono-nums" style={{ fontSize: '12px', fontWeight: 700, color: 'var(--accent-gold)' }}>
-            {intermediateCount} Lessons (Lessons 13&ndash;22)
-          </div>
-        </button>
-
-        <button
-          type="button"
-          className="academy-tier-card"
-          aria-pressed={selectedLevel === 'advanced'}
-          onClick={() => setSelectedLevel('advanced')}
-          style={{
-            background: selectedLevel === 'advanced' ? 'var(--bg-surface-3)' : 'var(--bg-surface-1)',
-            border: selectedLevel === 'advanced' ? '1px solid var(--accent-red)' : '1px solid var(--border-default)',
-            borderRadius: 'var(--radius-md)',
-            padding: '20px',
-            cursor: 'pointer',
-            transition: 'all 0.15s ease'
-          }}
-        >
-          <span className="status-badge status-danger" style={{ marginBottom: '10px' }}>
-            TIER 3 &bull; RISK &amp; STRATEGY
-          </span>
-          <h3 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '8px' }}>
-            Risk &amp; Institutional Strategy
-          </h3>
-          <p style={{ fontSize: '12.5px', color: 'var(--text-secondary)', lineHeight: 1.5, marginBottom: '14px' }}>
-            Mathematical position sizing, asymmetric drawdown mechanics, execution psychology, backtesting rigor, and XAUUSD mechanics.
-          </p>
-          <div className="mono-nums" style={{ fontSize: '12px', fontWeight: 700, color: 'var(--accent-red)' }}>
-            {advancedCount} Lessons (Lessons 23&ndash;30)
-          </div>
-        </button>
-      </div>
-
-      {/* Filter Tabs Header */}
-      <div className="academy-filter-bar" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px', marginBottom: '20px' }}>
-        <h2 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)' }}>
-          Curriculum Catalog ({filteredLessons.length} Lessons)
-        </h2>
-
-        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-          {(['all', 'beginner', 'intermediate', 'advanced'] as const).map((lvl) => (
-            <button
-              key={lvl}
-              onClick={() => setSelectedLevel(lvl)}
-              className={`btn btn-secondary academy-filter ${selectedLevel === lvl ? 'selected' : ''}`}
-              aria-pressed={selectedLevel === lvl}
-              style={{
-                fontSize: '12px',
-                padding: '6px 14px',
-                background: selectedLevel === lvl ? 'var(--accent-gold)' : 'var(--bg-surface-2)',
-                color: selectedLevel === lvl ? '#0B0F19' : 'var(--text-secondary)',
-                fontWeight: selectedLevel === lvl ? 700 : 500,
-                borderColor: selectedLevel === lvl ? 'var(--accent-gold)' : 'var(--border-default)'
-              }}
+            <a
+              href={DEFAULT_PARTNER_CONFIG.primaryLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="herbaria-btn-secondary"
             >
-              {lvl.toUpperCase()} ({lvl === 'all' ? 30 : lvl === 'beginner' ? 12 : lvl === 'intermediate' ? 10 : 8})
-            </button>
-          ))}
-        </div>
-      </div>
+              Open JustMarkets Account &rarr;
+            </a>
+          </div>
+        </section>
 
-      {/* 30 Lessons Grid */}
-      <div className="academy-lesson-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '20px' }}>
-        {filteredLessons.map((lesson) => {
-          const isCompleted = completedLessons.includes(lesson.globalNum);
-          const wordCount = lesson.content ? lesson.content.split(/\s+/).length : 500;
-          const estReadingTime = `${Math.max(3, Math.ceil(wordCount / 180))} min read`;
-          const isPublic = lesson.globalNum <= 5;
-          const isSequenceLocked = lesson.globalNum > firstIncompleteLesson;
-
-          // Determine status label
-          let statusBadge = (
-            <span className="status-badge" style={{ fontSize: '10px', background: 'rgba(245, 158, 11, 0.1)', color: 'var(--accent-gold)', borderColor: 'rgba(245, 158, 11, 0.3)' }}>
-              PARTNER SPONSORED
-            </span>
-          );
-
-          if (isCompleted) {
-            statusBadge = (
-              <span className="status-badge status-completed" style={{ fontSize: '10px' }}>
-                COMPLETED
-              </span>
-            );
-          } else if (isSequenceLocked) {
-            statusBadge = (
-              <span className="status-badge status-neutral" style={{ fontSize: '10px' }}>
-                LOCKED · PASS PRIOR QUIZ
-              </span>
-            );
-          } else if (lesson.globalNum === firstIncompleteLesson) {
-            statusBadge = (
-              <span className="status-badge status-warning" style={{ fontSize: '10px' }}>
-                NEXT IN SEQUENCE
-              </span>
-            );
-          } else if (isPublic) {
-            statusBadge = (
-              <span className="status-badge status-completed" style={{ fontSize: '10px' }}>
-                PUBLIC PREVIEW
-              </span>
-            );
-          }
-
-          return (
-            <div
-              key={lesson.id}
-              className="feature-card-clean academy-lesson-card"
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'space-between'
-              }}
-            >
-              <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                  <span className="mono-nums" style={{ fontSize: '11px', color: 'var(--accent-gold)', fontWeight: 700 }}>
-                    LESSON {lesson.globalNum < 10 ? `0${lesson.globalNum}` : lesson.globalNum}
-                  </span>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <span className="mono-nums" style={{ fontSize: '10px', color: 'var(--text-muted)' }}>
-                      {estReadingTime}
-                    </span>
-                    {statusBadge}
-                  </div>
-                </div>
-
-                <h3 style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '8px', lineHeight: 1.35 }}>
-                  {lesson.title}
-                </h3>
-
-                <p style={{ fontSize: '12.5px', color: 'var(--text-secondary)', lineHeight: 1.55, marginBottom: '16px' }}>
-                  {lesson.summary}
-                </p>
-              </div>
-
-              <div style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                paddingTop: '12px',
-                borderTop: '1px solid var(--border-default)'
-              }}>
-                <span className="mono-nums" style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
-                  Tier {lesson.level === 'beginner' ? '1' : lesson.level === 'intermediate' ? '2' : '3'}
-                </span>
-                {isSequenceLocked ? (
-                  <span className="status-badge status-neutral" aria-disabled="true" style={{ fontSize: '10px' }}>
-                    Unlock by passing Lesson {firstIncompleteLesson}
-                  </span>
-                ) : (
-                  <Link
-                    href={`/academy/lesson-${lesson.globalNum}`}
-                    className="btn btn-outline-gold"
-                    style={{ padding: '6px 14px', fontSize: '12px' }}
-                  >
-                    {isCompleted ? 'Review Lesson' : isPublic ? 'Study (Public)' : 'Study Next Lesson'} &rarr;
-                  </Link>
-                )}
-              </div>
-            </div>
-          );
-        })}
-      </div>
-
-      {/* Subsidized Footnote */}
-      <div style={{
-        marginTop: '48px',
-        background: 'var(--bg-surface-1)',
-        border: '1px solid var(--border-default)',
-        borderRadius: 'var(--radius-md)',
-        padding: '28px',
-        textAlign: 'center'
-      }}>
-        <div style={{ fontSize: '15px', color: 'var(--text-primary)', fontWeight: 700, marginBottom: '6px' }}>
-          Lifetime Subsidized Forex &amp; Spot Gold Education
-        </div>
-        <div style={{ fontSize: '13px', color: 'var(--text-secondary)', maxWidth: '640px', margin: '0 auto 20px', lineHeight: 1.6 }}>
-          Lessons 1 through 5 are open for instant public study. Lessons 6 through 30 carry no platform subscription fee when verified under our JustMarkets partner agreement. Broker spreads and trading risks apply.
-        </div>
-        <div style={{ display: 'flex', justifyContent: 'center', gap: '14px', flexWrap: 'wrap' }}>
-          <Link
-            href="/onboarding"
-            className="btn btn-primary"
-            style={{ fontSize: '13px', padding: '10px 20px' }}
-          >
-            Unlock Full Curriculum &rarr;
-          </Link>
-          <a
-            href="https://one.justmarkets.link/a/tohstb0d83"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="btn btn-outline-gold"
-            style={{ fontSize: '13px', padding: '10px 20px' }}
-          >
-            Register on JustMarkets &rarr;
-          </a>
-        </div>
       </div>
     </div>
   );

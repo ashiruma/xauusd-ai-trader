@@ -73,7 +73,7 @@ export default function HomeAccessSection({ initialSignedIn }: HomeAccessSection
                   <span className="mono-nums" style={{ fontSize: '11px', color: 'var(--accent-gold)' }}>30 LESSONS</span>
                 </div>
                 <h3 style={{ fontSize: '17px', fontWeight: 700, marginBottom: '8px', color: 'var(--text-primary)' }}>
-                  Forex School &bull; Spot Gold
+                  Forex School / Spot Gold
                 </h3>
                 <p style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.6 }}>
                   Sequential gated curriculum backed by BabyPips factual standards. Pass mandatory comprehension checks to unlock advanced institutional strategies.

@@ -487,22 +487,55 @@ async def get_account_info():
 async def verify_partner_account(req: PartnerVerificationRequest):
     """
     Validates a JustMarkets partner registration and unlocks subsidized terminal access.
-    Accepts standard JustMarkets MT5 account numbers.
+    Accepts standard JustMarkets MT5 account numbers and fails closed on unverified accounts.
     """
     acc_id = req.account_id.strip()
-    if not acc_id or not acc_id.isdigit() or len(acc_id) < 5:
+    if not acc_id or not acc_id.isdigit() or len(acc_id) < 6 or len(acc_id) > 10:
         return {
             "success": False,
             "message": "Invalid JustMarkets Account ID format. Please enter your valid 6-10 digit MT5 account number."
         }
+
+    # Verified owner account
+    if acc_id == "1200533810":
+        return {
+            "success": True,
+            "account_id": acc_id,
+            "broker": "JustMarkets Ltd",
+            "server": req.server or "JustMarkets-Demo3",
+            "status": "VERIFIED",
+            "tier": "TIER_1_SUBSIDIZED",
+            "message": f"Owner JustMarkets account #{acc_id} verified. Access unlocked."
+        }
+
+    # If JustMarkets Partner API token is configured, check live API
+    partner_token = os.getenv("JUSTMARKETS_PARTNER_API_TOKEN")
+    if partner_token:
+        try:
+            import httpx
+            async with httpx.AsyncClient(timeout=5.0) as client:
+                res = await client.get(
+                    f"https://api.justmarkets.com/v1/partners/referrals/{acc_id}?code=tohstb0d83",
+                    headers={"Authorization": f"Bearer {partner_token}", "Accept": "application/json"}
+                )
+                if res.status_code == 200 and res.json().get("is_verified"):
+                    return {
+                        "success": True,
+                        "account_id": acc_id,
+                        "broker": "JustMarkets Ltd",
+                        "server": req.server or "JustMarkets-Demo3",
+                        "status": "VERIFIED",
+                        "tier": "TIER_1_SUBSIDIZED",
+                        "message": f"JustMarkets account #{acc_id} verified under referral link. Terminal unlocked."
+                    }
+        except Exception:
+            pass
+
     return {
-        "success": True,
+        "success": False,
         "account_id": acc_id,
-        "broker": "JustMarkets Ltd",
-        "server": req.server or "JustMarkets-Demo3",
-        "status": "VERIFIED",
-        "tier": "TIER_1_SUBSIDIZED",
-        "message": f"JustMarkets account #{acc_id} verified. Access to Forex School and Autonomous AI Trading Terminal unlocked."
+        "status": "UNVERIFIED",
+        "message": f"Account #{acc_id} is not verified under Velarion partner code (tohstb0d83). Please ensure you registered via the official link."
     }
 
 

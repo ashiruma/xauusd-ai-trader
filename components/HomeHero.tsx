@@ -45,7 +45,7 @@ export default function HomeHero({ initialSignedIn, initialQuote }: HomeHeroProp
               /* ============================================================== */
               <div>
                 <div className="section-eyebrow">
-                  <span>Velarion Markets &bull; Verified Institutional Trader</span>
+                  <span>Velarion Markets / Verified Institutional Trader</span>
                 </div>
 
                 <h1 className="hero-heading" style={{ fontSize: '38px', lineHeight: 1.2 }}>
@@ -91,7 +91,7 @@ export default function HomeHero({ initialSignedIn, initialQuote }: HomeHeroProp
                 }}>
                   <div style={{ padding: '10px 14px', background: 'var(--bg-surface-1)', border: '1px solid var(--border-default)', borderRadius: 'var(--radius-sm)' }}>
                     <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>MT5 Access</div>
-                    <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--accent-green)', marginTop: '2px' }}>Verified &bull; Active</div>
+                    <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--accent-green)', marginTop: '2px' }}>Verified / Active</div>
                   </div>
 
                   <div style={{ padding: '10px 14px', background: 'var(--bg-surface-1)', border: '1px solid var(--border-default)', borderRadius: 'var(--radius-sm)' }}>
@@ -111,7 +111,7 @@ export default function HomeHero({ initialSignedIn, initialQuote }: HomeHeroProp
               /* ============================================================== */
               <div>
                 <div className="section-eyebrow">
-                  <span>Velarion Markets &bull; Spot Gold (XAUUSD)</span>
+                  <span>Velarion Markets / Spot Gold (XAUUSD)</span>
                 </div>
 
                 <h1 className="hero-heading" style={{ fontSize: '38px', lineHeight: 1.2 }}>

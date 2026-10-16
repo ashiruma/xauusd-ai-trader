@@ -76,26 +76,13 @@ export default function TerminalAccountStatus() {
       style={{
         display: 'inline-flex',
         alignItems: 'center',
-        gap: '10px',
-        padding: '6px 14px',
+        padding: '5px 12px',
         borderRadius: '6px',
         background: config.bg,
         border: `1px solid ${config.border}`,
         fontSize: '12px',
       }}
     >
-      {/* The single genuine active indicator dot */}
-      <span
-        aria-hidden="true"
-        style={{
-          width: '8px',
-          height: '8px',
-          borderRadius: '50%',
-          backgroundColor: config.dotColor,
-          display: 'inline-block',
-          flexShrink: 0,
-        }}
-      />
       <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.25 }}>
         <span style={{ fontWeight: 700, color: config.textColor, letterSpacing: '0.2px' }}>
           {config.label}

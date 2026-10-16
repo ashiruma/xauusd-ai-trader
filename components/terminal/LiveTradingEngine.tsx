@@ -179,7 +179,7 @@ export default function LiveTradingEngine() {
             {isConnected ? 'JUSTMARKETS MT5 LIVE' : 'MT5 DISCONNECTED'}
           </span>
           <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
-            Broker: <strong>{data?.broker}</strong> &bull; Account: <strong className="mono-nums">#{data?.accountNumber}</strong> &bull; Connection: <span style={{ color: isConnected ? 'var(--accent-green)' : 'var(--accent-red)', fontWeight: 600 }}>{isConnected ? 'Active' : 'Offline / Reconnecting'}</span>
+            Broker: <strong>{data?.broker}</strong> / Account: <strong className="mono-nums">#{data?.accountNumber}</strong> / Connection: <span style={{ color: isConnected ? 'var(--accent-green)' : 'var(--accent-red)', fontWeight: 600 }}>{isConnected ? 'Active' : 'Offline / Reconnecting'}</span>
           </span>
         </div>
 
@@ -208,16 +208,6 @@ export default function LiveTradingEngine() {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px', marginBottom: '20px' }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-              <span
-                className="dot-indicator"
-                style={{
-                  background: settings.isEmergencyPaused
-                    ? 'var(--accent-red)'
-                    : settings.isAutomatedTradingAuthorized
-                    ? 'var(--accent-green)'
-                    : 'var(--accent-gold)'
-                }}
-              />
               <span style={{
                 fontSize: '11.5px',
                 fontFamily: 'var(--font-mono, monospace)',
@@ -238,7 +228,7 @@ export default function LiveTradingEngine() {
               </span>
             </div>
             <h2 style={{ fontSize: '20px', fontWeight: 800, color: 'var(--text-primary)', margin: 0 }}>
-              XAUUSD Algorithmic Terminal &bull; JustMarkets MT5
+              XAUUSD Algorithmic Terminal / JustMarkets MT5
             </h2>
           </div>
 
@@ -338,7 +328,7 @@ export default function LiveTradingEngine() {
                 RUNNING ORDER: {pos.type} {pos.lots} LOTS
               </span>
               <span className="mono-nums" style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
-                Ticket #{pos.ticket} &bull; {pos.symbol} &bull; Opened {new Date(pos.openTime).toLocaleTimeString()}
+                Ticket #{pos.ticket} / {pos.symbol} / Opened {new Date(pos.openTime).toLocaleTimeString()}
               </span>
             </div>
 
@@ -395,7 +385,7 @@ export default function LiveTradingEngine() {
           {/* Educational Alignment Callout */}
           <div style={{ padding: '12px 16px', background: 'var(--bg-surface-2)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-default)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
             <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
-              <strong style={{ color: 'var(--accent-gold)' }}>Strategy:</strong> {pos.strategy} &bull; Ticket #{pos.ticket}
+              <strong style={{ color: 'var(--accent-gold)' }}>Strategy:</strong> {pos.strategy} / Ticket #{pos.ticket}
             </div>
             <Link href="/academy" style={{ fontSize: '12px', color: 'var(--accent-gold)', fontWeight: 700, textDecoration: 'none' }}>
               Review Curriculum &rarr;
@@ -411,7 +401,7 @@ export default function LiveTradingEngine() {
             The connected JustMarkets MT5 account currently reports zero active positions. Orders placed by the trading engine will appear here in real-time.
           </div>
           <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
-            MT5 Gateway: {isConnected ? 'Streaming Direct Quotes' : 'Awaiting Connection'} &bull; Non-Custodial
+            MT5 Gateway: {isConnected ? 'Streaming Direct Quotes' : 'Awaiting Connection'} / Non-Custodial
           </div>
         </div>
       )}
@@ -535,7 +525,7 @@ export default function LiveTradingEngine() {
               Why this trade? (Ticket #{pos?.ticket})
             </h2>
             <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '20px' }}>
-              Strategy: <strong>{why.strategyVersion}</strong> &bull; Signal Time: {new Date(why.signalTimestamp).toLocaleString()}
+              Strategy: <strong>{why.strategyVersion}</strong> / Signal Time: {new Date(why.signalTimestamp).toLocaleString()}
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', textAlign: 'left', fontSize: '13px' }}>
@@ -560,14 +550,14 @@ export default function LiveTradingEngine() {
                   Exit Rules &amp; Levels
                 </div>
                 <div style={{ fontSize: '12.5px', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
-                  <div>&bull; <strong>Stop-Loss:</strong> {why.exitConditions.stopLossRule}</div>
-                  <div>&bull; <strong>Take-Profit:</strong> {why.exitConditions.takeProfitRule}</div>
+                  <div>- <strong>Stop-Loss:</strong> {why.exitConditions.stopLossRule}</div>
+                  <div>- <strong>Take-Profit:</strong> {why.exitConditions.takeProfitRule}</div>
                 </div>
               </div>
 
               {/* Uncertainty and Delay Notice */}
               <div style={{ fontSize: '11.5px', color: 'var(--text-muted)', lineHeight: 1.5, borderTop: '1px solid var(--border-subtle)', paddingTop: '10px' }}>
-                Uncertainty Level: <strong>{why.uncertaintyLevel}</strong> &bull; Latency: {why.dataDelay}. Model rationales reflect real-time quantitative criteria evaluated at order submission.
+                Uncertainty Level: <strong>{why.uncertaintyLevel}</strong> / Latency: {why.dataDelay}. Model rationales reflect real-time quantitative criteria evaluated at order submission.
               </div>
             </div>
           </div>
@@ -623,7 +613,7 @@ export default function LiveTradingEngine() {
             </button>
 
             <span className="section-eyebrow" style={{ fontSize: '11px', marginBottom: '8px' }}>
-              System Architecture &bull; Non-Custodial Protocol
+              System Architecture / Non-Custodial Protocol
             </span>
             <h2 style={{ fontSize: '20px', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '8px' }}>
               Persistent MT5 Terminal Bridge Architecture

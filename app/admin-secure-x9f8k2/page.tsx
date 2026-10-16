@@ -41,13 +41,13 @@ export default function SecretAdminPage() {
       }}>
         <div>
           <span className="status-badge status-warning" style={{ marginBottom: '6px' }}>
-            AUTHORIZED OWNER CONSOLE &bull; ROUTE: /admin-secure-x9f8k2
+            AUTHORIZED OWNER CONSOLE / ROUTE: /admin-secure-x9f8k2
           </span>
           <h1 style={{ fontSize: '24px', fontWeight: 800, color: 'var(--text-primary)', margin: '4px 0' }}>
             Registered Clients &amp; Referral Roster
           </h1>
           <div style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
-            Primary Partner Code: <strong className="mono-nums val-gold">tohstb0d83</strong> &bull; Spillover: <strong className="mono-nums">p4cui0wkfz</strong>
+            Primary Partner Code: <strong className="mono-nums val-gold">tohstb0d83</strong> / Spillover: <strong className="mono-nums">p4cui0wkfz</strong>
           </div>
         </div>
 
@@ -103,7 +103,7 @@ export default function SecretAdminPage() {
               {DEFAULT_PARTNER_CONFIG.primaryLink}
             </div>
             <div style={{ fontSize: '11.5px', color: 'var(--text-muted)' }}>
-              Referral Code: <strong className="mono-nums" style={{ color: 'var(--text-primary)' }}>{DEFAULT_PARTNER_CONFIG.primaryCode}</strong> &bull; Capacity: {primaryCount}/{maxPrimary} slots
+              Referral Code: <strong className="mono-nums" style={{ color: 'var(--text-primary)' }}>{DEFAULT_PARTNER_CONFIG.primaryCode}</strong> / Capacity: {primaryCount}/{maxPrimary} slots
             </div>
           </div>
 
@@ -116,7 +116,7 @@ export default function SecretAdminPage() {
               {DEFAULT_PARTNER_CONFIG.secondaryLink}
             </div>
             <div style={{ fontSize: '11.5px', color: 'var(--text-muted)' }}>
-              Referral Code: <strong className="mono-nums" style={{ color: 'var(--text-primary)' }}>{DEFAULT_PARTNER_CONFIG.secondaryCode}</strong> &bull; Triggers automatically once Primary hits 10
+              Referral Code: <strong className="mono-nums" style={{ color: 'var(--text-primary)' }}>{DEFAULT_PARTNER_CONFIG.secondaryCode}</strong> / Triggers automatically once Primary hits 10
             </div>
           </div>
         </div>

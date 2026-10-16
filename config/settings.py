@@ -48,15 +48,17 @@ class OrderSide(str, Enum):
 
 
 class RiskConfig(BaseModel):
-    max_risk_per_trade_pct: float = Field(default=2.0, description="Max risk percentage per trade (e.g. 2.0% for standard accounts)")
-    max_daily_loss_pct: float = Field(default=3.0, description="Max daily account loss before trading halts (e.g. 3.0%)")
-    daily_profit_target_usd: float = Field(default=20.0, description="Daily profit target in USD (approx 200 pips)")
-    max_drawdown_pct: float = Field(default=8.0, description="Max total drawdown before trading halts (e.g. 8.0%)")
+    max_risk_per_trade_pct: float = Field(default=2.0, description="Max risk percentage per trade for standard accounts (2.0%)")
+    max_micro_risk_pct: float = Field(default=5.0, description="Absolute conservative risk ceiling for micro accounts (5.0%)")
+    max_daily_loss_pct: float = Field(default=3.0, description="Max daily account loss before trading halts (3.0%)")
+    daily_profit_target_pct: float = Field(default=5.0, description="Optional daily profit lock percentage (5.0%)")
+    daily_profit_target_usd: Optional[float] = Field(default=20.0, description="Optional fixed daily profit target in USD")
+    max_drawdown_pct: float = Field(default=8.0, description="Max total drawdown before trading halts (8.0%)")
     max_consecutive_losses: int = Field(default=2, description="Consecutive losses trigger cooldown (2 losses)")
     max_open_positions: int = Field(default=1, description="Max concurrent open positions")
     max_spread_points: float = Field(default=35.0, description="Max spread in points (35 points = $0.35 on XAUUSD)")
     max_slippage_points: float = Field(default=20.0, description="Max acceptable slippage in points")
-    min_risk_reward_ratio: float = Field(default=1.5, description="Minimum acceptable risk/reward ratio")
+    min_risk_reward_ratio: float = Field(default=1.8, description="Minimum acceptable risk/reward ratio (1.8:1)")
     min_stop_distance_points: float = Field(default=15.0, description="Minimum stop loss distance ($0.15 on XAUUSD)")
     max_stop_distance_points: float = Field(default=3000.0, description="Maximum stop loss distance ($30.00 on XAUUSD)")
     session_restrictions_enabled: bool = Field(default=True, description="Restrict trading to high-liquidity sessions")
@@ -65,40 +67,42 @@ class RiskConfig(BaseModel):
     news_post_window_minutes: int = Field(default=15, description="Minutes after news before resuming")
     duplicate_signal_window_seconds: int = Field(default=300, description="Window to prevent duplicate entries")
     signal_expiry_seconds: int = Field(default=180, description="Signal validity lifespan")
-    allow_min_lot_override: bool = Field(default=True, description="Allow 0.01 min lot execution on small/micro accounts")
+    allow_min_lot_override: bool = Field(default=True, description="Permit 0.01 lot only if worst-case loss does not exceed risk ceiling")
     
-    # Active Profit Collection & Small-Win Maximization
-    enable_break_even: bool = Field(default=True, description="Automatically move SL to Break-Even when in profit")
-    break_even_trigger_points: float = Field(default=80.0, description="Points in profit before moving SL to BE ($0.80)")
-    break_even_lock_points: float = Field(default=25.0, description="Points above entry to lock in when moving to BE ($0.25)")
+    # Active Profit Protection & Trailing Ratchet
+    enable_break_even: bool = Field(default=True, description="Move SL to Break-Even after trade reaches verified profit threshold")
+    break_even_trigger_points: float = Field(default=80.0, description="Baseline points in profit before moving SL to BE ($0.80)")
+    break_even_lock_points: float = Field(default=25.0, description="Baseline points above entry to lock in when moving to BE ($0.25)")
     enable_trailing_stop: bool = Field(default=True, description="Enable dynamic trailing stop")
-    trailing_trigger_points: float = Field(default=150.0, description="Points in profit before activating trailing stop ($1.50)")
-    trailing_distance_points: float = Field(default=80.0, description="Distance behind current price to maintain trailing SL ($0.80)")
+    trailing_trigger_points: float = Field(default=150.0, description="Baseline points in profit before activating trailing stop ($1.50)")
+    trailing_distance_points: float = Field(default=80.0, description="Baseline distance behind current price to maintain trailing SL ($0.80)")
 
-    # Client / Guest Account Policy
-    min_guest_deposit_usd: float = Field(default=100.0, description="Minimum deposit required for newly connected JustMarkets accounts ($100+)")
+    # Broker Onboarding & Account Policy
+    min_deposit_onboarding_usd: float = Field(default=10.0, description="JustMarkets broker deposit threshold where supported ($10 on Standard and Standard Cent)")
+    min_guest_deposit_usd: float = Field(default=100.0, description="Legacy guest account minimum deposit threshold ($100)")
 
     @staticmethod
     def get_tier_parameters(equity: float) -> dict:
         """
-        Dynamically adjusts Risk:Reward, Position Sizing, and Trailing Stops
-        based on account equity tier so a $1,000 account is optimized for
-        200-pip runners while $10-$100 micro accounts prioritize capital preservation.
+        Dynamically adjusts risk parameters, position sizing constraints,
+        and stop management based on account equity tier.
+        No profit promises or fabricated return expectations.
         """
         if equity < 100.0:
             return {
                 "tier": "MICRO",
-                "label": "Micro Capital Preservation ($10 - $100)",
+                "label": "Micro Capital Preservation Tier ($10 - $100)",
                 "min_rr": 1.5,
-                "target_rr_range": "1.5:1 to 2.0:1",
+                "target_rr_range": "1.8:1 to 2.5:1",
                 "target_pips": "20 - 50 pips ($2.00 - $5.00)",
-                "max_risk_pct": 10.0,
+                "max_risk_pct": 2.0,
+                "hard_risk_cap_pct": 15.0,
                 "be_trigger_points": 80.0,
                 "be_lock_points": 25.0,
-                "trailing_trigger_points": 120.0,
-                "trailing_distance_points": 60.0,
+                "trailing_trigger_points": 150.0,
+                "trailing_distance_points": 80.0,
                 "runner_enabled": False,
-                "expected_pnl_range": "+$2.00 to +$5.00 per trade"
+                "expected_pnl_range": "Target 1.8:1 to 2.5:1 R:R (capital preservation, no profit guarantee)"
             }
         elif equity < 500.0:
             return {
@@ -107,43 +111,46 @@ class RiskConfig(BaseModel):
                 "min_rr": 1.8,
                 "target_rr_range": "2.0:1 to 2.8:1",
                 "target_pips": "50 - 100 pips ($5.00 - $10.00)",
-                "max_risk_pct": 2.5,
-                "be_trigger_points": 100.0,
-                "be_lock_points": 35.0,
-                "trailing_trigger_points": 180.0,
+                "max_risk_pct": 2.0,
+                "hard_risk_cap_pct": 3.0,
+                "be_trigger_points": 140.0,
+                "be_lock_points": 30.0,
+                "trailing_trigger_points": 200.0,
                 "trailing_distance_points": 90.0,
                 "runner_enabled": False,
-                "expected_pnl_range": "+$10.00 to +$35.00 per trade"
+                "expected_pnl_range": "Target 2.0:1 to 2.8:1 R:R (no profit guarantee)"
             }
         elif equity < 1000.0:
             return {
                 "tier": "STANDARD",
                 "label": "Standard Swing Tier ($500 - $1,000)",
                 "min_rr": 2.0,
-                "target_rr_range": "2.5:1 to 3.5:1",
+                "target_rr_range": "2.0:1 to 3.0:1",
                 "target_pips": "80 - 150 pips ($8.00 - $15.00)",
                 "max_risk_pct": 2.0,
-                "be_trigger_points": 150.0,
-                "be_lock_points": 50.0,
+                "hard_risk_cap_pct": 2.5,
+                "be_trigger_points": 160.0,
+                "be_lock_points": 40.0,
                 "trailing_trigger_points": 250.0,
-                "trailing_distance_points": 120.0,
+                "trailing_distance_points": 110.0,
                 "runner_enabled": True,
-                "expected_pnl_range": "+$40.00 to +$120.00 per trade"
+                "expected_pnl_range": "Target 2.0:1 to 3.0:1 R:R (no profit guarantee)"
             }
         else:
             return {
                 "tier": "INSTITUTIONAL",
-                "label": "Institutional 200-Pip Runner Tier ($1,000+)",
+                "label": "Institutional Tier ($1,000+)",
                 "min_rr": 2.5,
-                "target_rr_range": "3.0:1 to 4.5:1",
+                "target_rr_range": "2.5:1 to 4.0:1",
                 "target_pips": "150 - 200+ pips ($15.00 - $20.00+ expansion)",
                 "max_risk_pct": 1.5,
+                "hard_risk_cap_pct": 2.0,
                 "be_trigger_points": 200.0,
-                "be_lock_points": 80.0,
-                "trailing_trigger_points": 400.0,
-                "trailing_distance_points": 180.0,
+                "be_lock_points": 50.0,
+                "trailing_trigger_points": 350.0,
+                "trailing_distance_points": 150.0,
                 "runner_enabled": True,
-                "expected_pnl_range": "+$150.00 to +$250.00+ (200 pips on 0.10 lots = $200.00!)"
+                "expected_pnl_range": "Target 2.5:1 to 4.0:1 R:R (no profit guarantee)"
             }
 
 

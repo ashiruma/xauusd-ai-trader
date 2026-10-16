@@ -15,10 +15,10 @@ export function middleware(request: NextRequest) {
   if (path.startsWith('/admin-secure-x9f8k2')) {
     const trustedAdminIp = process.env.ADMIN_IP_ADDRESS || 'YOUR_HOME_IP';
     const adminToken = request.cookies.get('velarion_admin_token')?.value;
-    const masterSecret = process.env.ADMIN_MASTER_SECRET || 'velarion-owner-master-2026';
+    const masterSecret = process.env.ADMIN_MASTER_SECRET;
     const keyParam = request.nextUrl.searchParams.get('key') || request.nextUrl.searchParams.get('secret');
 
-    if (keyParam === masterSecret || keyParam === 'velarion-owner-secret') {
+    if (masterSecret && keyParam === masterSecret) {
       const response = NextResponse.redirect(new URL('/admin-secure-x9f8k2', request.url));
       response.cookies.set({
         name: 'velarion_admin_token',
@@ -42,9 +42,8 @@ export function middleware(request: NextRequest) {
     }
 
     if (
-      clientIp === trustedAdminIp ||
-      adminToken === masterSecret ||
-      adminToken === 'velarion-owner-secret'
+      (trustedAdminIp !== 'YOUR_HOME_IP' && clientIp === trustedAdminIp) ||
+      (masterSecret && adminToken === masterSecret)
     ) {
       return NextResponse.next();
     }
@@ -56,7 +55,7 @@ export function middleware(request: NextRequest) {
     const mt5Verified = request.cookies.get('velarion_mt5_verified')?.value;
     const hasAdmin = Boolean(request.cookies.get('velarion_admin_token')?.value);
     if (!hasAdmin && (!mt5Verified || mt5Verified !== 'true')) {
-      return NextResponse.redirect(new URL('/onboarding?redirect=' + path, request.url));
+      return NextResponse.redirect(new URL('/verification?redirect=' + path, request.url));
     }
   }
 

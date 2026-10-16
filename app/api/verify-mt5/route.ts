@@ -53,6 +53,12 @@ export async function POST(request: Request) {
       role: isOwner ? 'admin' : 'trader',
       partnerCode: 'tohstb0d83',
       verified: true,
+      emailVerified: Boolean(email || isOwner),
+      partnerAttributed: isOwner || isAffiliateValid,
+      partnerPending: !isOwner && !isAffiliateValid,
+      depositVerified: isOwner,
+      accountLinked: isOwner || isAffiliateValid,
+      tradingActivated: false, // Linking NEVER activates automated trading
     });
 
     cookieStore.set({
@@ -75,11 +81,10 @@ export async function POST(request: Request) {
       path: '/',
     });
 
-    if (isOwner) {
-      const adminSecret = process.env.ADMIN_MASTER_SECRET || 'velarion-owner-master-2026';
+    if (isOwner && process.env.ADMIN_MASTER_SECRET) {
       cookieStore.set({
         name: 'velarion_admin_token',
-        value: adminSecret,
+        value: process.env.ADMIN_MASTER_SECRET,
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'strict',
@@ -104,9 +109,40 @@ export async function POST(request: Request) {
   }
 }
 
-async function verifyWithBrokerAPI(accountId: string, _partnerCode: string): Promise<boolean> {
-  // Always authorize owner MT5 account
-  if (accountId.trim() === '1200533810') return true;
-  // Real broker API verification allows accounts registered under partner code
-  return true;
+async function verifyWithBrokerAPI(accountId: string, partnerCode: string): Promise<boolean> {
+  const trimmed = accountId.trim();
+  // Validate standard JustMarkets MT5 account format (6-10 digits)
+  if (!/^\d{6,10}$/.test(trimmed)) {
+    return false;
+  }
+
+  // Pre-verified owner MT5 account
+  if (trimmed === '1200533810') {
+    return true;
+  }
+
+  // If JustMarkets Partner API token is configured, perform live affiliate check
+  const partnerApiToken = process.env.JUSTMARKETS_PARTNER_API_TOKEN;
+  if (partnerApiToken) {
+    try {
+      const brokerRes = await fetch(`https://api.justmarkets.com/v1/partners/referrals/${trimmed}?code=${partnerCode}`, {
+        headers: {
+          'Authorization': `Bearer ${partnerApiToken}`,
+          'Accept': 'application/json'
+        },
+        signal: AbortSignal.timeout(5000)
+      });
+      if (brokerRes.ok) {
+        const data = await brokerRes.json();
+        return Boolean(data && data.is_verified);
+      }
+      return false;
+    } catch {
+      // Fail closed if broker verification API call fails
+      return false;
+    }
+  }
+
+  // Fail closed: without partner API token or pre-verified registration, do not fabricate verification
+  return false;
 }

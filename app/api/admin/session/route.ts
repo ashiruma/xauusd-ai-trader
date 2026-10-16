@@ -8,17 +8,28 @@ export async function POST(request: Request) {
     const cookieStore = await cookies();
 
     if (action === 'activate') {
-      const adminSecret = process.env.ADMIN_MASTER_SECRET || 'velarion-owner-master-2026';
-      
-      cookieStore.set({
-        name: 'velarion_admin_token',
-        value: adminSecret,
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
-        maxAge: 60 * 60 * 24 * 365,
-        path: '/',
-      });
+      const adminSecret = process.env.ADMIN_MASTER_SECRET;
+      const providedSecret = String(body.secret || body.key || '').trim();
+
+      const { getServerSession } = await import('@/lib/auth');
+      const currentSession = await getServerSession();
+      const isAlreadyAdmin = currentSession?.role === 'admin';
+
+      if (!isAlreadyAdmin && (!adminSecret || providedSecret !== adminSecret)) {
+        return NextResponse.json({ error: 'Unauthorized: Valid admin credentials required' }, { status: 401 });
+      }
+
+      if (adminSecret) {
+        cookieStore.set({
+          name: 'velarion_admin_token',
+          value: adminSecret,
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'strict',
+          maxAge: 60 * 60 * 24 * 365,
+          path: '/',
+        });
+      }
 
       cookieStore.set({
         name: 'velarion_mt5_verified',

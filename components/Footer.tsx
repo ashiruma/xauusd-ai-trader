@@ -26,8 +26,9 @@ export default function Footer() {
           <div>
             <Link href="/" style={{ display: 'inline-flex', alignItems: 'center', marginBottom: '14px', textDecoration: 'none' }}>
               <picture>
+                <source srcSet="/velarion_emblem_dark.webp" type="image/webp" />
                 <img
-                  src="/velarion_emblem_navy.png"
+                  src="/velarion_emblem_dark.png"
                   alt="Velarion Emblem"
                   width={34}
                   height={34}
@@ -39,7 +40,7 @@ export default function Footer() {
                   VELARION MARKETS
                 </span>
                 <span style={{ fontSize: '9px', fontWeight: 600, color: 'var(--text-muted)', letterSpacing: '0.5px' }}>
-                  QUANTITATIVE TRADING &bull; XAUUSD
+                  QUANTITATIVE TRADING / XAUUSD
                 </span>
               </div>
             </Link>
@@ -48,7 +49,7 @@ export default function Footer() {
             </p>
             <div style={{ marginTop: '16px' }}>
               <span className="status-badge status-completed" style={{ fontSize: '10.5px' }}>
-                NON-CUSTODIAL &bull; REGULATED BROKER PARTNER
+                NON-CUSTODIAL / REGULATED BROKER PARTNER
               </span>
             </div>
           </div>

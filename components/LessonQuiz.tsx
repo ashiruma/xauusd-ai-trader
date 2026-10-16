@@ -150,7 +150,7 @@ export default function LessonQuiz({
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', marginBottom: '16px' }}>
           <div>
             <span className="lesson-quiz-kicker" style={{ fontSize: '11px', fontFamily: 'var(--font-mono, monospace)', fontWeight: 700, color: '#F59E0B', background: 'rgba(245, 158, 11, 0.12)', border: '1px solid rgba(245, 158, 11, 0.3)', padding: '2px 8px', borderRadius: '4px' }}>
-              MICRO-ASSESSMENT &bull; 3 QUESTIONS
+              MICRO-ASSESSMENT / 3 QUESTIONS
             </span>
             <h3 className="lesson-quiz-title" style={{ fontSize: '19px', fontWeight: 800, color: '#F8FAFC', margin: '8px 0 0' }}>
               Lesson {globalNum} Comprehension Check
@@ -438,10 +438,9 @@ export default function LessonQuiz({
             </button>
 
             {/* Achievement Badge */}
-            <div className="lesson-quiz-graduation-badge" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '6px 14px', background: 'rgba(16, 185, 129, 0.12)', border: '1px solid rgba(16, 185, 129, 0.3)', borderRadius: '20px', marginBottom: '20px' }}>
-              <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#10B981' }} />
+            <div className="lesson-quiz-graduation-badge" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '6px 14px', background: 'rgba(16, 185, 129, 0.12)', border: '1px solid rgba(16, 185, 129, 0.3)', borderRadius: '4px', marginBottom: '20px' }}>
               <span style={{ fontSize: '11px', fontWeight: 800, color: '#10B981', fontFamily: 'var(--font-mono, monospace)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                FOUNDATION TRACK COMPLETED &bull; 5/5
+                FOUNDATION TRACK COMPLETED / 5/5
               </span>
             </div>
 
@@ -492,7 +491,7 @@ export default function LessonQuiz({
             </div>
 
             <div style={{ marginTop: '16px', fontSize: '11px', color: '#64748B', fontFamily: 'var(--font-mono, monospace)' }}>
-              Non-Custodial Direct Broker Custody &bull; Funds remain securely in your own regulated JustMarkets MT5 account
+              Non-Custodial Direct Broker Custody / Funds remain securely in your own regulated JustMarkets MT5 account
             </div>
           </div>
         </div>

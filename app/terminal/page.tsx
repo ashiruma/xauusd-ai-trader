@@ -3,121 +3,123 @@ import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { Metadata } from 'next';
 import { AUTH_COOKIE_NAME, verifySession } from '@/lib/auth';
-import TerminalAccountStatus from '@/components/TerminalAccountStatus';
-import TerminalWorkspace from '@/components/terminal/TerminalWorkspace';
+import CockpitTerminal from '@/components/terminal/CockpitTerminal';
+import TradeHistoryPanel from '@/components/terminal/TradeHistoryPanel';
 
 export const metadata: Metadata = {
-  title: 'XAUUSD Trading Terminal | Velarion Markets',
-  description: 'Institutional XAUUSD quantitative trading workspace with real-time JustMarkets MT5 charting, active position overlays, and non-custodial broker execution.',
+  title: 'XAUUSD Cockpit Trading Terminal | Velarion Markets',
+  description: 'High-density institutional XAUUSD futures trading terminal with depth-of-market ladder, real-time candlestick charts, positions blotter, and live P&L tape.',
   robots: { index: false, follow: false },
 };
 
 export default async function TerminalPage() {
   const cookieStore = await cookies();
-  const mt5Verified = cookieStore.get('velarion_mt5_verified')?.value;
-  const hasAdminToken = Boolean(cookieStore.get('velarion_admin_token')?.value);
   const token = cookieStore.get(AUTH_COOKIE_NAME)?.value;
   const session = token ? await verifySession(token) : null;
+  const adminSecret = process.env.ADMIN_MASTER_SECRET;
+  const adminToken = cookieStore.get('velarion_admin_token')?.value;
 
-  // Strict server-side route guard
-  if (mt5Verified !== 'true' && !hasAdminToken && !session) {
-    redirect('/onboarding?redirect=/terminal');
+  const isOwner = Boolean(
+    (adminSecret && adminToken === adminSecret) ||
+    session?.role === 'admin' ||
+    session?.accountId === '1200533810' ||
+    session?.email === 'ashirumaabala@gmail.com'
+  );
+
+  const isFullyGated = Boolean(
+    session &&
+    session.verified &&
+    session.partnerAttributed &&
+    session.depositVerified &&
+    session.schoolCompleted &&
+    session.accountLinked &&
+    session.tradingActivated
+  );
+
+  // Strict cryptographic server-side route guard
+  if (!isOwner && !isFullyGated) {
+    redirect('/verification?redirect=/terminal');
   }
 
-  const accountId = session?.mt5Account || session?.accountId || (hasAdminToken ? '1200533810 (ADMIN)' : '1200533810');
+  const accountId = session?.mt5Account || session?.accountId || (isOwner ? '1200533810 (ADMIN)' : '1200533810');
 
   return (
     <div
       className="terminal-workspace-wrapper"
       style={{
-        backgroundColor: '#0B0F19',
-        minHeight: 'calc(100vh - 68px)',
+        backgroundColor: '#0A0F1C',
+        minHeight: 'calc(100vh - 65px)',
         color: '#F8FAFC',
-        padding: '20px 24px 60px',
+        padding: '16px 20px 48px',
       }}
     >
-      <div style={{ maxWidth: '1680px', margin: '0 auto', width: '100%' }}>
-        {/* Compact Account & Live Gateway Status Header */}
-        <header
-          className="terminal-header-strip"
+      <div style={{ maxWidth: '1720px', margin: '0 auto', width: '100%' }}>
+        
+        {/* Streamlined Workspace Context Bar */}
+        <div
           style={{
             display: 'flex',
-            justifyContent: 'space-between',
             alignItems: 'center',
-            background: '#0D1322',
-            border: '1px solid #1E293B',
-            borderRadius: '12px',
-            padding: '14px 20px',
-            marginBottom: '20px',
+            justifyContent: 'space-between',
+            marginBottom: '12px',
             flexWrap: 'wrap',
-            gap: '14px',
+            gap: '10px',
+            fontSize: '12px',
           }}
         >
-          {/* Account Identity */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+            <img
+              src="/velarion_emblem_dark.png"
+              alt="Velarion"
+              width={22}
+              height={22}
+              style={{ height: '20px', width: 'auto', display: 'block' }}
+            />
             <span
-              aria-hidden="true"
               style={{
-                width: '38px',
-                height: '38px',
-                background: 'rgba(197, 160, 89, 0.12)',
-                border: '1px solid rgba(197, 160, 89, 0.3)',
-                borderRadius: '8px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: 'var(--accent-gold, #C5A059)',
-                fontWeight: 800,
-                fontSize: '18px',
-                flexShrink: 0,
+                fontSize: '11px',
+                color: 'var(--accent-gold, #F5C451)',
+                textTransform: 'uppercase',
+                fontWeight: 700,
+                letterSpacing: '0.6px',
+                fontFamily: 'JetBrains Mono, monospace',
               }}
             >
-              V
+              Cockpit Terminal Active
             </span>
-            <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                <span
-                  style={{
-                    fontSize: '11px',
-                    color: 'var(--accent-gold, #C5A059)',
-                    textTransform: 'uppercase',
-                    fontWeight: 700,
-                    letterSpacing: '0.6px',
-                  }}
-                >
-                  Verified Trading Workspace
-                </span>
-                <span
-                  style={{
-                    fontSize: '10.5px',
-                    fontWeight: 700,
-                    color: '#94A3B8',
-                    background: '#111827',
-                    padding: '1px 7px',
-                    borderRadius: '4px',
-                    border: '1px solid #1E293B',
-                  }}
-                >
-                  Account Verified
-                </span>
-              </div>
-              <div style={{ fontSize: '14px', fontWeight: 700, color: '#F8FAFC', marginTop: '2px' }}>
-                JustMarkets MT5 Account: <span className="mono-nums" style={{ color: 'var(--accent-gold, #C5A059)' }}>#{accountId}</span>
-              </div>
-              <p style={{ margin: '2px 0 0', fontSize: '11.5px', color: '#64748B' }}>
-                Non-custodial execution guarantee &bull; 100% of capital remains deposited in your JustMarkets balance.
-              </p>
-            </div>
+            <span style={{ color: '#1B2538' }}>/</span>
+            <span
+              style={{
+                fontSize: '11px',
+                fontWeight: 700,
+                color: '#26D07C',
+                background: 'rgba(38, 208, 124, 0.1)',
+                padding: '2px 8px',
+                border: '1px solid rgba(38, 208, 124, 0.25)',
+                fontFamily: 'JetBrains Mono, monospace',
+              }}
+            >
+              Account Verified
+            </span>
+            <span style={{ color: '#1B2538' }}>/</span>
+            <span style={{ color: '#CBD5E1', fontSize: '12px', fontFamily: 'JetBrains Mono, monospace' }}>
+              JustMarkets MT5: <strong style={{ color: 'var(--accent-gold, #F5C451)' }}>#{accountId}</strong>
+            </span>
           </div>
 
-          {/* Genuine Single Active Dot Indicator Header */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <TerminalAccountStatus />
+          <div style={{ fontSize: '11px', color: '#8B97A8', fontFamily: 'JetBrains Mono, monospace' }}>
+            Non-custodial execution guarantee / 100% of capital remains deposited with JustMarkets
           </div>
-        </header>
+        </div>
 
-        {/* Primary Workspace: Chart + Companion Positions + Collapsible History & Controls */}
-        <TerminalWorkspace />
+        {/* Primary Cockpit Dashboard Terminal Component */}
+        <CockpitTerminal />
+
+        {/* Collapsible Closed Fills & Execution History */}
+        <div style={{ marginTop: '20px' }}>
+          <TradeHistoryPanel />
+        </div>
+
       </div>
     </div>
   );

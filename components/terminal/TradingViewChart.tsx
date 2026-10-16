@@ -93,22 +93,12 @@ function TradingViewChartComponent({
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span
-              style={{
-                width: '8px',
-                height: '8px',
-                borderRadius: '50%',
-                background: '#10B981',
-                boxShadow: '0 0 8px rgba(16, 185, 129, 0.7)',
-                display: 'inline-block'
-              }}
-            />
             <span style={{ fontSize: '13px', fontWeight: 800, color: 'var(--accent-gold, #F59E0B)', letterSpacing: '0.5px' }}>
               TRADINGVIEW TERMINAL
             </span>
           </div>
           <span style={{ fontSize: '12px', color: 'var(--text-secondary, #94A3B8)' }}>
-            Real-Time Spot Gold &bull; {activeSymbol}
+            Real-Time Spot Gold / {activeSymbol}
           </span>
         </div>
 

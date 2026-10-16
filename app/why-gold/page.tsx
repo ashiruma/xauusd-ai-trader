@@ -9,132 +9,305 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Why Spot Gold (XAUUSD) Only | Velarion Markets',
     description: 'Detailed breakdown of the macroeconomic and mathematical advantages of trading Spot Gold over retail currency pairs.',
-    url: 'https://xauusd-ai-trader.vercel.app/why-gold'
+    url: 'https://velarionmarkets.com/why-gold'
   }
 };
 
 export default function WhyGoldPage() {
   return (
-    <div style={{ maxWidth: '1000px', margin: '40px auto 80px', padding: '0 24px' }}>
-      {/* Breadcrumb */}
-      <nav aria-label="Breadcrumb" style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '18px' }}>
-        <Link href="/" style={{ color: 'var(--text-secondary)' }}>Home</Link>
-        <span style={{ margin: '0 8px' }}>/</span>
-        <span style={{ color: 'var(--accent-gold)' }}>Why Spot Gold</span>
-      </nav>
-
-      <div className="section-eyebrow">
-        <span>Institutional Macro Thesis</span>
-      </div>
-
-      <h1 style={{ fontSize: '36px', fontWeight: 800, color: 'var(--text-primary)', lineHeight: 1.2, marginBottom: '16px', letterSpacing: '-0.5px' }}>
-        Why Spot Gold (XAUUSD) Only: The Institutional Quantitative Advantage
-      </h1>
-
-      <p style={{ fontSize: '16px', color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: '36px' }}>
-        In retail Forex, traders often spread their attention across 20+ currency pairs, falling victim to conflicting correlation risks, central bank intervention surprises, and unpredictable bilateral geopolitics. Velarion Markets concentrates 100% of our algorithmic intelligence on a single sovereign asset: Spot Gold.
-      </p>
-
-      {/* 4 Pillars Grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px', marginBottom: '48px' }}>
-        <div className="feature-card-clean">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-            <span className="status-badge status-completed">PILLAR 01</span>
-            <span className="mono-nums" style={{ color: 'var(--accent-gold)', fontSize: '11px' }}>LIQUIDITY</span>
+    <div className="herbaria-page" style={{ minHeight: '100vh', padding: '48px 24px 96px', borderTop: '1px solid var(--hb-hairline-amber)' }}>
+      <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
+        
+        {/* Navigation / Breadcrumb */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px', borderBottom: '1px solid var(--hb-hairline-amber)', paddingBottom: '16px' }}>
+          <div style={{ fontFamily: 'var(--font-herbaria-mono)', fontSize: '11px', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--hb-accent-amber)' }}>
+            <Link href="/" style={{ color: 'var(--hb-text-cream)', textDecoration: 'none' }}>VELARION</Link>
+            <span style={{ margin: '0 8px', color: 'var(--hb-hairline-amber)' }}>/</span>
+            <span style={{ color: 'var(--hb-accent-citron)' }}>WHY SPOT GOLD</span>
           </div>
-          <h3>$130B+ Daily Turnover</h3>
-          <p>
-            Spot Gold is one of the deepest financial markets on earth. The massive volume ensures immediate order fills with zero dealer re-quotes and minimal slippage during high-impact data releases.
-          </p>
-        </div>
-
-        <div className="feature-card-clean">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-            <span className="status-badge status-completed">PILLAR 02</span>
-            <span className="mono-nums" style={{ color: 'var(--accent-gold)', fontSize: '11px' }}>SOVEREIGN</span>
+          <div style={{ fontFamily: 'var(--font-herbaria-mono)', fontSize: '10px', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--hb-accent-vermillion)' }}>
+            DOSSIER REF: XAU-848-INSTITUTIONAL
           </div>
-          <h3>Central Bank Accumulation</h3>
-          <p>
-            Global central banks are diversifying sovereign reserves away from fiat treasuries into physical bullion, providing persistent long-term structural institutional demand.
-          </p>
         </div>
 
-        <div className="feature-card-clean">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-            <span className="status-badge status-completed">PILLAR 03</span>
-            <span className="mono-nums" style={{ color: 'var(--accent-gold)', fontSize: '11px' }}>MACRO MATH</span>
+        {/* Section 01: Hero Manifesto */}
+        <header style={{ marginBottom: '64px' }}>
+          <div className="herbaria-plate-kicker">
+            <span>&sect; 01</span>
+            <span style={{ color: 'var(--hb-accent-amber)' }}>/</span>
+            <span>SOVEREIGN MONETARY THESIS</span>
           </div>
-          <h3>Real Yield Sensitivity</h3>
-          <p>
-            Gold acts as a zero-coupon perpetual sovereign asset. Its price movements correlate inversely with US 10-Year TIPS real yields and the broad Dollar index (DXY).
-          </p>
-        </div>
 
-        <div className="feature-card-clean">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-            <span className="status-badge status-completed">PILLAR 04</span>
-            <span className="mono-nums" style={{ color: 'var(--accent-gold)', fontSize: '11px' }}>SESSION REGIMES</span>
+          <h1 className="herbaria-title">
+            Why Spot Gold (XAUUSD): The Sovereign Quantitative Advantage
+          </h1>
+
+          <div className="herbaria-italic-quote">
+            &ldquo;In a global regime of sovereign fiat debasement and fragmented multi-pair noise, Spot Gold remains the singular non-dilutable reserve asset with $130B+ in daily execution depth.&rdquo;
           </div>
-          <h3>Predictable Session Liquidity</h3>
-          <p>
-            The Asian session sets clean overnight liquidity boundaries, which are systematically swept during the London open (07:00 UTC) and expanded through the New York overlap.
+
+          <p style={{ fontSize: '16px', lineHeight: 1.7, color: '#CBD5E1', maxWidth: '820px', marginBottom: '36px' }}>
+            In retail Forex, traders routinely spread attention across 20+ currency crosses, falling victim to hidden correlated beta, central bank intervention surprises, and unpredictable bilateral geopolitics. Velarion Markets concentrates 100% of our algorithmic intelligence on a single sovereign asset: Spot Gold.
           </p>
-        </div>
-      </div>
 
-      {/* Deep-Dive Article Section */}
-      <div className="panel-card" style={{ padding: '32px', marginBottom: '40px' }}>
-        <h2 style={{ fontSize: '22px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '14px' }}>
-          Eliminating Multi-Pair Noise and Correlation Friction
-        </h2>
-        <p style={{ fontSize: '14px', color: 'var(--text-secondary)', lineHeight: 1.7, marginBottom: '16px' }}>
-          When trading multiple currency crosses (e.g. EURUSD, GBPUSD, AUDUSD, USDJPY), retail accounts routinely take on hidden correlated beta. A single US interest rate decision can trigger simultaneous stop-outs across five different pairs, causing severe drawdown ruin.
-        </p>
-        <p style={{ fontSize: '14px', color: 'var(--text-secondary)', lineHeight: 1.7, marginBottom: '24px' }}>
-          By focusing exclusively on Spot Gold, our quantitative execution architecture isolates one balance sheet, eliminates cross-pair noise, and captures the cleanest 200-pip trend expansions in modern finance.
-        </p>
+          <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', alignItems: 'center' }}>
+            <a
+              href={DEFAULT_PARTNER_CONFIG.primaryLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="herbaria-btn-citron"
+            >
+              Open JustMarkets MT5 Account &rarr;
+            </a>
+            <Link href="/tools/growth-calculator" className="herbaria-btn-secondary">
+              Launch 200-Pip Growth Engine
+            </Link>
+            <Link href="/academy" className="herbaria-btn-underline" style={{ marginLeft: '8px' }}>
+              Read 30-Lesson Curriculum Folio &rarr;
+            </Link>
+          </div>
+        </header>
 
-        <h2 style={{ fontSize: '22px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '14px' }}>
-          Algorithmic Execution on JustMarkets MT5
-        </h2>
-        <p style={{ fontSize: '14px', color: 'var(--text-secondary)', lineHeight: 1.7, margin: 0 }}>
-          Our models execute on JustMarkets MT5 with raw ECN spreads averaging 2.6 pips, non-custodial capital protection, and direct server execution. Traders retain 100% custody over deposits and withdrawals, while Velarion handles signal computation.
-        </p>
-      </div>
+        {/* Section 02: Three-Column Specimen Triptych (Plate II) */}
+        <section style={{ marginBottom: '72px' }}>
+          <div className="herbaria-plate-kicker">
+            <span>&sect; 02</span>
+            <span style={{ color: 'var(--hb-accent-amber)' }}>/</span>
+            <span>THREE SPECIMEN PILLARS OF SPOT GOLD ASYMMETRY</span>
+          </div>
 
-      {/* CTA Box */}
-      <div style={{
-        background: 'var(--bg-surface-1)',
-        border: '1px solid var(--border-accent)',
-        borderRadius: 'var(--radius-lg)',
-        padding: '28px',
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        flexWrap: 'wrap',
-        gap: '20px'
-      }}>
-        <div>
-          <h3 style={{ fontSize: '18px', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '6px' }}>
-            Calculate Your XAUUSD Compounding Trajectory
-          </h3>
-          <p style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
-            Use our 200-Pip Growth Engine Calculator to model disciplined 2.0% risk sizing on Gold.
+          <div className="herbaria-triptych">
+            {/* Column 1: Deep Forest Green Apothecary Panel */}
+            <article className="herbaria-triptych-col herbaria-panel-green">
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                <span className="herbaria-badge-sharp" style={{ background: 'rgba(200, 212, 0, 0.15)', color: '#C8D400', border: '1px solid rgba(200, 212, 0, 0.3)' }}>
+                  SPECIMEN A
+                </span>
+                <span style={{ fontFamily: 'var(--font-herbaria-mono)', fontSize: '11px', color: 'var(--hb-accent-citron)' }}>
+                  LIQUIDITY DEPTH
+                </span>
+              </div>
+
+              <div className="herbaria-numeral" style={{ marginBottom: '12px' }}>
+                $130B+
+              </div>
+
+              <h2 style={{ fontFamily: 'var(--font-herbaria-display)', fontSize: '24px', fontWeight: 400, color: '#F2EADA', margin: '0 0 12px', lineHeight: 1.2 }}>
+                Continuous Daily Turnover
+              </h2>
+
+              <p style={{ fontSize: '14px', lineHeight: 1.6, color: '#E2E8F0', flex: 1 }}>
+                Spot Gold is one of the deepest financial instruments on earth. Deep institutional order books ensure immediate execution with zero dealer re-quotes and minimal slippage during high-impact US economic releases.
+              </p>
+
+              <table className="herbaria-dossier-table">
+                <tbody>
+                  <tr>
+                    <td>Fill Latency</td>
+                    <td>&lt; 5ms Direct ECN</td>
+                  </tr>
+                  <tr>
+                    <td>Re-Quote Guarantee</td>
+                    <td>0.00% Zero Dealer Intercept</td>
+                  </tr>
+                  <tr>
+                    <td>Raw ECN Spreads</td>
+                    <td>Avg 2.6 Pips</td>
+                  </tr>
+                  <tr>
+                    <td>Market Structure</td>
+                    <td>24/5 Continuous Tier-1 Liquidity</td>
+                  </tr>
+                </tbody>
+              </table>
+            </article>
+
+            {/* Column 2: Parchment Cream Panel */}
+            <article className="herbaria-triptych-col herbaria-panel-cream">
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                <span className="herbaria-badge-sharp" style={{ background: '#1A4D2E', color: '#F2EADA' }}>
+                  SPECIMEN B
+                </span>
+                <span style={{ fontFamily: 'var(--font-herbaria-mono)', fontSize: '11px', color: '#8B5E0A', fontWeight: 600 }}>
+                  SOVEREIGN RESERVES
+                </span>
+              </div>
+
+              <div className="herbaria-numeral" style={{ color: '#1A4D2E', marginBottom: '12px' }}>
+                1,000+ T
+              </div>
+
+              <h2 style={{ fontFamily: 'var(--font-herbaria-display)', fontSize: '24px', fontWeight: 400, color: '#1C1612', margin: '0 0 12px', lineHeight: 1.2 }}>
+                Central Bank Accumulation
+              </h2>
+
+              <p style={{ fontSize: '14px', lineHeight: 1.6, color: '#382E25', flex: 1 }}>
+                Sovereign central banks are systematically reallocating reserves from fiat foreign treasuries into physical bullion, providing structural, non-cyclical institutional demand floor under every pull-back.
+              </p>
+
+              <table className="herbaria-dossier-table">
+                <tbody>
+                  <tr>
+                    <td style={{ color: '#5C4A3A' }}>Annual Inflow</td>
+                    <td style={{ color: '#8B5E0A' }}>1,000+ Metric Tonnes / Year</td>
+                  </tr>
+                  <tr>
+                    <td style={{ color: '#5C4A3A' }}>Credit Default Risk</td>
+                    <td style={{ color: '#8B5E0A' }}>0.00% Non-Debasable</td>
+                  </tr>
+                  <tr>
+                    <td style={{ color: '#5C4A3A' }}>Sanction Invariance</td>
+                    <td style={{ color: '#8B5E0A' }}>100% Physical Sovereign</td>
+                  </tr>
+                  <tr>
+                    <td style={{ color: '#5C4A3A' }}>Institutional Buyer</td>
+                    <td style={{ color: '#8B5E0A' }}>Global Central Bank Treasuries</td>
+                  </tr>
+                </tbody>
+              </table>
+            </article>
+
+            {/* Column 3: Dark Card Panel */}
+            <article className="herbaria-triptych-col herbaria-panel-dark">
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                <span className="herbaria-badge-sharp" style={{ background: 'rgba(184, 58, 26, 0.2)', color: '#FF7B60', border: '1px solid rgba(184, 58, 26, 0.4)' }}>
+                  SPECIMEN C
+                </span>
+                <span style={{ fontFamily: 'var(--font-herbaria-mono)', fontSize: '11px', color: 'var(--hb-accent-citron)' }}>
+                  MACRO REGIME
+                </span>
+              </div>
+
+              <div className="herbaria-numeral" style={{ marginBottom: '12px' }}>
+                -0.82
+              </div>
+
+              <h2 style={{ fontFamily: 'var(--font-herbaria-display)', fontSize: '24px', fontWeight: 400, color: '#F2EADA', margin: '0 0 12px', lineHeight: 1.2 }}>
+                Real Yield Sensitivity
+              </h2>
+
+              <p style={{ fontSize: '14px', lineHeight: 1.6, color: '#CBD5E1', flex: 1 }}>
+                Gold acts as a zero-coupon perpetual sovereign asset. Its mathematical trajectory is driven cleanly by US 10-Year TIPS real yields and the broad Dollar Index (DXY), allowing rule-based models to compute high-conviction entries.
+              </p>
+
+              <table className="herbaria-dossier-table">
+                <tbody>
+                  <tr>
+                    <td>TIPS 10Y Correlation</td>
+                    <td>-0.82 Statistically Significant</td>
+                  </tr>
+                  <tr>
+                    <td>Session Expansion</td>
+                    <td>London (07:00) / NY Overlap</td>
+                  </tr>
+                  <tr>
+                    <td>Average Range</td>
+                    <td>200+ Pips Daily Trajectory</td>
+                  </tr>
+                  <tr>
+                    <td>Risk Boundary</td>
+                    <td>Strict 2.0% Account Governor</td>
+                  </tr>
+                </tbody>
+              </table>
+            </article>
+          </div>
+        </section>
+
+        {/* Section 03: Evidence Dossier & Comparative Ledger (Plate III) */}
+        <section style={{ marginBottom: '72px', border: '1px solid var(--hb-hairline-amber)', padding: '36px 32px', backgroundColor: 'var(--hb-bg-dark-card)' }}>
+          <div className="herbaria-plate-kicker">
+            <span>&sect; 03</span>
+            <span style={{ color: 'var(--hb-accent-amber)' }}>/</span>
+            <span>SYSTEM COMPARATIVE LEDGER: SPOT GOLD VS MULTI-PAIR FX</span>
+          </div>
+
+          <h2 style={{ fontFamily: 'var(--font-herbaria-display)', fontSize: '28px', color: '#F2EADA', margin: '0 0 16px', fontWeight: 400 }}>
+            Eliminating Correlated Multi-Pair Drawdown Ruins
+          </h2>
+
+          <p style={{ fontSize: '14.5px', lineHeight: 1.7, color: '#CBD5E1', maxWidth: '860px', marginBottom: '28px' }}>
+            When a retail trader holds positions across EURUSD, GBPUSD, AUDUSD, and USDJPY, they are not diversified. They are taking on quadruple-leveraged US Dollar beta. A single Federal Reserve rate surprise hits all four positions simultaneously. By focusing exclusively on Spot Gold, Velarion Markets isolates single-asset purity and eliminates multi-pair drawdown contagion.
           </p>
-        </div>
-        <div style={{ display: 'flex', gap: '12px' }}>
-          <Link href="/tools/growth-calculator" className="btn btn-primary">
-            Launch Calculator &rarr;
-          </Link>
-          <a
-            href={DEFAULT_PARTNER_CONFIG.primaryLink}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="btn btn-secondary"
-          >
-            Open MT5 Account
-          </a>
-        </div>
+
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'var(--font-herbaria-mono)', fontSize: '12.5px' }}>
+              <thead>
+                <tr style={{ borderBottom: '1px solid var(--hb-hairline-amber)', color: 'var(--hb-accent-amber)', textAlign: 'left' }}>
+                  <th style={{ padding: '12px 14px 12px 0' }}>EXECUTION METRIC</th>
+                  <th style={{ padding: '12px 14px', color: 'var(--hb-accent-citron)' }}>VELARION SPOT GOLD (XAUUSD)</th>
+                  <th style={{ padding: '12px 14px' }}>RETAIL MULTI-PAIR FX (20+ PAIRS)</th>
+                  <th style={{ padding: '12px 0 12px 14px' }}>CRYPTO SPECULATION (BTC/ETH)</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr style={{ borderBottom: '1px dotted var(--hb-hairline-amber)' }}>
+                  <td style={{ padding: '12px 14px 12px 0', color: '#F2EADA' }}>Correlation Hazard</td>
+                  <td style={{ padding: '12px 14px', color: 'var(--hb-accent-citron)', fontWeight: 700 }}>Single Isolated Sovereign Asset</td>
+                  <td style={{ padding: '12px 14px', color: 'var(--hb-accent-vermillion)' }}>Severe Hidden Beta Overlap</td>
+                  <td style={{ padding: '12px 0 12px 14px', color: '#94A3B8' }}>High Altcoin Contagion</td>
+                </tr>
+                <tr style={{ borderBottom: '1px dotted var(--hb-hairline-amber)' }}>
+                  <td style={{ padding: '12px 14px 12px 0', color: '#F2EADA' }}>Execution Liquidity</td>
+                  <td style={{ padding: '12px 14px', color: 'var(--hb-accent-citron)', fontWeight: 700 }}>$130B+ Daily Turnover</td>
+                  <td style={{ padding: '12px 14px', color: '#CBD5E1' }}>Fragmented Across Crosses</td>
+                  <td style={{ padding: '12px 0 12px 14px', color: '#94A3B8' }}>Thin Books on Flash Crashes</td>
+                </tr>
+                <tr style={{ borderBottom: '1px dotted var(--hb-hairline-amber)' }}>
+                  <td style={{ padding: '12px 14px 12px 0', color: '#F2EADA' }}>Sovereign Floor</td>
+                  <td style={{ padding: '12px 14px', color: 'var(--hb-accent-citron)', fontWeight: 700 }}>Central Bank Official Reserves</td>
+                  <td style={{ padding: '12px 14px', color: 'var(--hb-accent-vermillion)' }}>Zero (Fiat Debasement Driven)</td>
+                  <td style={{ padding: '12px 0 12px 14px', color: '#94A3B8' }}>None (Speculative Retail Flows)</td>
+                </tr>
+                <tr style={{ borderBottom: '1px dotted var(--hb-hairline-amber)' }}>
+                  <td style={{ padding: '12px 14px 12px 0', color: '#F2EADA' }}>Broker Custody</td>
+                  <td style={{ padding: '12px 14px', color: 'var(--hb-accent-citron)', fontWeight: 700 }}>100% Regulated Broker (JustMarkets)</td>
+                  <td style={{ padding: '12px 14px', color: '#CBD5E1' }}>Broker Dependent</td>
+                  <td style={{ padding: '12px 0 12px 14px', color: 'var(--hb-accent-vermillion)' }}>Unregulated Offshore Exchanges</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        {/* Section 04: Non-Custodial Architecture & Action Plate */}
+        <section style={{
+          border: '1px solid var(--hb-accent-citron)',
+          backgroundColor: 'var(--hb-bg-primary)',
+          padding: '40px 36px',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: '24px'
+        }}>
+          <div style={{ maxWidth: '640px' }}>
+            <div style={{ fontFamily: 'var(--font-herbaria-mono)', fontSize: '10px', letterSpacing: '0.25em', color: 'var(--hb-accent-citron)', textTransform: 'uppercase', marginBottom: '8px' }}>
+              &sect; 04 / NON-CUSTODIAL EXECUTION DEPLOYMENT
+            </div>
+            <h3 style={{ fontFamily: 'var(--font-herbaria-display)', fontSize: '26px', color: '#F2EADA', margin: '0 0 10px', fontWeight: 400, lineHeight: 1.2 }}>
+              Execute Systematic Gold Strategies on JustMarkets MT5
+            </h3>
+            <p style={{ fontSize: '14px', color: '#E2E8F0', lineHeight: 1.6, margin: 0 }}>
+              Traders maintain 100% direct custody over all deposits, equity, and withdrawals through regulated broker partner JustMarkets. Velarion Markets never touches client capital.
+            </p>
+          </div>
+
+          <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap' }}>
+            <a
+              href={DEFAULT_PARTNER_CONFIG.primaryLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="herbaria-btn-citron"
+            >
+              Open JustMarkets MT5 Account &rarr;
+            </a>
+            <Link href="/onboarding" className="herbaria-btn-secondary">
+              Link Existing MT5 Account
+            </Link>
+          </div>
+        </section>
+
       </div>
     </div>
   );

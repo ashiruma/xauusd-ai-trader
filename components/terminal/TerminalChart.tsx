@@ -57,6 +57,7 @@ export default function TerminalChart({
   const chartInstanceRef = useRef<any>(null);
   const seriesRef = useRef<any>(null);
   const priceLinesRef = useRef<any[]>([]);
+  const lastCandleRef = useRef<Candle | null>(null);
 
   const [timeframe, setTimeframe] = useState<'M1' | 'M5' | 'M15' | 'H1' | 'H4' | 'D1'>('M15');
   const [latestQuotePrice, setLatestQuotePrice] = useState<number | null>(null);
@@ -116,6 +117,7 @@ export default function TerminalChart({
             if (clean.length > 0) {
               seriesRef.current.setData(clean);
               const lastCandle = clean[clean.length - 1];
+              lastCandleRef.current = { ...lastCandle };
               setLatestQuotePrice(lastCandle.close);
               setLastUpdateTime(new Date().toLocaleTimeString());
               setCandlesLoaded(true);
@@ -250,6 +252,25 @@ export default function TerminalChart({
               setSpreadPips(data.spreadPips);
             }
             setLastUpdateTime(new Date(data.timestamp || Date.now()).toLocaleTimeString());
+
+            // Real-time synchronization: update candle bar so axis and header stay identical
+            if (seriesRef.current && lastCandleRef.current) {
+              const current = lastCandleRef.current;
+              const updatedBar: Candle = {
+                time: current.time,
+                open: current.open,
+                high: Math.max(current.high, data.price),
+                low: Math.min(current.low, data.price),
+                close: data.price,
+                volume: current.volume || 0,
+              };
+              lastCandleRef.current = updatedBar;
+              try {
+                seriesRef.current.update(updatedBar);
+              } catch {
+                // ignore
+              }
+            }
           }
         }
       } catch {
@@ -391,7 +412,7 @@ export default function TerminalChart({
               </span>
             </div>
             <div style={{ fontSize: '11.5px', color: '#64748B', marginTop: '2px' }}>
-              Direct broker OHLC telemetry &bull; Connected MT5 account
+              Direct broker OHLC telemetry / Connected MT5 account
             </div>
           </div>
 
@@ -609,7 +630,7 @@ export default function TerminalChart({
         </div>
 
         <div>
-          Feed: JustMarkets MT5 Direct Bridge &bull; Non-Custodial Architecture
+          Feed: JustMarkets MT5 Direct Bridge / Non-Custodial Architecture
         </div>
       </div>
     </section>

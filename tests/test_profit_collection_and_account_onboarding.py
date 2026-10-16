@@ -262,7 +262,7 @@ def test_account_balance_tiers_and_200_pip_scaling():
     assert micro["tier"] == "MICRO"
     assert micro["min_rr"] == 1.5
     assert "20 - 50 pips" in micro["target_pips"]
-    assert "+$2.00 to +$5.00" in micro["expected_pnl_range"]
+    assert "1.8:1 to 2.5:1" in micro["expected_pnl_range"]
 
     # 2. Institutional Tier ($1,000+)
     inst = settings.risk.get_tier_parameters(1200.0)

@@ -288,9 +288,9 @@ export default function AdminAccessControls() {
           <p style={{ fontSize: '12.5px', color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: '16px' }}>
             <strong>How it works:</strong>
             <br />
-            &bull; <strong>Lessons 1 to 5:</strong> 100% Free public preview (builds organic SEO traffic and user trust).
+            - <strong>Lessons 1 to 5:</strong> 100% Free public preview (builds organic SEO traffic and user trust).
             <br />
-            &bull; <strong>Lessons 6 to 30:</strong> Gated behind verified JustMarkets MT5 account. Requires sequential quiz comprehension completion.
+            - <strong>Lessons 6 to 30:</strong> Gated behind verified JustMarkets MT5 account. Requires sequential quiz comprehension completion.
           </p>
 
           <div style={{ background: 'var(--bg-surface-2)', padding: '16px', borderRadius: '6px', border: '1px solid var(--border-default)', marginBottom: '16px' }}>

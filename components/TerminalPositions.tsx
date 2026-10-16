@@ -184,7 +184,7 @@ export default function TerminalPositions() {
                       <span className={`position-side ${isBuy ? 'buy' : 'sell'}`}>{isBuy ? 'BUY' : 'SELL'}</span>
                       <div>
                         <strong>{position.symbol || 'XAUUSD'}</strong>
-                        <span>Ticket #{position.ticket} · {Number(position.lots).toFixed(2)} lots</span>
+                        <span>Ticket #{position.ticket} / {Number(position.lots).toFixed(2)} lots</span>
                       </div>
                     </div>
                     <div className={`position-pnl ${position.floating_pnl >= 0 ? 'positive' : 'negative'}`}>

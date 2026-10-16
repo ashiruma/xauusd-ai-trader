@@ -47,11 +47,10 @@ export async function POST(request: Request) {
       path: '/',
     });
 
-    if (isOwner) {
-      const adminSecret = process.env.ADMIN_MASTER_SECRET || 'velarion-owner-master-2026';
+    if (isOwner && process.env.ADMIN_MASTER_SECRET) {
       cookieStore.set({
         name: 'velarion_admin_token',
-        value: adminSecret,
+        value: process.env.ADMIN_MASTER_SECRET,
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'strict',

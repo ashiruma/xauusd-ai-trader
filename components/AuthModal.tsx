@@ -112,7 +112,7 @@ export default function AuthModal({
               Step 1: Need a JustMarkets Account?
             </div>
             <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
-              No Platform Fee &bull; Subsidized Access
+              No Platform Fee / Subsidized Access
             </div>
           </div>
           <a

@@ -10,6 +10,22 @@ export interface AuthSession {
   role: 'trader' | 'admin';
   partnerCode: string;
   verified: boolean;
+  emailVerified?: boolean;
+  partnerAttributed?: boolean;
+  partnerPending?: boolean;
+  depositVerified?: boolean;
+  depositAmount?: number;
+  accountTier?: 'standardCent' | 'standard' | 'pro' | 'rawSpread';
+  schoolCompleted?: boolean;
+  accountLinked?: boolean;
+  tradingActivated?: boolean;
+  consents?: {
+    acceptMarketRisk: boolean;
+    acceptExecutionRisk: boolean;
+    acceptIbCompensation: boolean;
+    acceptSimulationDisclaimer: boolean;
+    activatedAt?: string;
+  };
   exp: number;
 }
 
@@ -104,3 +120,22 @@ export async function getServerSession(): Promise<AuthSession | null> {
     return null;
   }
 }
+
+export async function setServerSession(
+  session: Omit<AuthSession, 'exp'>,
+  expiresInSeconds: number = 86400 * 30
+): Promise<string> {
+  const token = await signSession(session, expiresInSeconds);
+  const cookieStore = await cookies();
+  cookieStore.set({
+    name: AUTH_COOKIE_NAME,
+    value: token,
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'strict',
+    maxAge: expiresInSeconds,
+    path: '/',
+  });
+  return token;
+}
+
