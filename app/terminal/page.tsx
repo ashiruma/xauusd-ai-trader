@@ -5,9 +5,9 @@ import { Metadata } from 'next';
 import { AUTH_COOKIE_NAME, verifySession } from '@/lib/auth';
 import LiveSpotFeed from '@/components/LiveSpotFeed';
 import { getServerLiveQuote } from '@/lib/marketFeed';
-import TerminalChart from '@/components/terminal/TerminalChart';
+import TradingViewChart from '@/components/terminal/TradingViewChart';
+import ActiveTradesPanel from '@/components/terminal/ActiveTradesPanel';
 import LiveTradingEngine from '@/components/terminal/LiveTradingEngine';
-import TerminalPositions from '@/components/TerminalPositions';
 
 export const metadata: Metadata = {
   title: 'Autonomous AI Trading Terminal | Velarion Markets',
@@ -120,13 +120,13 @@ export default async function TerminalPage() {
           </div>
         </div>
 
-        {/* Right Column: Live Autonomous Trading Engine, Terminal Chart, & Position Telemetry */}
+        {/* Right Column: TradingView Advanced Terminal, Active Trades Panel, & Live Engine */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-          {/* Real-time Candlestick Chart with Broker-Sourced OHLC and Positions Overlay */}
-          <TerminalChart symbol={initialQuote?.symbol || 'XAUUSD.m'} />
+          {/* Institutional TradingView Real-Time Advanced Chart Terminal */}
+          <TradingViewChart defaultSymbol="OANDA:XAUUSD" height={560} />
 
-          {/* Connected Positions & Signal Telemetry from API */}
-          <TerminalPositions />
+          {/* Active Trades & Live MT5 Position Telemetry */}
+          <ActiveTradesPanel />
 
           {/* Live Autonomous Trading Engine */}
           <LiveTradingEngine />
