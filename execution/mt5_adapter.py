@@ -5,7 +5,7 @@ Provides order submission, account monitoring, symbol normalization,
 and traceable order comments.
 """
 
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 import logging
 from typing import Dict, List, Optional, Any
 import uuid
@@ -430,3 +430,64 @@ class MT5ExecutionAdapter(BaseExecutionAdapter):
         }
         result = mt5.order_send(request)
         return result is not None and result.retcode == mt5.TRADE_RETCODE_DONE
+
+    def get_closed_deals(self, days: int = 7) -> List[Dict[str, Any]]:
+        """Retrieve real closed trades from broker history deals, pairing entry and exit deals."""
+        if not self.is_connected() or not MT5_AVAILABLE:
+            return []
+
+        try:
+            now = datetime.now(timezone.utc)
+            date_from = now - timedelta(days=days)
+            deals = mt5.history_deals_get(date_from, now)
+            if deals is None or len(deals) == 0:
+                return []
+
+            positions_map: Dict[int, List[Any]] = {}
+            for d in deals:
+                pos_id = d.position_id
+                if pos_id not in positions_map:
+                    positions_map[pos_id] = []
+                positions_map[pos_id].append(d)
+
+            closed_trades: List[Dict[str, Any]] = []
+            for pos_id, deal_list in positions_map.items():
+                entry_deal = next((d for d in deal_list if d.entry == 0), None)
+                exit_deal = next((d for d in deal_list if d.entry == 1), None)
+                if entry_deal and exit_deal:
+                    side = "BUY" if entry_deal.type == 0 else "SELL"
+                    net_pnl = round(float(exit_deal.profit) + float(exit_deal.commission) + float(exit_deal.swap), 2)
+                    price_diff = exit_deal.price - entry_deal.price if side == "BUY" else entry_deal.price - exit_deal.price
+                    pips = round(price_diff * 10, 1)
+
+                    comment = exit_deal.comment or entry_deal.comment or "CLOSED"
+                    strategy_id = "Institutional Model"
+                    if "|" in comment:
+                        strategy_id = comment.split("|")[0]
+                    elif "[sl" in comment.lower():
+                        strategy_id = "Trailing Stop / SL Lock"
+                    elif "[tp" in comment.lower():
+                        strategy_id = "Take Profit Target"
+
+                    closed_trades.append({
+                        "id": f"TRD_{pos_id}",
+                        "ticket": pos_id,
+                        "symbol": entry_deal.symbol,
+                        "side": side,
+                        "lots": round(entry_deal.volume, 2),
+                        "entry_price": round(entry_deal.price, 2),
+                        "exit_price": round(exit_deal.price, 2),
+                        "pnl": net_pnl,
+                        "pips": pips,
+                        "entry_time": datetime.fromtimestamp(entry_deal.time, tz=timezone.utc).isoformat(),
+                        "exit_time": datetime.fromtimestamp(exit_deal.time, tz=timezone.utc).isoformat(),
+                        "strategy_id": strategy_id,
+                        "exit_reason": exit_deal.comment or "CLOSED"
+                    })
+
+            # Sort descending by exit_time (newest first)
+            closed_trades.sort(key=lambda t: t["exit_time"], reverse=True)
+            return closed_trades
+        except Exception as e:
+            logger.error(f"Error querying closed deals from MT5: {e}")
+            return []

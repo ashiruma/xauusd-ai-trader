@@ -1,6 +1,7 @@
 import React from 'react';
 import { Metadata } from 'next';
 import { DEFAULT_PARTNER_CONFIG } from '@/lib/partner';
+import AdminAccessControls from '@/components/admin/AdminAccessControls';
 
 export const metadata: Metadata = {
   title: 'Secret Partner Portal | Velarion Admin',
@@ -56,6 +57,9 @@ export default function SecretAdminPage() {
           </span>
         </div>
       </div>
+      
+      {/* Interactive Terminal and Forex School Access Controls */}
+      <AdminAccessControls />
 
       {/* 1. Multi-Tier Partner Drip & Tracking Manager */}
       <div className="panel-card" style={{ padding: '24px', marginBottom: '28px' }}>

@@ -212,30 +212,41 @@ export async function GET() {
       };
     });
 
-    // Real closed trades from broker journal
+    // Real closed trades from broker journal / MT5 deals
     const recentTrades: ExecutedTrade[] = Array.isArray(journalData)
-      ? journalData.map((t: any) => ({
-          id: `TRD-HIST-${t.ticket || t.trade_id}`,
-          ticket: t.ticket || 0,
-          symbol: t.symbol || brokerSymbol,
-          type: (t.side || 'BUY').toUpperCase().includes('BUY') ? 'BUY' : 'SELL',
-          lots: Number(t.lots || 0),
-          entryPrice: Number(t.entry_price || 0),
-          exitPrice: Number(t.exit_price || 0),
-          pnl: Number(t.pnl || t.net_pnl || 0),
-          pips: Number(((t.exit_price - t.entry_price) * 10).toFixed(1)),
-          openTime: t.entry_time || new Date().toISOString(),
-          closeTime: t.exit_time || new Date().toISOString(),
-          strategy: t.strategy_id || 'Model Execution',
-          lessonReference: 'Institutional Curriculum',
-          exitReason: t.exit_reason || 'NORMAL_CLOSE'
-        }))
+      ? journalData.map((t: any) => {
+          const type = (t.side || 'BUY').toUpperCase().includes('BUY') ? 'BUY' : 'SELL';
+          const entryPrice = Number(t.entry_price || 0);
+          const exitPrice = Number(t.exit_price || 0);
+          const calculatedPips = type === 'BUY'
+            ? (exitPrice - entryPrice) * 10
+            : (entryPrice - exitPrice) * 10;
+          const pips = t.pips != null ? Number(t.pips) : Number(calculatedPips.toFixed(1));
+          const pnl = Number(t.pnl ?? t.net_pnl ?? 0);
+
+          return {
+            id: `TRD-HIST-${t.ticket || t.trade_id || t.id}`,
+            ticket: t.ticket || 0,
+            symbol: t.symbol || brokerSymbol,
+            type,
+            lots: Number(t.lots || 0),
+            entryPrice,
+            exitPrice,
+            pnl,
+            pips,
+            openTime: t.entry_time || new Date().toISOString(),
+            closeTime: t.exit_time || new Date().toISOString(),
+            strategy: t.strategy_id || 'Model Execution',
+            lessonReference: 'Institutional Curriculum',
+            exitReason: t.exit_reason || 'NORMAL_CLOSE'
+          };
+        })
       : [];
 
     const balance = Number(accData.balance || 0);
     const equity = Number(accData.equity || balance);
     const openPnl = openPositions.reduce((acc, p) => acc + p.pnl, 0);
-    const totalClosedProfit = recentTrades.reduce((acc, t) => acc + t.pnl, 0);
+    const totalClosedProfit = Number(recentTrades.reduce((acc, t) => acc + t.pnl, 0).toFixed(2));
     const winningTrades = recentTrades.filter(t => t.pnl > 0).length;
     const winRate = recentTrades.length > 0 ? Number(((winningTrades / recentTrades.length) * 100).toFixed(1)) : 0;
     const totalPipsBanked = Number(recentTrades.reduce((acc, t) => acc + t.pips, 0).toFixed(1));

@@ -1436,8 +1436,22 @@ async def get_performance():
     return PerformanceEngine.compute_metrics(typed, initial_capital=100000.0)
 
 
+@app.get("/api/trades/history")
+async def get_trades_history(days: int = 7, limit: int = 50):
+    """Retrieve verified closed broker trades directly from MT5 if live, or local journal."""
+    if coordinator.mt5_adapter and coordinator.mt5_adapter.is_connected():
+        deals = coordinator.mt5_adapter.get_closed_deals(days=days)
+        if deals:
+            return deals[:limit]
+    return TradeJournal.list_recent_journal_entries(limit=limit)
+
+
 @app.get("/api/journal")
 async def get_journal_entries(limit: int = 50):
+    if coordinator.mt5_adapter and coordinator.mt5_adapter.is_connected():
+        deals = coordinator.mt5_adapter.get_closed_deals(days=7)
+        if deals:
+            return deals[:limit]
     return TradeJournal.list_recent_journal_entries(limit=limit)
 
 

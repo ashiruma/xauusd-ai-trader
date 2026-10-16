@@ -295,11 +295,11 @@ export default function LiveTradingEngine() {
             <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
               Realized Session Gain
             </div>
-            <div className="mono-nums" style={{ fontSize: '20px', fontWeight: 800, color: 'var(--accent-green)', marginTop: '4px' }}>
-              {isConnected ? `+$${(acc?.totalProfit || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}` : '—'}
+            <div className="mono-nums" style={{ fontSize: '20px', fontWeight: 800, color: (acc?.totalProfit || 0) >= 0 ? 'var(--accent-green)' : 'var(--accent-red)', marginTop: '4px' }}>
+              {isConnected ? `${(acc?.totalProfit || 0) >= 0 ? '+' : ''}${(acc?.totalProfit || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '—'}
             </div>
             <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '2px' }}>
-              {isConnected ? `+${acc?.totalPipsBanked || 0} Net Pips Banked` : 'Awaiting Broker Feed'}
+              {isConnected ? `${(acc?.totalPipsBanked || 0) >= 0 ? '+' : ''}${acc?.totalPipsBanked || 0} Net Pips Banked` : 'Awaiting Broker Feed'}
             </div>
           </div>
 

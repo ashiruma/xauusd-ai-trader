@@ -7,6 +7,7 @@ import LiveSpotFeed from '@/components/LiveSpotFeed';
 import { getServerLiveQuote } from '@/lib/marketFeed';
 import TradingViewChart from '@/components/terminal/TradingViewChart';
 import ActiveTradesPanel from '@/components/terminal/ActiveTradesPanel';
+import TradeHistoryPanel from '@/components/terminal/TradeHistoryPanel';
 import LiveTradingEngine from '@/components/terminal/LiveTradingEngine';
 
 export const metadata: Metadata = {
@@ -127,6 +128,9 @@ export default async function TerminalPage() {
 
           {/* Active Trades & Live MT5 Position Telemetry */}
           <ActiveTradesPanel />
+
+          {/* Trade History & Verified Closed Broker Executions */}
+          <TradeHistoryPanel />
 
           {/* Live Autonomous Trading Engine */}
           <LiveTradingEngine />

@@ -72,8 +72,9 @@ export default async function LessonPage({ params }: LessonPageProps) {
   // Lesson N requires Lesson N-1 to be passed in comprehension check.
   const prevRequiredKey = `lesson-${lesson.globalNum - 1}`;
   const isPrerequisitePassed = lesson.globalNum === 1 || completedLessons.includes(prevRequiredKey) || completedLessons.includes(String(lesson.globalNum - 1));
-  const isLockedByPrerequisite = !isPrerequisitePassed;
-  const isLockedByMt5 = lesson.globalNum > 5 && !isMt5Verified;
+  const hasAdminToken = Boolean(cookieStore.get('velarion_admin_token')?.value);
+  const isLockedByPrerequisite = !hasAdminToken && !isPrerequisitePassed;
+  const isLockedByMt5 = !hasAdminToken && lesson.globalNum > 5 && !isMt5Verified;
   const isLocked = isLockedByPrerequisite || isLockedByMt5;
 
   const prevLessonNum = lesson.globalNum > 1 ? lesson.globalNum - 1 : null;
