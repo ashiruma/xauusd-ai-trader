@@ -157,17 +157,6 @@
             font-family: var(--font-mono);
         }
 
-        .dot-indicator {
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-            background: var(--accent-green);
-        }
-
-        .dot-indicator.offline {
-            background: var(--accent-red);
-        }
-
         .top-actions {
             display: flex;
             align-items: center;
@@ -2471,13 +2460,11 @@
                 <!-- ============================================================== -->
                 <section class="landing-hero-wrap">
                     <!-- ThreeUI Star Portal Cosmic Drifting Starfield Background -->
-                    <canvas id="home-starfield-canvas" class="landing-starfield-canvas"></canvas>
 
                     <div class="landing-hero-container">
                         <!-- Left Hero Column -->
                         <div>
                             <div class="landing-eyebrow">
-                                <span class="dot-indicator"></span>
                                 <span>VELARION MARKETS &bull; SPOT GOLD &bull; XAUUSD</span>
                             </div>
 
@@ -2529,7 +2516,6 @@
                             <div class="hud-glass-card">
                                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; border-bottom:1px solid var(--border-default); padding-bottom:10px;">
                                     <div style="display:flex; align-items:center; gap:8px;">
-                                        <span class="dot-indicator"></span>
                                         <span style="font-size:11.5px; font-weight:800; color:var(--text-primary); letter-spacing:0.04em;">LIVE XAUUSD SPOT FEED</span>
                                     </div>
                                     <span id="landing-hud-spread" class="status-badge status-completed">2.6 PIPS SPREAD</span>
@@ -2575,7 +2561,6 @@
                                 <div style="background:rgba(4,26,18,0.5); border:1px solid rgba(47,224,125,0.22); border-radius:6px; padding:10px 12px; margin-bottom:12px;">
                                     <div style="display:flex; justify-content:space-between; align-items:center; font-size:10.5px; margin-bottom:6px;">
                                         <span style="color:var(--accent-green); font-weight:700; letter-spacing:0.04em; display:flex; align-items:center; gap:6px;">
-                                            <span class="dot-indicator" style="background:#2fe07d; box-shadow:0 0 6px #2fe07d;"></span>
                                             <span>SYS.LINK UPLINK &bull; ACTIVE</span>
                                         </span>
                                         <span id="landing-hud-latency" class="mono-nums" style="color:var(--text-muted); font-size:10px;">LATENCY: 14ms</span>

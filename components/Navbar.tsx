@@ -7,6 +7,7 @@ import AuthModal from './AuthModal';
 
 export default function Navbar() {
   const pathname = usePathname();
+  const isTerminalPage = pathname === '/terminal' || pathname.startsWith('/terminal/');
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [session, setSession] = useState<{
@@ -22,8 +23,8 @@ export default function Navbar() {
     fetch('/api/auth/session')
       .then((res) => res.json())
       .then((data) => {
-        if (data.authenticated && (data.user || data.session)) {
-          setSession(data.user || data.session);
+        if (data.authenticated && data.session) {
+          setSession(data.session);
         } else {
           setSession(null);
         }
@@ -57,81 +58,29 @@ export default function Navbar() {
     }
   };
 
-  const [theme, setTheme] = useState<'light' | 'dark'>('light');
-
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem('velarion_theme') as 'light' | 'dark' | null;
-      if (saved) {
-        setTheme(saved);
-        if (saved === 'dark') {
-          document.documentElement.setAttribute('data-theme', 'dark');
-        } else {
-          document.documentElement.removeAttribute('data-theme');
-        }
-      }
-    } catch {
-      // ignore
-    }
-  }, []);
-
-  const toggleTheme = () => {
-    const next = theme === 'light' ? 'dark' : 'light';
-    setTheme(next);
-    try {
-      localStorage.setItem('velarion_theme', next);
-    } catch {
-      // ignore
-    }
-    if (next === 'dark') {
-      document.documentElement.setAttribute('data-theme', 'dark');
-    } else {
-      document.documentElement.removeAttribute('data-theme');
-    }
-  };
-
   const navLinks = [
-    { href: '/why-gold', label: 'Why Spot Gold' },
-    { href: '/academy', label: '30-Lesson Forex School' },
-    { href: '/tools/growth-calculator', label: '200-Pip Calculator' },
+    { href: '/why-gold', label: 'Why Gold' },
+    { href: '/academy', label: 'Forex School' },
+    { href: '/tools/growth-calculator', label: 'Risk calculator' },
   ];
 
   return (
     <>
       <header className="header-wrapper" role="banner">
         <div className="header-container">
-          {/* Brand Identity on the Left - Prominent Official Emblem Icon & Typography */}
-          <Link href="/" className="brand-group" aria-label="Velarion Markets Homepage" style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <div className="brand-logo" aria-hidden="true" style={{ width: '38px', height: '38px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <picture style={{ width: '36px', height: '36px', display: 'block' }}>
-                {theme === 'dark' ? (
-                  <>
-                    <source srcSet="/velarion_emblem_dark.webp" type="image/webp" />
-                    <img
-                      src="/velarion_emblem_dark.png"
-                      alt="Velarion Emblem"
-                      width={36}
-                      height={36}
-                      style={{ width: '36px', height: '36px', objectFit: 'contain', display: 'block' }}
-                      fetchPriority="high"
-                    />
-                  </>
-                ) : (
-                  <img
-                    src="/velarion_emblem_navy.png"
-                    alt="Velarion Emblem"
-                    width={36}
-                    height={36}
-                    style={{ width: '36px', height: '36px', objectFit: 'contain', display: 'block' }}
-                    fetchPriority="high"
-                  />
-                )}
-              </picture>
-            </div>
-            <div className="brand-text">
-              <span className="brand-title">VELARION MARKETS</span>
-              <span className="brand-subtitle">QUANTITATIVE TRADING &bull; XAUUSD</span>
-            </div>
+          {/* Brand Identity on the Left - Prominent Official Picture Element */}
+          <Link href="/" className="brand-group" aria-label="Velarion Markets Homepage" style={{ cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
+            <picture>
+              <source srcSet="/velarion_brand_dark.webp" type="image/webp" />
+              <img
+                src="/velarion_brand_dark.png"
+                alt="VELARION MARKETS"
+                width={130}
+                height={36}
+                style={{ height: '36px', width: 'auto', display: 'block' }}
+                fetchPriority="high"
+              />
+            </picture>
           </Link>
 
           {/* Desktop Navigation on a Single Horizontal Line - 3 High Impact Links */}
@@ -151,42 +100,19 @@ export default function Navbar() {
             })}
           </nav>
 
-          {/* Right Action Group: Live Status, Theme Switcher & High-Contrast Gold CTA */}
+          {/* Right Action Group: High-Contrast Gold CTA */}
           <div className="header-actions">
-            {/* Live Market Uplink Status Pill with Emerald Green Dot */}
-            <div
-              className="mt5-status-pill"
-              title="Real-Time XAUUSD Spot Data Stream via TradingView & JustMarkets MT5"
-              style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
-            >
-              <span className="mt5-indicator-dot connected" style={{ background: '#047857' }} />
-              <span style={{ fontSize: '10.5px' }}>LIVE MT5</span>
-            </div>
-
-            {/* Eye Comfort Theme Switcher */}
-            <button
-              onClick={toggleTheme}
-              className="btn btn-ghost"
-              style={{ padding: '6px 10px', fontSize: '11px', color: 'var(--text-secondary)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-sm)' }}
-              title="Toggle Light / Dark Eye Comfort Mode"
-              aria-label="Toggle Color Theme"
-              type="button"
-            >
-              {theme === 'dark' ? 'Light Mode' : 'Comfort White'}
-            </button>
-
             {session?.verified ? (
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span className="verified-account-badge" style={{ fontSize: '11px', padding: '5px 10px' }}>
-                  MT5: #{session.mt5Account || 'ACTIVE'}
-                </span>
-                <Link
-                  href="/terminal"
-                  className="btn btn-secondary"
-                  style={{ padding: '8px 14px', fontSize: '12px' }}
-                >
-                  AI Terminal &rarr;
-                </Link>
+                {!isTerminalPage && (
+                  <Link
+                    href="/terminal"
+                    className="btn btn-secondary"
+                    style={{ padding: '8px 14px', fontSize: '12px' }}
+                  >
+                    AI Terminal &rarr;
+                  </Link>
+                )}
                 <button
                   onClick={handleLogout}
                   className="btn btn-ghost"
@@ -200,9 +126,9 @@ export default function Navbar() {
               <Link
                 href="/onboarding"
                 className="cta-verify"
-                aria-label="Unlock Access to Velarion Markets"
+                aria-label="Unlock Free Access to Velarion Markets"
               >
-                Unlock Access
+                Unlock Free Access
               </Link>
             )}
 
@@ -262,22 +188,12 @@ export default function Navbar() {
                   aria-current={isActive ? 'page' : undefined}
                 >
                   <span>{item.label}</span>
-                  {isActive && <span style={{ color: 'var(--accent-gold)', fontSize: '12px' }}>Active</span>}
                 </Link>
               );
             })}
 
-            {/* Mobile Drawer Footer with High-Impact CTA and Theme Toggle */}
-            <div className="mobile-drawer-footer" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              <button
-                onClick={toggleTheme}
-                type="button"
-                className="btn btn-secondary"
-                style={{ width: '100%', padding: '10px', fontSize: '12px', justifyContent: 'center' }}
-              >
-                {theme === 'dark' ? 'Switch to Eye-Comfort White' : 'Switch to Dark Mode'}
-              </button>
-
+            {/* Mobile Drawer Footer with High-Impact CTA */}
+            <div className="mobile-drawer-footer">
               {!session?.verified ? (
                 <Link
                   href="/onboarding"
@@ -285,7 +201,7 @@ export default function Navbar() {
                   className="cta-verify"
                   style={{ width: '100%', padding: '12px', fontSize: '13px', textAlign: 'center' }}
                 >
-                  Unlock Access
+                  Unlock Free Access
                 </Link>
               ) : (
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
