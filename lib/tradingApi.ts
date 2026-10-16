@@ -11,6 +11,7 @@ export function getTradingApiBase(): string {
 export function getTradingApiHeaders(): Record<string, string> {
   const headers: Record<string, string> = {
     'Accept': 'application/json',
+    'ngrok-skip-browser-warning': 'true',
   };
 
   const internalKey = process.env.VELARION_INTERNAL_API_KEY || process.env.TRADING_API_KEY;
