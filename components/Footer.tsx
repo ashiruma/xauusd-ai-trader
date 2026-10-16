@@ -6,13 +6,16 @@ export default function Footer() {
   const partnerLink = DEFAULT_PARTNER_CONFIG.primaryLink;
 
   return (
-    <footer style={{
-      background: 'var(--bg-surface-1)',
-      borderTop: '1px solid var(--border-default)',
-      padding: '54px 24px 40px',
-      marginTop: 'auto'
-    }}>
-      <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+    <footer
+      className="footer"
+      style={{
+        background: 'var(--bg-surface-1)',
+        borderTop: '1px solid var(--border-default)',
+        padding: '54px 24px 40px',
+        marginTop: 'auto',
+      }}
+    >
+      <div className="footer-container" style={{ maxWidth: '1200px', margin: '0 auto' }}>
         <div style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',

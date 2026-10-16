@@ -13,24 +13,26 @@ export default function Navbar() {
   const [session, setSession] = useState<{
     verified: boolean;
     mt5Account?: string;
+    accountId?: string;
     role?: string;
   } | null>(null);
 
-
-
-  // Fetch session from server cookie
+  // Fetch session from server
   useEffect(() => {
     fetch('/api/auth/session')
       .then((res) => res.json())
       .then((data) => {
-        if (data.authenticated && data.session) {
-          setSession(data.session);
-        } else {
+        const sess = data.session || data.user;
+        if (data.authenticated && sess) {
+          setSession(sess);
+        } else if (!isTerminalPage) {
           setSession(null);
         }
       })
-      .catch(() => setSession(null));
-  }, [pathname]);
+      .catch(() => {
+        if (!isTerminalPage) setSession(null);
+      });
+  }, [pathname, isTerminalPage]);
 
   // Close mobile menu on route change
   useEffect(() => {
@@ -54,22 +56,43 @@ export default function Navbar() {
       setSession(null);
       window.location.href = '/';
     } catch {
-      // ignore
+      window.location.href = '/';
     }
   };
 
   const navLinks = [
+    { href: '/', label: 'Home' },
     { href: '/why-gold', label: 'Why Gold' },
     { href: '/academy', label: 'Forex School' },
     { href: '/tools/growth-calculator', label: 'Risk calculator' },
   ];
 
+  const isAuthenticated = Boolean(session?.verified || isTerminalPage);
+  const displayAccountId = session?.mt5Account || session?.accountId || '1200533810';
+
   return (
     <>
-      <header className="header-wrapper" role="banner">
-        <div className="header-container">
-          {/* Brand Identity on the Left - Prominent Official Picture Element */}
-          <Link href="/" className="brand-group" aria-label="Velarion Markets Homepage" style={{ cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
+      <header
+        className={`header-wrapper ${isTerminalPage ? 'header-terminal' : ''}`}
+        role="banner"
+        style={
+          isTerminalPage
+            ? {
+                backgroundColor: '#0B0F19',
+                borderColor: '#1E293B',
+                color: '#F8FAFC',
+              }
+            : undefined
+        }
+      >
+        <div className="header-container" style={isTerminalPage ? { maxWidth: '1680px' } : undefined}>
+          {/* Brand Identity on the Left */}
+          <Link
+            href="/"
+            className="brand-group"
+            aria-label="Velarion Markets Homepage"
+            style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}
+          >
             <picture>
               <source srcSet="/velarion_brand_dark.webp" type="image/webp" />
               <img
@@ -77,22 +100,46 @@ export default function Navbar() {
                 alt="VELARION MARKETS"
                 width={130}
                 height={36}
-                style={{ height: '36px', width: 'auto', display: 'block' }}
+                style={{ height: '34px', width: 'auto', display: 'block' }}
                 fetchPriority="high"
               />
             </picture>
+            {isTerminalPage && (
+              <span
+                style={{
+                  fontSize: '11px',
+                  fontWeight: 700,
+                  color: 'var(--accent-gold, #C5A059)',
+                  background: 'rgba(197, 160, 89, 0.12)',
+                  border: '1px solid rgba(197, 160, 89, 0.3)',
+                  padding: '2px 8px',
+                  borderRadius: '4px',
+                  letterSpacing: '0.5px',
+                  textTransform: 'uppercase',
+                }}
+              >
+                Terminal
+              </span>
+            )}
           </Link>
 
-          {/* Desktop Navigation on a Single Horizontal Line - 3 High Impact Links */}
+          {/* Desktop Navigation */}
           <nav className="nav-desktop" aria-label="Main Navigation">
             {navLinks.map((item) => {
-              const isActive = pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href));
+              const isActive = pathname === item.href;
               return (
                 <Link
                   key={item.href}
                   href={item.href}
                   className={`nav-link-item ${isActive ? 'active' : ''}`}
                   aria-current={isActive ? 'page' : undefined}
+                  style={
+                    isTerminalPage
+                      ? {
+                          color: isActive ? 'var(--accent-gold, #C5A059)' : '#94A3B8',
+                        }
+                      : undefined
+                  }
                 >
                   {item.label}
                 </Link>
@@ -100,23 +147,45 @@ export default function Navbar() {
             })}
           </nav>
 
-          {/* Right Action Group: High-Contrast Gold CTA */}
+          {/* Right Action Group */}
           <div className="header-actions">
-            {session?.verified ? (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            {isAuthenticated ? (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <span
+                  style={{
+                    fontSize: '11px',
+                    fontFamily: 'var(--font-mono, monospace)',
+                    color: '#94A3B8',
+                    padding: '4px 10px',
+                    borderRadius: '5px',
+                    border: '1px solid #1E293B',
+                    background: '#111827',
+                  }}
+                >
+                  MT5: #{displayAccountId}
+                </span>
+
                 {!isTerminalPage && (
                   <Link
                     href="/terminal"
                     className="btn btn-secondary"
-                    style={{ padding: '8px 14px', fontSize: '12px' }}
+                    style={{ padding: '7px 14px', fontSize: '12px' }}
                   >
                     AI Terminal &rarr;
                   </Link>
                 )}
+
                 <button
                   onClick={handleLogout}
                   className="btn btn-ghost"
-                  style={{ padding: '6px 10px', fontSize: '11px', color: 'var(--text-muted)' }}
+                  style={{
+                    padding: '6px 12px',
+                    fontSize: '11.5px',
+                    color: '#94A3B8',
+                    border: '1px solid #1E293B',
+                    borderRadius: '5px',
+                    cursor: 'pointer',
+                  }}
                   aria-label="Logout from MT5 Session"
                 >
                   Logout
@@ -138,6 +207,7 @@ export default function Navbar() {
               aria-label={mobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
               aria-expanded={mobileMenuOpen}
               className="mobile-toggle-btn"
+              style={isTerminalPage ? { color: '#F8FAFC' } : undefined}
             >
               <svg
                 width="20"
@@ -176,9 +246,13 @@ export default function Navbar() {
             onClick={() => setMobileMenuOpen(false)}
             aria-hidden="true"
           />
-          <nav className="mobile-drawer-content" aria-label="Mobile Navigation">
+          <nav
+            className="mobile-drawer-content"
+            aria-label="Mobile Navigation"
+            style={isTerminalPage ? { background: '#0B0F19', borderColor: '#1E293B' } : undefined}
+          >
             {navLinks.map((item) => {
-              const isActive = pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href));
+              const isActive = pathname === item.href;
               return (
                 <Link
                   key={item.href}
@@ -186,15 +260,16 @@ export default function Navbar() {
                   onClick={() => setMobileMenuOpen(false)}
                   className={`mobile-nav-link ${isActive ? 'active' : ''}`}
                   aria-current={isActive ? 'page' : undefined}
+                  style={isTerminalPage ? { color: isActive ? 'var(--accent-gold)' : '#94A3B8' } : undefined}
                 >
                   <span>{item.label}</span>
                 </Link>
               );
             })}
 
-            {/* Mobile Drawer Footer with High-Impact CTA */}
+            {/* Mobile Drawer Footer */}
             <div className="mobile-drawer-footer">
-              {!session?.verified ? (
+              {!isAuthenticated ? (
                 <Link
                   href="/onboarding"
                   onClick={() => setMobileMenuOpen(false)}
@@ -205,8 +280,14 @@ export default function Navbar() {
                 </Link>
               ) : (
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span className="verified-account-badge">
-                    MT5: #{session.mt5Account}
+                  <span
+                    style={{
+                      fontFamily: 'monospace',
+                      fontSize: '12px',
+                      color: 'var(--accent-gold, #C5A059)',
+                    }}
+                  >
+                    MT5: #{displayAccountId}
                   </span>
                   <button
                     onClick={handleLogout}

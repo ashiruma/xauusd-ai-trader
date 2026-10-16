@@ -23,7 +23,7 @@ export default function TradeHistoryPanel() {
   const [trades, setTrades] = useState<ExecutedTradeItem[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [filter, setFilter] = useState<'ALL' | 'WINS' | 'LOSSES'>('ALL');
-  const [displayCount, setDisplayCount] = useState<number>(15);
+  const [isOpen, setIsOpen] = useState<boolean>(true);
 
   const fetchTradeHistory = async () => {
     try {
@@ -42,7 +42,7 @@ export default function TradeHistoryPanel() {
 
   useEffect(() => {
     fetchTradeHistory();
-    const interval = setInterval(fetchTradeHistory, 4000);
+    const interval = setInterval(fetchTradeHistory, 6000);
     return () => clearInterval(interval);
   }, []);
 
@@ -57,254 +57,220 @@ export default function TradeHistoryPanel() {
   const winRate = totalClosed > 0 ? ((winCount / totalClosed) * 100).toFixed(1) : '0.0';
   const netPnl = trades.reduce((sum, t) => sum + (Number(t.pnl) || 0), 0);
   const netPips = trades.reduce((sum, t) => sum + (Number(t.pips) || 0), 0);
-  const pnlColor = netPnl > 0 ? '#10B981' : netPnl < 0 ? '#F43F5E' : 'var(--text-primary)';
+  const pnlColor = netPnl > 0 ? '#10B981' : netPnl < 0 ? '#EF4444' : '#F8FAFC';
 
   return (
-    <div
+    <section
+      aria-label="Trade History and Closed Executions"
       style={{
         background: '#090D16',
-        borderRadius: 'var(--radius-lg, 12px)',
-        border: '1px solid var(--border-default, #1E293B)',
+        borderRadius: '12px',
+        border: '1px solid #1E293B',
         overflow: 'hidden',
-        boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+        width: '100%',
       }}
     >
-      {/* Panel Header */}
+      {/* Panel Collapsible Header */}
       <div
+        onClick={() => setIsOpen(!isOpen)}
         style={{
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          padding: '16px 20px',
-          background: 'rgba(15, 23, 42, 0.7)',
-          borderBottom: '1px solid var(--border-default, #1E293B)',
+          padding: '14px 20px',
+          background: '#0D1322',
+          borderBottom: isOpen ? '1px solid #1E293B' : 'none',
+          cursor: 'pointer',
+          userSelect: 'none',
           flexWrap: 'wrap',
-          gap: '12px'
+          gap: '12px',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span
-              style={{
-                width: '8px',
-                height: '8px',
-                borderRadius: '50%',
-                background: '#F59E0B',
-                boxShadow: '0 0 8px rgba(245, 158, 11, 0.7)',
-                display: 'inline-block'
-              }}
-            />
-            <h2 style={{ fontSize: '15px', fontWeight: 800, color: 'var(--text-primary)', margin: 0, letterSpacing: '-0.2px' }}>
-              TRADE HISTORY &amp; CLOSED EXECUTIONS
-            </h2>
-          </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <span style={{ fontSize: '12px', color: '#64748B' }}>
+            {isOpen ? '▼' : '▶'}
+          </span>
+          <h2 style={{ fontSize: '14px', fontWeight: 800, color: '#F8FAFC', margin: 0, letterSpacing: '0.3px', textTransform: 'uppercase' }}>
+            Trade History &amp; Closed Executions
+          </h2>
           <span
-            className="status-badge"
             style={{
-              fontSize: '10px',
+              fontSize: '11px',
               fontFamily: 'monospace',
-              fontWeight: 700,
-              background: 'rgba(245, 158, 11, 0.12)',
-              color: 'var(--accent-gold, #F59E0B)',
-              border: '1px solid rgba(245, 158, 11, 0.3)'
+              padding: '2px 8px',
+              borderRadius: '4px',
+              background: 'rgba(197, 160, 89, 0.1)',
+              color: 'var(--accent-gold, #C5A059)',
+              border: '1px solid rgba(197, 160, 89, 0.25)',
             }}
           >
-            JUSTMARKETS MT5 DEALS
+            JustMarkets MT5 Deals
           </span>
         </div>
 
-        {/* Aggregated Performance Badges */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', fontSize: '12px' }}>
+        {/* Real Deal Metrics */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '18px', fontSize: '12px' }}>
           <div>
-            <span style={{ color: 'var(--text-muted)' }}>Executions: </span>
-            <strong style={{ color: 'var(--text-primary)' }}>{totalClosed}</strong>
+            <span style={{ color: '#64748B' }}>Executions: </span>
+            <strong className="mono-nums" style={{ color: '#F8FAFC' }}>
+              {totalClosed}
+            </strong>
           </div>
           <div>
-            <span style={{ color: 'var(--text-muted)' }}>Win Rate: </span>
-            <strong className="mono-nums" style={{ color: Number(winRate) >= 60 ? '#10B981' : 'var(--text-primary)' }}>
+            <span style={{ color: '#64748B' }}>Win Rate: </span>
+            <strong className="mono-nums" style={{ color: Number(winRate) >= 50 ? '#10B981' : '#F8FAFC' }}>
               {winRate}%
             </strong>
           </div>
           <div>
-            <span style={{ color: 'var(--text-muted)' }}>Banked Pips: </span>
-            <strong className="mono-nums" style={{ color: netPips >= 0 ? '#10B981' : '#F43F5E' }}>
-              {netPips >= 0 ? '+' : ''}{netPips.toFixed(1)}p
-            </strong>
-          </div>
-          <div>
-            <span style={{ color: 'var(--text-muted)' }}>Realized P&amp;L: </span>
-            <strong className="mono-nums" style={{ color: pnlColor, fontSize: '13px' }}>
+            <span style={{ color: '#64748B' }}>Realized P&amp;L: </span>
+            <strong className="mono-nums" style={{ color: pnlColor }}>
               {netPnl >= 0 ? '+' : ''}${netPnl.toFixed(2)}
             </strong>
           </div>
-        </div>
-      </div>
-
-      {/* Filter Tabs */}
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          padding: '10px 20px',
-          background: 'rgba(15, 23, 42, 0.4)',
-          borderBottom: '1px solid var(--border-default, #1E293B)',
-          fontSize: '12px'
-        }}
-      >
-        <div style={{ display: 'flex', gap: '8px' }}>
-          {(['ALL', 'WINS', 'LOSSES'] as const).map((mode) => (
-            <button
-              key={mode}
-              type="button"
-              onClick={() => setFilter(mode)}
-              style={{
-                padding: '4px 10px',
-                fontSize: '11px',
-                fontWeight: 600,
-                borderRadius: '4px',
-                border: filter === mode ? '1px solid var(--accent-gold, #F59E0B)' : '1px solid var(--border-subtle, #334155)',
-                background: filter === mode ? 'rgba(245, 158, 11, 0.15)' : 'transparent',
-                color: filter === mode ? 'var(--accent-gold, #F59E0B)' : 'var(--text-muted, #64748B)',
-                cursor: 'pointer'
-              }}
-            >
-              {mode === 'ALL' ? `All (${totalClosed})` : mode === 'WINS' ? `Profitable (${winCount})` : `Drawdowns (${totalClosed - winCount})`}
-            </button>
-          ))}
-        </div>
-
-        <div style={{ color: 'var(--text-muted)', fontSize: '11px' }}>
-          Direct verified deal history from MT5 server
-        </div>
-      </div>
-
-      {/* Main Table Content */}
-      {loading ? (
-        <div style={{ padding: '36px 20px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '13px' }}>
-          Loading historical broker executions from JustMarkets MT5...
-        </div>
-      ) : filteredTrades.length === 0 ? (
-        <div style={{ padding: '36px 24px', textAlign: 'center' }}>
-          <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px' }}>
-            No Closed Trades Recorded
+          <div>
+            <span style={{ color: '#64748B' }}>Banked Pips: </span>
+            <strong className="mono-nums" style={{ color: netPips >= 0 ? '#10B981' : '#EF4444' }}>
+              {netPips >= 0 ? '+' : ''}{netPips.toFixed(1)}p
+            </strong>
           </div>
-          <p style={{ fontSize: '12.5px', color: 'var(--text-secondary)', margin: 0 }}>
-            {filter === 'ALL'
-              ? 'No closed positions found in the current session. Active trades will appear here upon completion.'
-              : `No trades matched the "${filter}" filter criteria.`}
-          </p>
         </div>
-      ) : (
-        <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '12px' }}>
-            <thead>
-              <tr style={{ background: 'rgba(15, 23, 42, 0.5)', borderBottom: '1px solid var(--border-default, #1E293B)', color: 'var(--text-muted)' }}>
-                <th style={{ padding: '10px 16px', fontWeight: 600 }}>TICKET / SYMBOL</th>
-                <th style={{ padding: '10px 16px', fontWeight: 600 }}>SIDE</th>
-                <th style={{ padding: '10px 16px', fontWeight: 600 }}>VOLUME</th>
-                <th style={{ padding: '10px 16px', fontWeight: 600 }}>ENTRY PRICE</th>
-                <th style={{ padding: '10px 16px', fontWeight: 600 }}>EXIT PRICE</th>
-                <th style={{ padding: '10px 16px', fontWeight: 600 }}>CLOSE TIME</th>
-                <th style={{ padding: '10px 16px', fontWeight: 600 }}>EXIT REASON</th>
-                <th style={{ padding: '10px 16px', fontWeight: 600, textAlign: 'right' }}>NET P&amp;L</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredTrades.slice(0, displayCount).map((trade) => {
-                const isBuy = (trade.type || '').toUpperCase() === 'BUY';
-                const isProfit = Number(trade.pnl) >= 0;
-                const rowPnlColor = isProfit ? '#10B981' : '#F43F5E';
-                const formattedTime = trade.closeTime
-                  ? new Date(trade.closeTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
-                  : '--:--:--';
+      </div>
 
-                return (
-                  <tr
-                    key={trade.id || trade.ticket}
-                    style={{
-                      borderBottom: '1px solid var(--border-subtle, #1E293B)',
-                      background: 'transparent'
-                    }}
-                  >
-                    <td style={{ padding: '12px 16px' }}>
-                      <div style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{trade.symbol || 'XAUUSD.m'}</div>
-                      <div className="mono-nums" style={{ fontSize: '11px', color: 'var(--text-muted)' }}>#{trade.ticket}</div>
-                    </td>
-                    <td style={{ padding: '12px 16px' }}>
-                      <span style={{
-                        display: 'inline-block',
-                        padding: '2px 7px',
-                        borderRadius: '4px',
-                        fontSize: '10.5px',
-                        fontWeight: 700,
-                        background: isBuy ? 'rgba(16, 185, 129, 0.15)' : 'rgba(244, 63, 94, 0.15)',
-                        color: isBuy ? '#10B981' : '#F43F5E'
-                      }}>
-                        {trade.type}
-                      </span>
-                    </td>
-                    <td className="mono-nums" style={{ padding: '12px 16px', fontWeight: 600, color: 'var(--text-primary)' }}>
-                      {Number(trade.lots).toFixed(2)}L
-                    </td>
-                    <td className="mono-nums" style={{ padding: '12px 16px', color: 'var(--text-secondary)' }}>
-                      ${Number(trade.entryPrice).toFixed(2)}
-                    </td>
-                    <td className="mono-nums" style={{ padding: '12px 16px', fontWeight: 600, color: 'var(--text-primary)' }}>
-                      ${Number(trade.exitPrice).toFixed(2)}
-                    </td>
-                    <td style={{ padding: '12px 16px', color: 'var(--text-secondary)', fontSize: '11px' }}>
-                      {formattedTime}
-                    </td>
-                    <td style={{ padding: '12px 16px' }}>
-                      <span style={{
-                        fontSize: '11px',
-                        color: 'var(--text-secondary)',
-                        fontFamily: 'monospace',
-                        background: 'rgba(30, 41, 59, 0.5)',
-                        padding: '2px 6px',
-                        borderRadius: '4px'
-                      }}>
-                        {trade.exitReason}
-                      </span>
-                    </td>
-                    <td style={{ padding: '12px 16px', textAlign: 'right' }}>
-                      <div className="mono-nums" style={{ fontWeight: 800, color: rowPnlColor, fontSize: '13px' }}>
-                        {isProfit ? '+' : ''}${Number(trade.pnl).toFixed(2)}
-                      </div>
-                      <div className="mono-nums" style={{ fontSize: '10px', color: rowPnlColor }}>
-                        {Number(trade.pips) >= 0 ? '+' : ''}{Number(trade.pips).toFixed(1)} pips
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      )}
-
-      {/* Footer / Load More */}
-      {filteredTrades.length > displayCount && (
-        <div style={{ padding: '10px 18px', textAlign: 'center', background: 'rgba(15, 23, 42, 0.5)', borderTop: '1px solid var(--border-default, #1E293B)' }}>
-          <button
-            type="button"
-            onClick={() => setDisplayCount((prev) => prev + 15)}
+      {/* Collapsible Content */}
+      {isOpen && (
+        <div>
+          {/* Controls Bar */}
+          <div
             style={{
-              padding: '6px 14px',
-              fontSize: '11px',
-              fontWeight: 600,
-              borderRadius: '4px',
-              border: '1px solid var(--border-default, #334155)',
-              background: 'transparent',
-              color: 'var(--text-primary)',
-              cursor: 'pointer'
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              padding: '10px 20px',
+              background: '#090D16',
+              borderBottom: '1px solid rgba(255, 255, 255, 0.04)',
+              flexWrap: 'wrap',
+              gap: '10px',
             }}
           >
-            Load More Trades ({filteredTrades.length - displayCount} remaining)
-          </button>
+            <div style={{ display: 'flex', gap: '6px' }}>
+              {(['ALL', 'WINS', 'LOSSES'] as const).map((mode) => (
+                <button
+                  key={mode}
+                  type="button"
+                  onClick={() => setFilter(mode)}
+                  style={{
+                    padding: '4px 10px',
+                    borderRadius: '4px',
+                    fontSize: '11px',
+                    fontWeight: 700,
+                    background: filter === mode ? 'var(--accent-gold, #C5A059)' : '#111827',
+                    color: filter === mode ? '#090D16' : '#94A3B8',
+                    border: '1px solid #1E293B',
+                    cursor: 'pointer',
+                  }}
+                >
+                  {mode === 'ALL' ? `All (${trades.length})` : mode === 'WINS' ? `Profitable (${winCount})` : `Drawdowns (${trades.length - winCount})`}
+                </button>
+              ))}
+            </div>
+
+            <div style={{ fontSize: '11px', color: '#64748B' }}>
+              Direct verified closed deal history from JustMarkets MT5
+            </div>
+          </div>
+
+          {loading && trades.length === 0 ? (
+            <div style={{ padding: '30px 20px', textAlign: 'center', color: '#94A3B8', fontSize: '12.5px' }}>
+              Loading closed MT5 deals...
+            </div>
+          ) : filteredTrades.length === 0 ? (
+            <div style={{ padding: '30px 20px', textAlign: 'center', color: '#64748B', fontSize: '12.5px' }}>
+              No closed executions match the selected filter.
+            </div>
+          ) : (
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px', textAlign: 'left' }}>
+                <thead>
+                  <tr style={{ borderBottom: '1px solid #1E293B', color: '#64748B', fontSize: '10.5px', textTransform: 'uppercase' }}>
+                    <th style={{ padding: '8px 16px' }}>Ticket / Symbol</th>
+                    <th style={{ padding: '8px 12px' }}>Side</th>
+                    <th style={{ padding: '8px 12px' }}>Volume</th>
+                    <th style={{ padding: '8px 12px' }}>Entry</th>
+                    <th style={{ padding: '8px 12px' }}>Exit</th>
+                    <th style={{ padding: '8px 12px' }}>Close Time</th>
+                    <th style={{ padding: '8px 12px' }}>Exit Reason</th>
+                    <th style={{ padding: '8px 16px', textAlign: 'right' }}>Realized P&amp;L</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredTrades.map((t) => {
+                    const isProfit = t.pnl > 0;
+                    return (
+                      <tr
+                        key={t.id}
+                        style={{
+                          borderBottom: '1px solid rgba(255, 255, 255, 0.03)',
+                        }}
+                      >
+                        <td style={{ padding: '10px 16px' }}>
+                          <span style={{ color: '#F8FAFC', fontWeight: 600 }}>{t.symbol}</span>{' '}
+                          <span style={{ color: '#64748B', fontFamily: 'monospace', fontSize: '11px' }}>
+                            #{t.ticket}
+                          </span>
+                        </td>
+                        <td style={{ padding: '10px 12px' }}>
+                          <span
+                            style={{
+                              fontSize: '10.5px',
+                              fontWeight: 700,
+                              padding: '2px 6px',
+                              borderRadius: '3px',
+                              background: t.type === 'BUY' ? 'rgba(16, 185, 129, 0.12)' : 'rgba(239, 68, 68, 0.12)',
+                              color: t.type === 'BUY' ? '#10B981' : '#EF4444',
+                            }}
+                          >
+                            {t.type}
+                          </span>
+                        </td>
+                        <td style={{ padding: '10px 12px', fontFamily: 'var(--font-mono, monospace)', color: '#94A3B8' }}>
+                          {Number(t.lots).toFixed(2)}L
+                        </td>
+                        <td style={{ padding: '10px 12px', fontFamily: 'var(--font-mono, monospace)', color: '#94A3B8' }}>
+                          ${Number(t.entryPrice).toFixed(2)}
+                        </td>
+                        <td style={{ padding: '10px 12px', fontFamily: 'var(--font-mono, monospace)', color: '#F8FAFC' }}>
+                          ${Number(t.exitPrice).toFixed(2)}
+                        </td>
+                        <td style={{ padding: '10px 12px', color: '#64748B', fontSize: '11px' }}>
+                          {new Date(t.closeTime).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                        </td>
+                        <td style={{ padding: '10px 12px', color: '#94A3B8', fontSize: '11px' }}>
+                          {t.exitReason}
+                        </td>
+                        <td style={{ padding: '10px 16px', textAlign: 'right' }}>
+                          <span
+                            className="mono-nums"
+                            style={{
+                              fontWeight: 700,
+                              color: isProfit ? '#10B981' : t.pnl < 0 ? '#EF4444' : '#F8FAFC',
+                            }}
+                          >
+                            {t.pnl >= 0 ? '+' : ''}${Number(t.pnl).toFixed(2)}
+                          </span>
+                          <span style={{ fontSize: '10.5px', color: '#64748B', marginLeft: '6px' }}>
+                            ({t.pips >= 0 ? '+' : ''}{Number(t.pips).toFixed(1)}p)
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       )}
-    </div>
+    </section>
   );
 }

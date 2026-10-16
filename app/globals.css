@@ -1308,3 +1308,51 @@ footer a:hover { color: #624819 !important; text-decoration: underline; text-und
 .terminal-account-status.connected { color: var(--accent-green); }
 .terminal-account-status.disconnected { color: var(--accent-red); }
 .terminal-account-status.reconnecting { color: var(--accent-gold); }
+
+/* Velarion Terminal Workspace: Full-width dark navy deliberate theme */
+body:has(.terminal-workspace-wrapper),
+.terminal-workspace-wrapper {
+  background-color: #0B0F19 !important;
+  color: #F8FAFC !important;
+}
+
+body:has(.terminal-workspace-wrapper) .header-wrapper,
+.header-wrapper.header-terminal {
+  background-color: #0B0F19 !important;
+  border-bottom: 1px solid #1E293B !important;
+  color: #F8FAFC !important;
+}
+
+body:has(.terminal-workspace-wrapper) .header-container {
+  max-width: 1680px !important;
+}
+
+body:has(.terminal-workspace-wrapper) .footer {
+  background-color: #090D16 !important;
+  border-top: 1px solid #1E293B !important;
+  color: #94A3B8 !important;
+}
+
+body:has(.terminal-workspace-wrapper) .footer-container {
+  max-width: 1680px !important;
+}
+
+body:has(.terminal-workspace-wrapper) .nav-link-item {
+  color: #94A3B8 !important;
+}
+
+body:has(.terminal-workspace-wrapper) .nav-link-item:hover {
+  background-color: #111827 !important;
+  color: #F8FAFC !important;
+}
+
+body:has(.terminal-workspace-wrapper) .nav-link-item.active {
+  color: var(--accent-gold, #C5A059) !important;
+}
+
+@media (max-width: 768px) {
+  .terminal-workspace-wrapper {
+    padding: 12px 12px 40px !important;
+  }
+}
+
