@@ -13,8 +13,8 @@ export async function POST(request: Request) {
     const ref = String(body.ref || '').trim();
     const newsletterOptIn = Boolean(body.newsletterOptIn);
 
-    if (!mt5AccountId) {
-      return NextResponse.json({ error: 'Invalid MT5 Account ID' }, { status: 400 });
+    if (!mt5AccountId || !/^\d{6,10}$/.test(mt5AccountId)) {
+      return NextResponse.json({ error: 'Please enter a valid JustMarkets MT5 account ID (6 to 10 digits).' }, { status: 400 });
     }
 
     // Record attribution and consent telemetry
@@ -26,38 +26,50 @@ export async function POST(request: Request) {
       verifiedAt: new Date().toISOString()
     }));
 
-    // Connect to JustMarkets Partner verification or database
-    const isAffiliateValid = await verifyWithBrokerAPI(mt5AccountId, 'tohstb0d83');
-
-    if (!isAffiliateValid) {
-      return NextResponse.json(
-        { error: 'MT5 account not registered under Velarion partner link (code: tohstb0d83).' },
-        { status: 403 }
-      );
-    }
-
-    // Set secure HTTP-only cookie
-    const cookieStore = await cookies();
-
     // Check if this is the website owner account (Chrispine Abala Ashiruma)
     const isOwner =
       mt5AccountId === '1200533810' ||
       email === 'ashirumaabala@gmail.com' ||
       email.includes('ashiruma');
 
+    // Register user record in backend SQLite database if not present
+    try {
+      await fetch('http://127.0.0.1:8000/api/users/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          full_name: email ? email.split('@')[0] : `Trader #${mt5AccountId}`,
+          email: email || `trader-${mt5AccountId}@velarion.internal`,
+          justmarkets_account_id: mt5AccountId,
+          referral_code: ref || 'tohstb0d83',
+          server: 'JustMarkets-Live',
+          equity: isOwner ? 145.21 : 0.0
+        }),
+        signal: AbortSignal.timeout(3000)
+      });
+    } catch (dbErr) {
+      console.warn('[DB User Registration Warning]', dbErr);
+    }
+
+    // Connect to JustMarkets Partner verification check
+    const isAffiliateValid = await verifyWithBrokerAPI(mt5AccountId, 'tohstb0d83');
+
+    // Set secure HTTP-only cookies
+    const cookieStore = await cookies();
+
     const { AUTH_COOKIE_NAME, signSession } = await import('@/lib/auth');
     const sessionToken = await signSession({
       accountId: mt5AccountId,
       mt5Account: mt5AccountId,
-      email: email || (isOwner ? 'ashirumaabala@gmail.com' : 'trader@velarion.internal'),
+      email: email || (isOwner ? 'ashirumaabala@gmail.com' : `trader-${mt5AccountId}@velarion.internal`),
       role: isOwner ? 'admin' : 'trader',
       partnerCode: 'tohstb0d83',
-      verified: true,
+      verified: isOwner || isAffiliateValid,
       emailVerified: Boolean(email || isOwner),
       partnerAttributed: isOwner || isAffiliateValid,
       partnerPending: !isOwner && !isAffiliateValid,
       depositVerified: isOwner,
-      accountLinked: isOwner || isAffiliateValid,
+      accountLinked: true,
       tradingActivated: false, // Linking NEVER activates automated trading
     });
 
@@ -72,14 +84,36 @@ export async function POST(request: Request) {
     });
 
     cookieStore.set({
-      name: 'velarion_mt5_verified',
-      value: 'true',
+      name: 'velarion_mt5_account',
+      value: mt5AccountId,
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
-      maxAge: 60 * 60 * 24 * 30, // 30 days
+      maxAge: 60 * 60 * 24 * 30,
       path: '/',
     });
+
+    cookieStore.set({
+      name: 'velarion_mt5_verified',
+      value: (isOwner || isAffiliateValid) ? 'true' : 'false',
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 60 * 60 * 24 * 30,
+      path: '/',
+    });
+
+    if (!isOwner && !isAffiliateValid) {
+      cookieStore.set({
+        name: 'velarion_partner_pending',
+        value: 'true',
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: 60 * 60 * 24 * 7,
+        path: '/',
+      });
+    }
 
     if (isOwner && process.env.ADMIN_MASTER_SECRET) {
       cookieStore.set({
@@ -95,23 +129,26 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       success: true,
-      message: 'MT5 verified successfully!',
+      pending: !isOwner && !isAffiliateValid,
       isOwner,
+      message: isAffiliateValid || isOwner
+        ? 'MT5 verified successfully!'
+        : 'MT5 account linked. Submitted for desk verification via the official JustMarkets Partner Area.',
       user: {
         accountId: mt5AccountId,
         email: email || (isOwner ? 'ashirumaabala@gmail.com' : undefined),
         role: isOwner ? 'admin' : 'trader',
-        verified: true,
+        verified: isOwner || isAffiliateValid,
       },
     });
-  } catch {
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : 'Internal Server Error';
+    return NextResponse.json({ error: msg }, { status: 500 });
   }
 }
 
 async function verifyWithBrokerAPI(accountId: string, partnerCode: string): Promise<boolean> {
   const trimmed = accountId.trim();
-  // Validate standard JustMarkets MT5 account format (6-10 digits)
   if (!/^\d{6,10}$/.test(trimmed)) {
     return false;
   }
@@ -121,7 +158,26 @@ async function verifyWithBrokerAPI(accountId: string, partnerCode: string): Prom
     return true;
   }
 
-  // If JustMarkets Partner API token is configured, perform live affiliate check
+  // Check if account has been marked verified in backend database
+  try {
+    const adminRes = await fetch('http://127.0.0.1:8000/api/admin/users', {
+      headers: { 'Accept': 'application/json' },
+      signal: AbortSignal.timeout(2000)
+    });
+    if (adminRes.ok) {
+      const data = await adminRes.json();
+      const existing = (data.users || []).find((u: { justmarkets_account_id?: string; is_referral_verified?: boolean | number }) =>
+        String(u.justmarkets_account_id) === trimmed && Boolean(u.is_referral_verified)
+      );
+      if (existing) {
+        return true;
+      }
+    }
+  } catch {
+    // continue
+  }
+
+  // If custom JustMarkets Partner API token is configured, perform live check
   const partnerApiToken = process.env.JUSTMARKETS_PARTNER_API_TOKEN;
   if (partnerApiToken) {
     try {
@@ -138,11 +194,10 @@ async function verifyWithBrokerAPI(accountId: string, partnerCode: string): Prom
       }
       return false;
     } catch {
-      // Fail closed if broker verification API call fails
       return false;
     }
   }
 
-  // Fail closed: without partner API token or pre-verified registration, do not fabricate verification
+  // Fail closed: without partner API token or desk approval, do not fabricate instant success
   return false;
 }

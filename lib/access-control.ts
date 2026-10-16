@@ -97,8 +97,8 @@ export async function evaluateAccessJourney(): Promise<AccessStatusResponse> {
   } else if (isPartnerPending || accountId) {
     step2Status = 'pending';
     step2Reason = accountId
-      ? `MT5 #${accountId} submitted. Authoritative partner confirmation from the JustMarkets broker API is pending synchronization. A referral link click alone does not complete verification.`
-      : 'Partner registration is pending authoritative broker verification. A referral click alone is not evidence that an account was created under the partner.';
+      ? `MT5 #${accountId} submitted. Queued for attribution verification against the official JustMarkets Partner Area Client List report (code: tohstb0d83). A referral link click alone does not complete verification.`
+      : 'Partner registration is pending authoritative verification against the JustMarkets Partner Area Client List. A referral click alone is not evidence that an account was created under the partner.';
     step2Action = 'Check Status';
     step2Url = '#check-again';
   } else {
