@@ -23,16 +23,15 @@ export async function GET(request: Request) {
   const timeframe = searchParams.get('timeframe') || 'M15';
   const count = searchParams.get('count') || '200';
 
-  const apiBase = (process.env.NEXT_PUBLIC_TRADING_API_URL || 'http://localhost:8000').replace(/\/$/, '');
+  const { getTradingApiBase, getTradingApiHeaders } = await import('@/lib/tradingApi');
+  const apiBase = getTradingApiBase();
 
   try {
     const res = await fetch(
       `${apiBase}/api/candles/history?timeframe=${encodeURIComponent(timeframe)}&count=${encodeURIComponent(count)}`,
       {
         cache: 'no-store',
-        headers: {
-          'Accept': 'application/json'
-        }
+        headers: getTradingApiHeaders()
       }
     );
 

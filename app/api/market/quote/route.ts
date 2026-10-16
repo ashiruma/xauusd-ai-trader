@@ -49,14 +49,13 @@ export async function GET() {
     return NextResponse.json(cachedQuote);
   }
 
-  const apiBase = (process.env.NEXT_PUBLIC_TRADING_API_URL || 'http://localhost:8000').replace(/\/$/, '');
+  const { getTradingApiBase, getTradingApiHeaders } = await import('@/lib/tradingApi');
+  const apiBase = getTradingApiBase();
 
   try {
     const res = await fetch(`${apiBase}/api/market/quote`, {
       cache: 'no-store',
-      headers: {
-        'Accept': 'application/json'
-      }
+      headers: getTradingApiHeaders()
     });
 
     if (res.ok) {

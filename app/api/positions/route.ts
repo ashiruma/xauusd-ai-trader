@@ -19,14 +19,13 @@ export async function GET() {
     );
   }
 
-  const apiBase = (process.env.NEXT_PUBLIC_TRADING_API_URL || 'http://localhost:8000').replace(/\/$/, '');
+  const { getTradingApiBase, getTradingApiHeaders } = await import('@/lib/tradingApi');
+  const apiBase = getTradingApiBase();
 
   try {
     const res = await fetch(`${apiBase}/api/positions`, {
       cache: 'no-store',
-      headers: {
-        'Accept': 'application/json'
-      }
+      headers: getTradingApiHeaders()
     });
 
     if (res.ok) {

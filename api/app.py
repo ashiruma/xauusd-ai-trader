@@ -13,7 +13,7 @@ import os
 import random
 import re
 from typing import Dict, Any, Optional, List
-from fastapi import FastAPI, HTTPException, Body, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, HTTPException, Body, WebSocket, WebSocketDisconnect, Request, Depends
 from fastapi.encoders import jsonable_encoder
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -30,6 +30,21 @@ from performance.metrics import PerformanceEngine
 from performance.trade_journal import TradeJournal
 
 logger = logging.getLogger(__name__)
+
+
+def verify_internal_api_key(request: Request):
+    """Optional security check: if VELARION_INTERNAL_API_KEY is configured in env, require it."""
+    expected_key = os.getenv("VELARION_INTERNAL_API_KEY") or os.getenv("TRADING_API_KEY")
+    if not expected_key:
+        return True
+    provided_key = request.headers.get("x-velarion-key")
+    if not provided_key:
+        auth_header = request.headers.get("authorization", "")
+        if auth_header.startswith("Bearer "):
+            provided_key = auth_header[7:].strip()
+    if provided_key != expected_key:
+        raise HTTPException(status_code=401, detail="Unauthorized: Invalid internal API key")
+    return True
 
 
 class ConnectionManager:
@@ -1185,7 +1200,8 @@ async def get_profit_manager_status():
     }
 
 
-@app.post("/api/risk/emergency-stop")
+@app.post("/api/risk/emergency-stop", dependencies=[Depends(verify_internal_api_key)])
+@app.post("/api/emergency_stop", dependencies=[Depends(verify_internal_api_key)])
 async def set_emergency_stop(req: EmergencyStopRequest):
     coordinator.risk_engine.set_emergency_stop(req.enabled, req.reason)
     return {
@@ -1219,7 +1235,7 @@ async def get_algo_trading_status():
     }
 
 
-@app.post("/api/live/start")
+@app.post("/api/live/start", dependencies=[Depends(verify_internal_api_key)])
 async def start_live_trading():
     from execution.live_trader import live_trader
     started = live_trader.start(background=True)
@@ -1231,7 +1247,7 @@ async def start_live_trading():
     }
 
 
-@app.post("/api/live/stop")
+@app.post("/api/live/stop", dependencies=[Depends(verify_internal_api_key)])
 async def stop_live_trading():
     from execution.live_trader import live_trader
     live_trader.stop()

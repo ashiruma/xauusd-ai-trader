@@ -84,14 +84,16 @@ export async function GET() {
     }
   }
 
-  const apiBase = (process.env.NEXT_PUBLIC_TRADING_API_URL || 'http://localhost:8000').replace(/\/$/, '');
+  const { getTradingApiBase, getTradingApiHeaders } = await import('@/lib/tradingApi');
+  const apiBase = getTradingApiBase();
+  const apiHeaders = getTradingApiHeaders();
 
   try {
     const [quoteRes, accRes, posRes, journalRes] = await Promise.all([
-      fetch(`${apiBase}/api/market/quote`, { cache: 'no-store' }),
-      fetch(`${apiBase}/api/account/info`, { cache: 'no-store' }),
-      fetch(`${apiBase}/api/positions`, { cache: 'no-store' }),
-      fetch(`${apiBase}/api/journal?limit=20`, { cache: 'no-store' }).catch(() => null)
+      fetch(`${apiBase}/api/market/quote`, { cache: 'no-store', headers: apiHeaders }),
+      fetch(`${apiBase}/api/account/info`, { cache: 'no-store', headers: apiHeaders }),
+      fetch(`${apiBase}/api/positions`, { cache: 'no-store', headers: apiHeaders }),
+      fetch(`${apiBase}/api/journal?limit=20`, { cache: 'no-store', headers: apiHeaders }).catch(() => null)
     ]);
 
     const quoteData = quoteRes.ok ? await quoteRes.json() : null;
@@ -316,14 +318,16 @@ export async function POST(request: Request) {
 
   try {
     const body = await request.json().catch(() => ({}));
-    const apiBase = (process.env.NEXT_PUBLIC_TRADING_API_URL || 'http://localhost:8000').replace(/\/$/, '');
+    const { getTradingApiBase, getTradingApiHeaders } = await import('@/lib/tradingApi');
+    const apiBase = getTradingApiBase();
+    const apiHeaders = { 'Content-Type': 'application/json', ...getTradingApiHeaders() };
 
     // Emergency kill switch toggle
     if (body.action === 'toggleEmergencyPause') {
       const paused = Boolean(body.paused);
-      await fetch(`${apiBase}/api/risk/emergency-stop`, {
+      await fetch(`${apiBase}/api/emergency_stop`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: apiHeaders,
         body: JSON.stringify({ enabled: paused, reason: 'UI Emergency Kill Switch' })
       }).catch(() => null);
 
