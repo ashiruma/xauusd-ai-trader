@@ -31,16 +31,6 @@ export async function POST(request: Request) {
         });
       }
 
-      cookieStore.set({
-        name: 'velarion_mt5_verified',
-        value: 'true',
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
-        maxAge: 60 * 60 * 24 * 365,
-        path: '/',
-      });
-
       const { AUTH_COOKIE_NAME, signSession } = await import('@/lib/auth');
       const sessionToken = await signSession({
         accountId: '1200533810',
@@ -101,12 +91,15 @@ export async function POST(request: Request) {
 
 export async function GET() {
   const cookieStore = await cookies();
-  const hasAdmin = Boolean(cookieStore.get('velarion_admin_token')?.value);
-  const isMt5Verified = cookieStore.get('velarion_mt5_verified')?.value === 'true';
+  const { getServerSession } = await import('@/lib/auth');
+  const session = await getServerSession();
+  const masterSecret = process.env.ADMIN_MASTER_SECRET;
+  const adminToken = cookieStore.get('velarion_admin_token')?.value;
+  const hasAdmin = Boolean(masterSecret && adminToken === masterSecret) || session?.role === 'admin';
 
   return NextResponse.json({
     hasAdminSession: hasAdmin,
-    isMt5Verified,
+    isVerified: Boolean(session?.verified),
     adminRoute: '/admin-secure-x9f8k2'
   });
 }

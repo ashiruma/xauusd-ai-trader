@@ -370,11 +370,15 @@ def test_partner_config_and_kick_user(client):
 def test_partner_drip_down_routing(client):
     from api.app import db
     try:
-        # Reset to base primary and secondary config with 2 limit for test
+        # Check current primary count to make test isolation resilient
+        init_res = client.get("/api/partner/config")
+        cur_p_count = init_res.json().get("primary_count", 0)
+
+        # Set limit to cur_p_count + 2 for test
         client.post("/api/partner/config", json={
             "primary_code": "tohstb0d83",
             "primary_link": "https://one.justmarkets.link/a/tohstb0d83",
-            "primary_limit": 2,
+            "primary_limit": cur_p_count + 2,
             "secondary_code": "p4cui0wkfz",
             "secondary_link": "https://one.justmarkets.link/a/p4cui0wkfz"
         })
@@ -400,7 +404,7 @@ def test_partner_drip_down_routing(client):
         assert r1.json()["success"] is True
         assert r1.json()["is_referral_verified"] is True
 
-        # Register trader 2 under primary code (reaches limit of 2)
+        # Register trader 2 under primary code (reaches limit)
         r2 = client.post("/api/users/register", json={
             "full_name": "Primary Trader 2",
             "email": "primary2@goldfx.io",
@@ -413,7 +417,7 @@ def test_partner_drip_down_routing(client):
         # Check drip status now: should be active and routed to secondary link
         cfg_res2 = client.get("/api/partner/config")
         cfg2 = cfg_res2.json()
-        assert cfg2["primary_count"] == 2
+        assert cfg2["primary_count"] == cur_p_count + 2
         assert cfg2["is_drip_active"] is True
         assert cfg2["active_tier"] == "secondary"
         assert cfg2["active_code"] == "p4cui0wkfz"

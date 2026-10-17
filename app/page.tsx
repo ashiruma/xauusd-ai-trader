@@ -1,6 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
 import LiveSpotFeed from '@/components/LiveSpotFeed';
+import GatedAccessCard from '@/components/GatedAccessCard';
 import { DEFAULT_PARTNER_CONFIG } from '@/lib/partner';
 import { getServerLiveQuote } from '@/lib/marketFeed';
 
@@ -13,244 +14,249 @@ export default function HomePage() {
   const initialQuote = getServerLiveQuote();
 
   return (
-    <div className="home-page">
-      {/* ============================================================== */}
-      {/* ROLLS-ROYCE EXECUTIVE SPLIT-SCREEN LANDING HERO                */}
-      {/* ============================================================== */}
-      <section className="nova-page" style={{ minHeight: 'calc(100vh - 68px)' }}>
-        {/* Full-Bleed Rolls-Royce Starlight Interior & Executive Photo */}
-        <div className="nova-bg-image" aria-hidden="true" />
+    <div style={{ backgroundColor: '#F8FAFC', minHeight: '100vh', color: '#0F172A' }}>
 
-        {/* Bottom-Left Contemplative Editorial Storytelling */}
-        <div className="nova-story">
+      {/* ============================================================== */}
+      {/* 1. HERO: ROLLS-ROYCE EXECUTIVE & TRADZY-STYLE GATED ACCESS     */}
+      {/* ============================================================== */}
+      <section style={{ padding: '48px 24px 64px', maxWidth: '1280px', margin: '0 auto' }}>
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))',
+            gap: '40px',
+            alignItems: 'center',
+          }}
+        >
+          {/* Left: Rolls-Royce Executive Image & Editorial Lifestyle Visual */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            <div
+              style={{
+                position: 'relative',
+                borderRadius: '16px',
+                overflow: 'hidden',
+                border: '1px solid #CBD5E1',
+                boxShadow: '0 20px 25px -5px rgba(15, 23, 42, 0.1), 0 8px 10px -6px rgba(15, 23, 42, 0.05)',
+                aspectRatio: '16/9',
+                backgroundColor: '#0F172A',
+              }}
+            >
+              <img
+                src="/rolls_royce_black_exec.jpg"
+                alt="Velarion Quantitative Gold Trading Lifestyle"
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover',
+                  display: 'block',
+                }}
+              />
+              <div
+                style={{
+                  position: 'absolute',
+                  inset: 0,
+                  background: 'linear-gradient(to top, rgba(15, 23, 42, 0.85) 0%, rgba(15, 23, 42, 0.15) 60%, transparent 100%)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'flex-end',
+                  padding: '24px',
+                }}
+              >
+                <span
+                  style={{
+                    fontSize: '11px',
+                    fontFamily: 'var(--font-mono, monospace)',
+                    color: '#F5C451',
+                    fontWeight: 700,
+                    letterSpacing: '1px',
+                    textTransform: 'uppercase',
+                    marginBottom: '4px',
+                  }}
+                >
+                  Quantitative Spot Gold
+                </span>
+                <h1
+                  style={{
+                    fontSize: '24px',
+                    fontWeight: 800,
+                    color: '#FFFFFF',
+                    margin: 0,
+                    lineHeight: 1.25,
+                  }}
+                >
+                  Trade the market from a position of clarity.
+                </h1>
+              </div>
+            </div>
+
+            <p style={{ fontSize: '15px', color: '#475569', lineHeight: 1.6, margin: 0 }}>
+              Autonomous spot gold quantitative execution and 30-lesson structured academy. Access is 100% subsidized through our official JustMarkets Introducing Broker partnership.
+            </p>
+
+            <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+              <span
+                style={{
+                  fontSize: '11.5px',
+                  fontWeight: 600,
+                  color: '#047857',
+                  background: 'rgba(4, 120, 87, 0.08)',
+                  padding: '4px 10px',
+                  borderRadius: '6px',
+                  border: '1px solid rgba(4, 120, 87, 0.2)',
+                }}
+              >
+                Non-Custodial Broker Protection
+              </span>
+              <span
+                style={{
+                  fontSize: '11.5px',
+                  fontWeight: 600,
+                  color: '#B45309',
+                  background: 'rgba(180, 83, 9, 0.08)',
+                  padding: '4px 10px',
+                  borderRadius: '6px',
+                  border: '1px solid rgba(180, 83, 9, 0.2)',
+                }}
+              >
+                $10 Micro-Deposit Eligible
+              </span>
+              <span
+                style={{
+                  fontSize: '11.5px',
+                  fontWeight: 600,
+                  color: '#0369A1',
+                  background: 'rgba(3, 105, 161, 0.08)',
+                  padding: '4px 10px',
+                  borderRadius: '6px',
+                  border: '1px solid rgba(3, 105, 161, 0.2)',
+                }}
+              >
+                Zero Platform Fees
+              </span>
+            </div>
+          </div>
+
+          {/* Right: Focused Tradzy-Style Gated Entry Card */}
+          <div style={{ display: 'flex', justifyContent: 'center' }}>
+            <GatedAccessCard />
+          </div>
+        </div>
+      </section>
+
+      {/* ============================================================== */}
+      {/* 2. THREE CLEAN DIRECT PILLARS — "MONEY DOES NOT LOVE NOISE"   */}
+      {/* ============================================================== */}
+      <section style={{ backgroundColor: '#FFFFFF', borderTop: '1px solid #E2E8F0', borderBottom: '1px solid #E2E8F0', padding: '54px 24px' }}>
+        <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
+          <div style={{ marginBottom: '32px', textAlign: 'center' }}>
+            <span
+              style={{
+                fontSize: '11px',
+                fontFamily: 'var(--font-mono, monospace)',
+                color: '#B45309',
+                fontWeight: 700,
+                letterSpacing: '1px',
+                textTransform: 'uppercase',
+              }}
+            >
+              Straightforward Architecture
+            </span>
+            <h2 style={{ fontSize: '24px', fontWeight: 800, color: '#0F172A', marginTop: '4px' }}>
+              Built for precision, not noise.
+            </h2>
+          </div>
+
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+              gap: '24px',
+            }}
+          >
+            {/* Pillar 1 */}
+            <div
+              style={{
+                background: '#F8FAFC',
+                border: '1px solid #CBD5E1',
+                borderRadius: '10px',
+                padding: '24px',
+              }}
+            >
+              <div style={{ fontSize: '11px', fontFamily: 'var(--font-mono, monospace)', color: '#B45309', fontWeight: 700, marginBottom: '8px' }}>
+                01 / SECURITY
+              </div>
+              <h3 style={{ fontSize: '17px', fontWeight: 700, color: '#0F172A', margin: '0 0 8px' }}>
+                Non-Custodial Safety
+              </h3>
+              <p style={{ fontSize: '13.5px', color: '#64748B', lineHeight: 1.6, margin: 0 }}>
+                Your capital remains 100% inside your own JustMarkets MT5 account. Velarion never accepts deposits or manages client money.
+              </p>
+            </div>
+
+            {/* Pillar 2 */}
+            <div
+              style={{
+                background: '#F8FAFC',
+                border: '1px solid #CBD5E1',
+                borderRadius: '10px',
+                padding: '24px',
+              }}
+            >
+              <div style={{ fontSize: '11px', fontFamily: 'var(--font-mono, monospace)', color: '#047857', fontWeight: 700, marginBottom: '8px' }}>
+                02 / ACCESS
+              </div>
+              <h3 style={{ fontSize: '17px', fontWeight: 700, color: '#0F172A', margin: '0 0 8px' }}>
+                Subsidized Membership
+              </h3>
+              <p style={{ fontSize: '13.5px', color: '#64748B', lineHeight: 1.6, margin: 0 }}>
+                Zero platform subscription fees. Access to the terminal and educational courses is fully covered through our official broker partner rebate.
+              </p>
+            </div>
+
+            {/* Pillar 3 */}
+            <div
+              style={{
+                background: '#F8FAFC',
+                border: '1px solid #CBD5E1',
+                borderRadius: '10px',
+                padding: '24px',
+              }}
+            >
+              <div style={{ fontSize: '11px', fontFamily: 'var(--font-mono, monospace)', color: '#0369A1', fontWeight: 700, marginBottom: '8px' }}>
+                03 / MASTERY
+              </div>
+              <h3 style={{ fontSize: '17px', fontWeight: 700, color: '#0F172A', margin: '0 0 8px' }}>
+                30-Lesson Forex School
+              </h3>
+              <p style={{ fontSize: '13.5px', color: '#64748B', lineHeight: 1.6, margin: 0 }}>
+                Master market mechanics, liquidity sweeps, and disciplined risk limits before entering live execution.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ============================================================== */}
+      {/* 3. LIVE MARKET TELEMETRY STRIP                                 */}
+      {/* ============================================================== */}
+      <section style={{ padding: '48px 24px', maxWidth: '840px', margin: '0 auto' }}>
+        <div style={{ marginBottom: '16px', textAlign: 'center' }}>
           <span
             style={{
               fontSize: '11px',
               fontFamily: 'var(--font-mono, monospace)',
               fontWeight: 700,
-              letterSpacing: '1.2px',
+              color: '#64748B',
+              letterSpacing: '1px',
               textTransform: 'uppercase',
-              color: '#eab167',
             }}
           >
-            Quantitative XAUUSD Platform
+            Live Market Telemetry
           </span>
-          <h2>
-            Trade the market from a position of <span>clarity</span>.
-          </h2>
-          <p style={{ fontSize: '14.5px', color: '#CBD5E1', lineHeight: 1.65, maxWidth: '540px' }}>
-            Autonomous spot gold quantitative intelligence, 4 rule-based execution models, and 30-lesson structured education. Access is fully subsidized through our official Introducing Broker partnership.
-          </p>
-
-          <div className="nova-story-badges">
-            <div className="nova-story-pill">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10B981" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <polyline points="20 6 9 17 4 12" />
-              </svg>
-              <span>Non-Custodial: Funds Stay With Broker</span>
-            </div>
-            <div className="nova-story-pill">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#eab167" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <polyline points="20 6 9 17 4 12" />
-              </svg>
-              <span>$10 Micro-Balance Eligible</span>
-            </div>
-            <div className="nova-story-pill">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#38BDF8" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <polyline points="20 6 9 17 4 12" />
-              </svg>
-              <span>Zero Software Fees</span>
-            </div>
-          </div>
         </div>
-
-        {/* Right Split Panel - Dark Translucent Glass Command & Telemetry Panel */}
-        <div className="nova-panel-wrap" style={{ minHeight: 'calc(100vh - 68px)' }}>
-          <div className="nova-panel" style={{ gap: '20px' }}>
-            <div>
-              <span
-                style={{
-                  display: 'inline-block',
-                  fontSize: '10.5px',
-                  fontFamily: 'var(--font-mono, monospace)',
-                  fontWeight: 700,
-                  letterSpacing: '0.12em',
-                  textTransform: 'uppercase',
-                  color: '#eab167',
-                  marginBottom: '8px',
-                }}
-              >
-                INSTITUTIONAL ACCESS PORTAL
-              </span>
-              <h1>Learn the market. Trade with a plan.</h1>
-              <p className="nova-subtitle" style={{ marginBottom: '16px' }}>
-                Build your gold-trading foundation in our 30-lesson Forex School, then link your JustMarkets MT5 account to unlock live market telemetry and quantitative models.
-              </p>
-
-              {/* Quick Partner & Status Row */}
-              <div className="nova-social-row" style={{ marginBottom: '16px' }}>
-                <a
-                  href={DEFAULT_PARTNER_CONFIG.primaryLink}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="nova-social-btn"
-                >
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#eab167" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-                    <polyline points="15 3 21 3 21 9" />
-                    <line x1="10" y1="14" x2="21" y2="3" />
-                  </svg>
-                  <span>Register on JustMarkets</span>
-                </a>
-                <Link href="/verification" className="nova-social-btn">
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#38BDF8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                    <circle cx="12" cy="12" r="10" />
-                    <polyline points="12 6 12 12 16 14" />
-                  </svg>
-                  <span>Check Access Status</span>
-                </Link>
-              </div>
-
-              {/* Primary & Secondary Action Buttons */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '20px' }}>
-                <Link href="/onboarding?redirect=/terminal" className="nova-submit-btn" style={{ textDecoration: 'none' }}>
-                  <span>Connect MT5 Account &amp; Proceed</span>
-                  <span aria-hidden="true">&rarr;</span>
-                </Link>
-                <Link
-                  href="/academy"
-                  className="nova-social-btn"
-                  style={{ padding: '12px 16px', justifyContent: 'center', borderColor: 'rgba(234, 177, 103, 0.28)' }}
-                >
-                  <span>Start 30-Lesson Forex School (Lessons 1-5 Free)</span>
-                  <span aria-hidden="true">&rarr;</span>
-                </Link>
-              </div>
-            </div>
-
-            <div className="nova-divider" style={{ margin: '4px 0 8px' }}>
-              LIVE XAUUSD TELEMETRY
-            </div>
-
-            {/* Embedded Live Spot Gold Feed */}
-            <div>
-              <LiveSpotFeed initialQuote={initialQuote} />
-              <div className="nova-disclosure-footer" style={{ marginTop: '14px', paddingTop: '12px' }}>
-                <strong style={{ color: '#94A3B8' }}>Non-Custodial Execution:</strong> Your trading capital remains inside your own JustMarkets MT5 account. Market data and setup rationales are informational; leveraged gold trading involves significant risk of loss.
-              </div>
-            </div>
-          </div>
-        </div>
+        <LiveSpotFeed initialQuote={initialQuote} />
       </section>
 
-      {/* ============================================================== */}
-      {/* SECTION 2: 4-STEP INSTITUTIONAL PATH                           */}
-      {/* ============================================================== */}
-      <section className="home-journey section-block" aria-labelledby="journey-title">
-        <div className="container-main">
-          <div className="section-heading-row">
-            <div>
-              <span className="section-eyebrow">Your Path</span>
-              <h2 id="journey-title" style={{ fontFamily: 'var(--font-display, "Fraunces", Georgia, serif)', fontWeight: 500 }}>
-                Learn first. Connect when you are ready.
-              </h2>
-              <p>Partner-sponsored access follows a transparent, sequential verification path.</p>
-            </div>
-          </div>
-          <div className="journey-grid">
-            <article className="journey-card">
-              <span className="journey-number">01</span>
-              <h3 style={{ fontFamily: 'var(--font-display, "Fraunces", Georgia, serif)', fontWeight: 500 }}>Register through our partner</h3>
-              <p>Create your MT5 account through the official JustMarkets partner link (`tohstb0d83`).</p>
-              <a className="text-link" href={DEFAULT_PARTNER_CONFIG.primaryLink} target="_blank" rel="noopener noreferrer">
-                Open partner account <span aria-hidden="true">&#8599;</span>
-              </a>
-            </article>
-            <article className="journey-card">
-              <span className="journey-number">02</span>
-              <h3 style={{ fontFamily: 'var(--font-display, "Fraunces", Georgia, serif)', fontWeight: 500 }}>Fund your broker account</h3>
-              <p>Deposit directly with JustMarkets ($10 minimum on Standard Cent/Standard; $200 on Pro). Velarion never holds your capital.</p>
-              <span className="journey-note">Funds remain with your broker</span>
-            </article>
-            <article className="journey-card">
-              <span className="journey-number">03</span>
-              <h3 style={{ fontFamily: 'var(--font-display, "Fraunces", Georgia, serif)', fontWeight: 500 }}>Build your trading knowledge</h3>
-              <p>Complete our 30-lesson curriculum sequentially. Each module ends with a comprehension check.</p>
-              <Link className="text-link" href="/academy">
-                Explore the 30 lessons <span aria-hidden="true">&rarr;</span>
-              </Link>
-            </article>
-            <article className="journey-card">
-              <span className="journey-number">04</span>
-              <h3 style={{ fontFamily: 'var(--font-display, "Fraunces", Georgia, serif)', fontWeight: 500 }}>Verify &amp; review live context</h3>
-              <p>Link your MT5 account and pass the 6-step access gate to inspect real-time XAUUSD setups and risk metrics.</p>
-              <Link className="text-link" href="/verification">
-                Open Verification Gate <span aria-hidden="true">&rarr;</span>
-              </Link>
-            </article>
-          </div>
-          <p className="home-partner-footnote">
-            Partner access is subject to server-side broker attribution, account tier margin eligibility, and sequential School completion.
-          </p>
-        </div>
-      </section>
-
-      {/* ============================================================== */}
-      {/* SECTION 3: PLATFORM CAPABILITIES                               */}
-      {/* ============================================================== */}
-      <section className="home-tools section-block" aria-labelledby="tools-title">
-        <div className="container-main">
-          <div className="section-heading-row">
-            <div>
-              <span className="section-eyebrow">Explore the Platform</span>
-              <h2 id="tools-title" style={{ fontFamily: 'var(--font-display, "Fraunces", Georgia, serif)', fontWeight: 500 }}>
-                Built for disciplined XAUUSD execution.
-              </h2>
-            </div>
-          </div>
-          <div className="home-tools-grid">
-            <Link className="home-tool-card" href="/academy">
-              <span className="home-tool-icon" aria-hidden="true">01</span>
-              <div>
-                <h3 style={{ fontFamily: 'var(--font-display, "Fraunces", Georgia, serif)', fontWeight: 500 }}>Forex School</h3>
-                <p>30 structured lessons covering XAUUSD market mechanics, liquidity sweeps, and risk governance.</p>
-              </div>
-              <span className="home-tool-arrow" aria-hidden="true">&#8599;</span>
-            </Link>
-            <Link className="home-tool-card" href="/strategies">
-              <span className="home-tool-icon" aria-hidden="true">02</span>
-              <div>
-                <h3 style={{ fontFamily: 'var(--font-display, "Fraunces", Georgia, serif)', fontWeight: 500 }}>Quantitative Models</h3>
-                <p>Inspect the Trend Continuation v2 rule set, 1.8:1 minimum R:R filter, and ATR protective stop logic.</p>
-              </div>
-              <span className="home-tool-arrow" aria-hidden="true">&#8599;</span>
-            </Link>
-            <Link className="home-tool-card" href="/tools/growth-calculator">
-              <span className="home-tool-icon" aria-hidden="true">03</span>
-              <div>
-                <h3 style={{ fontFamily: 'var(--font-display, "Fraunces", Georgia, serif)', fontWeight: 500 }}>Risk &amp; Margin Calculator</h3>
-                <p>Simulate lot sizing, Standard Cent vs. Standard contract exposure, and drawdown ceilings before trading.</p>
-              </div>
-              <span className="home-tool-arrow" aria-hidden="true">&#8599;</span>
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* ============================================================== */}
-      {/* SECTION 4: RISK DISCLOSURE BAR                                 */}
-      {/* ============================================================== */}
-      <section className="home-disclosure">
-        <div className="container-main home-disclosure-inner">
-          <strong>Trading Risk Notice</strong>
-          <p>
-            Spot gold (XAUUSD) and leveraged derivative products carry a high level of risk and can result in the loss of some or all of your invested capital. Past performance is not indicative of future results.
-          </p>
-          <Link href="/why-gold">
-            Read the XAUUSD Dossier <span aria-hidden="true">&rarr;</span>
-          </Link>
-        </div>
-      </section>
     </div>
   );
 }

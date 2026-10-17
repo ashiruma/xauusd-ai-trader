@@ -3,12 +3,11 @@ import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { Metadata } from 'next';
 import { AUTH_COOKIE_NAME, verifySession } from '@/lib/auth';
-import CockpitTerminal from '@/components/terminal/CockpitTerminal';
-import TradeHistoryPanel from '@/components/terminal/TradeHistoryPanel';
+import TradingViewTerminal from '@/components/terminal/TradingViewTerminal';
 
 export const metadata: Metadata = {
-  title: 'XAUUSD Cockpit Trading Terminal | Velarion Markets',
-  description: 'High-density institutional XAUUSD futures trading terminal with depth-of-market ladder, real-time candlestick charts, positions blotter, and live P&L tape.',
+  title: 'XAUUSD Trading Terminal | Velarion Markets & JustMarkets',
+  description: 'Full-scale TradingView real-time charting and JustMarkets ECN execution blotter.',
   robots: { index: false, follow: false },
 };
 
@@ -21,9 +20,7 @@ export default async function TerminalPage() {
 
   const isOwner = Boolean(
     (adminSecret && adminToken === adminSecret) ||
-    session?.role === 'admin' ||
-    session?.accountId === '1200533810' ||
-    session?.email === 'ashirumaabala@gmail.com'
+    session?.role === 'admin'
   );
 
   const isFullyGated = Boolean(
@@ -41,13 +38,13 @@ export default async function TerminalPage() {
     redirect('/verification?redirect=/terminal');
   }
 
-  const accountId = session?.mt5Account || session?.accountId || (isOwner ? '1200533810 (ADMIN)' : '1200533810');
+  const accountId = session?.mt5Account || session?.accountId || (isOwner ? '1200533810 (ADMIN)' : 'UNLINKED');
 
   return (
     <div
       className="terminal-workspace-wrapper"
       style={{
-        backgroundColor: '#0A0F1C',
+        backgroundColor: '#070B14',
         minHeight: 'calc(100vh - 65px)',
         color: '#F8FAFC',
         padding: '16px 20px 48px',
@@ -55,7 +52,7 @@ export default async function TerminalPage() {
     >
       <div style={{ maxWidth: '1720px', margin: '0 auto', width: '100%' }}>
         
-        {/* Streamlined Workspace Context Bar */}
+        {/* Workspace Context Bar */}
         <div
           style={{
             display: 'flex',
@@ -68,57 +65,46 @@ export default async function TerminalPage() {
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-            <img
-              src="/velarion_emblem_dark.png"
-              alt="Velarion"
-              width={22}
-              height={22}
-              style={{ height: '20px', width: 'auto', display: 'block' }}
-            />
             <span
               style={{
                 fontSize: '11px',
-                color: 'var(--accent-gold, #F5C451)',
+                color: '#F5C451',
                 textTransform: 'uppercase',
                 fontWeight: 700,
                 letterSpacing: '0.6px',
                 fontFamily: 'JetBrains Mono, monospace',
               }}
             >
-              Cockpit Terminal Active
+              [VELARION TERMINAL]
             </span>
-            <span style={{ color: '#1B2538' }}>/</span>
+            <span style={{ color: '#334155' }}>/</span>
             <span
               style={{
                 fontSize: '11px',
                 fontWeight: 700,
-                color: '#26D07C',
-                background: 'rgba(38, 208, 124, 0.1)',
+                color: '#10B981',
+                background: 'rgba(16, 185, 129, 0.1)',
                 padding: '2px 8px',
-                border: '1px solid rgba(38, 208, 124, 0.25)',
+                borderRadius: '4px',
+                border: '1px solid rgba(16, 185, 129, 0.25)',
                 fontFamily: 'JetBrains Mono, monospace',
               }}
             >
-              Account Verified
+              Verified Partner Session
             </span>
-            <span style={{ color: '#1B2538' }}>/</span>
+            <span style={{ color: '#334155' }}>/</span>
             <span style={{ color: '#CBD5E1', fontSize: '12px', fontFamily: 'JetBrains Mono, monospace' }}>
-              JustMarkets MT5: <strong style={{ color: 'var(--accent-gold, #F5C451)' }}>#{accountId}</strong>
+              JustMarkets MT5: <strong style={{ color: '#F5C451' }}>#{accountId}</strong>
             </span>
           </div>
 
-          <div style={{ fontSize: '11px', color: '#8B97A8', fontFamily: 'JetBrains Mono, monospace' }}>
-            Non-custodial execution guarantee / 100% of capital remains deposited with JustMarkets
+          <div style={{ fontSize: '11px', color: '#64748B', fontFamily: 'JetBrains Mono, monospace' }}>
+            Non-custodial execution guarantee: Capital deposited exclusively with JustMarkets
           </div>
         </div>
 
-        {/* Primary Cockpit Dashboard Terminal Component */}
-        <CockpitTerminal />
-
-        {/* Collapsible Closed Fills & Execution History */}
-        <div style={{ marginTop: '20px' }}>
-          <TradeHistoryPanel />
-        </div>
+        {/* Primary Full-Scale TradingView Terminal Component */}
+        <TradingViewTerminal accountId={accountId} />
 
       </div>
     </div>

@@ -68,14 +68,14 @@ export default function CookieConsent() {
           className="btn btn-primary"
           style={{ fontSize: '12px', padding: '6px 14px' }}
         >
-          Accept
+          Accept All
         </button>
         <button
           onClick={() => handleConsent('essential')}
           className="btn btn-secondary"
           style={{ fontSize: '12px', padding: '6px 14px' }}
         >
-          Essential Only
+          Accept Essential Only
         </button>
       </div>
     </div>

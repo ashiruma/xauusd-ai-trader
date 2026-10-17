@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import Link from 'next/link';
 
 interface PositionItem {
   ticket: number;
@@ -24,24 +23,33 @@ interface FillItem {
   price: number;
 }
 
+interface CandlePoint {
+  o: number;
+  c: number;
+  hi: number;
+  lo: number;
+  v: number;
+}
+
 export default function CockpitTerminal() {
   // Telemetry & Market States
-  const [clock, setClock] = useState('14:32:07');
+  const [clock, setClock] = useState('00:00:00');
   const [selectedTf, setSelectedTf] = useState<'1m' | '5m' | '15m' | '1H' | '4H' | '1D'>('5m');
   const [symbol] = useState('XAUUSD');
-  const [midPrice, setMidPrice] = useState(2658.40);
-  const [netPnl, setNetPnl] = useState(4287.50);
-  const [realizedPnl] = useState(1920.00);
-  const [equity, setEquity] = useState(248412.50);
-  const [commandText, setCommandText] = useState('BUY 0.10 XAUUSD @ LMT 2658.40');
+  const [midPrice, setMidPrice] = useState<number | null>(null);
+  const [bidPrice, setBidPrice] = useState<number | null>(null);
+  const [askPrice, setAskPrice] = useState<number | null>(null);
+  const [netPnl, setNetPnl] = useState<number>(0);
+  const [realizedPnl, setRealizedPnl] = useState<number>(0);
+  const [equity, setEquity] = useState<number>(0);
+  const [commandText, setCommandText] = useState('STANDBY: MT5 DISCONNECTED');
   const [activeFills, setActiveFills] = useState<FillItem[]>([]);
-  const [positions, setPositions] = useState<PositionItem[]>([
-    { ticket: 1084921, symbol: 'XAUUSD', side: 'LONG', volume: 0.10, openPrice: 2651.90, currentPrice: 2658.40, profit: 650.00, profitPercent: 0.25 },
-    { ticket: 1084930, symbol: 'XAUUSD', side: 'LONG', volume: 0.15, openPrice: 2649.20, currentPrice: 2658.40, profit: 1380.00, profitPercent: 0.35 },
-    { ticket: 1084942, symbol: 'XAUUSD', side: 'SHORT', volume: 0.05, openPrice: 2662.10, currentPrice: 2658.40, profit: 185.00, profitPercent: 0.14 },
-    { ticket: 1084955, symbol: 'XAUUSD', side: 'LONG', volume: 0.20, openPrice: 2654.50, currentPrice: 2658.40, profit: 780.00, profitPercent: 0.15 },
-  ]);
+  const [positions, setPositions] = useState<PositionItem[]>([]);
+  const [candles, setCandles] = useState<CandlePoint[]>([]);
+  const [isBridgeConnected, setIsBridgeConnected] = useState<boolean>(false);
+  const [pnlHistory, setPnlHistory] = useState<number[]>([]);
   const [focusedRow, setFocusedRow] = useState<number>(0);
+  const [isSyncing, setIsSyncing] = useState<boolean>(false);
 
   // Canvas Refs
   const chartCanvasRef = useRef<HTMLCanvasElement>(null);
@@ -58,69 +66,151 @@ export default function CockpitTerminal() {
     return () => clearInterval(timer);
   }, []);
 
-  // Fetch real positions from API
-  const syncPositions = useCallback(async () => {
+  // Fetch real quote
+  const syncQuote = useCallback(async () => {
     try {
-      const res = await fetch('/api/positions', { cache: 'no-store' });
+      const res = await fetch('/api/market/quote', { cache: 'no-store' });
       if (res.ok) {
         const data = await res.json();
-        if (Array.isArray(data.positions) && data.positions.length > 0) {
-          const mapped: PositionItem[] = data.positions.map((p: any) => ({
-            ticket: p.ticket || 100000,
-            symbol: p.symbol || 'XAUUSD',
-            side: (p.type === 0 || p.side === 'BUY' || p.side === 'LONG') ? 'LONG' : 'SHORT',
-            volume: p.volume || 0.10,
-            openPrice: p.open_price || p.price_open || 2650.00,
-            currentPrice: p.current_price || p.price_current || 2658.40,
-            profit: p.profit || 0,
-            profitPercent: p.profit_percent || 0.15,
-          }));
-          setPositions(mapped);
-          if (typeof data.equity === 'number') setEquity(data.equity);
+        if (data && data.isConnected && typeof data.price === 'number') {
+          setMidPrice(data.price);
+          setBidPrice(data.bid ?? null);
+          setAskPrice(data.ask ?? null);
+          setCommandText(`BUY 0.10 XAUUSD @ LMT ${data.price.toFixed(2)}`);
+        } else {
+          setMidPrice(null);
+          setBidPrice(null);
+          setAskPrice(null);
+          setCommandText('STANDBY: MT5 DISCONNECTED');
         }
       }
     } catch {
-      // Retain active buffer
+      setMidPrice(null);
+      setBidPrice(null);
+      setAskPrice(null);
+      setCommandText('STANDBY: MT5 DISCONNECTED');
     }
   }, []);
 
+  // Fetch real positions, account state, and fills from live broker route
+  const syncLiveState = useCallback(async () => {
+    try {
+      const res = await fetch('/api/trades/live', { cache: 'no-store' });
+      if (res.ok) {
+        const data = await res.json();
+        const connected = Boolean(data.isLiveBrokerConnection && data.status === 'ONLINE');
+        setIsBridgeConnected(connected);
+
+        if (connected) {
+          if (data.account) {
+            setEquity(Number(data.account.equity || 0));
+            setNetPnl(Number(data.account.openPnl || 0));
+            setRealizedPnl(Number(data.account.totalProfit || 0));
+          }
+
+          if (Array.isArray(data.positions)) {
+            const mapped: PositionItem[] = data.positions.map((p: any) => ({
+              ticket: p.ticket,
+              symbol: p.symbol || 'XAUUSD',
+              side: p.type === 'BUY' ? 'LONG' : 'SHORT',
+              volume: p.lots,
+              openPrice: p.entryPrice,
+              currentPrice: p.currentPrice,
+              profit: p.pnl,
+              profitPercent: p.riskExposurePct || 0,
+              stopLoss: p.stopLoss,
+              takeProfit: p.takeProfit,
+            }));
+            setPositions(mapped);
+          } else {
+            setPositions([]);
+          }
+
+          if (Array.isArray(data.recentTrades) && data.recentTrades.length > 0) {
+            const fills: FillItem[] = data.recentTrades.slice(0, 15).map((t: any) => ({
+              time: (t.closeTime || t.openTime || '').slice(11, 19) || '00:00:00',
+              side: t.type === 'BUY' ? 'BUY' : 'SELL',
+              qty: t.lots,
+              symbol: t.symbol || 'XAUUSD',
+              price: t.exitPrice || t.entryPrice || 0,
+            }));
+            setActiveFills(fills);
+
+            const runningPnls = data.recentTrades.map((t: any) => Number(t.pnl || 0));
+            setPnlHistory(runningPnls);
+          } else {
+            setActiveFills([]);
+            setPnlHistory([]);
+          }
+        } else {
+          setIsBridgeConnected(false);
+          setEquity(0);
+          setNetPnl(0);
+          setRealizedPnl(0);
+          setPositions([]);
+          setActiveFills([]);
+          setPnlHistory([]);
+        }
+      } else {
+        setIsBridgeConnected(false);
+        setPositions([]);
+        setActiveFills([]);
+        setPnlHistory([]);
+      }
+    } catch {
+      setIsBridgeConnected(false);
+      setPositions([]);
+      setActiveFills([]);
+      setPnlHistory([]);
+    }
+  }, []);
+
+  // Fetch real candles
+  const syncCandles = useCallback(async () => {
+    try {
+      const res = await fetch(`/api/candles/history?timeframe=${selectedTf}&count=48`, { cache: 'no-store' });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.is_connected && Array.isArray(data.candles) && data.candles.length > 0) {
+          const parsed: CandlePoint[] = data.candles.map((c: any) => ({
+            o: Number(c.open || c.o || 0),
+            hi: Number(c.high || c.hi || 0),
+            lo: Number(c.low || c.lo || 0),
+            c: Number(c.close || c.c || 0),
+            v: Number(c.volume || c.v || 0.5),
+          }));
+          setCandles(parsed);
+        } else {
+          setCandles([]);
+        }
+      } else {
+        setCandles([]);
+      }
+    } catch {
+      setCandles([]);
+    }
+  }, [selectedTf]);
+
+  const syncAll = useCallback(async () => {
+    setIsSyncing(true);
+    await Promise.all([syncQuote(), syncLiveState(), syncCandles()]);
+    setIsSyncing(false);
+  }, [syncQuote, syncLiveState, syncCandles]);
+
   useEffect(() => {
-    syncPositions();
-    const interval = setInterval(syncPositions, 3500);
+    syncAll();
+    const interval = setInterval(() => {
+      syncQuote();
+      syncLiveState();
+    }, 3000);
     return () => clearInterval(interval);
-  }, [syncPositions]);
+  }, [syncAll, syncQuote, syncLiveState]);
 
-  // Initial Fills tape
   useEffect(() => {
-    const initialFills: FillItem[] = [
-      { time: '14:31:52', side: 'BUY', qty: 0.10, symbol: 'XAUUSD', price: 2658.40 },
-      { time: '14:31:18', side: 'SELL', qty: 0.05, symbol: 'XAUUSD', price: 2658.15 },
-      { time: '14:30:45', side: 'BUY', qty: 0.20, symbol: 'XAUUSD', price: 2657.90 },
-      { time: '14:29:12', side: 'BUY', qty: 0.15, symbol: 'XAUUSD', price: 2657.50 },
-      { time: '14:28:01', side: 'SELL', qty: 0.10, symbol: 'XAUUSD', price: 2656.80 },
-    ];
-    setActiveFills(initialFills);
+    syncCandles();
+  }, [syncCandles, selectedTf]);
 
-    const fillInterval = setInterval(() => {
-      const now = new Date();
-      const timeStr = now.toTimeString().slice(0, 8);
-      const isBuy = Math.random() > 0.48;
-      const step = (Math.random() * 0.8 - 0.4);
-      const p = +(midPrice + step).toFixed(2);
-      const newFill: FillItem = {
-        time: timeStr,
-        side: isBuy ? 'BUY' : 'SELL',
-        qty: +([0.05, 0.10, 0.15, 0.20][Math.floor(Math.random() * 4)]),
-        symbol: 'XAUUSD',
-        price: p,
-      };
-      setActiveFills((prev) => [newFill, ...prev.slice(0, 14)]);
-    }, 4000);
-
-    return () => clearInterval(fillInterval);
-  }, [midPrice]);
-
-  // Generate Candlestick Chart on Canvas
+  // Render Candlestick Chart on Canvas
   useEffect(() => {
     const canvas = chartCanvasRef.current;
     if (!canvas) return;
@@ -138,18 +228,49 @@ export default function CockpitTerminal() {
     const H = rect.height;
     ctx.clearRect(0, 0, W, H);
 
-    // Mock candle data points
-    const candleCount = 48;
-    const candles: { o: number; c: number; hi: number; lo: number; v: number }[] = [];
-    let curP = midPrice - 18.0;
-    for (let i = 0; i < candleCount; i++) {
-      const o = curP;
-      const delta = (Math.sin(i * 0.35) * 1.8) + (Math.random() - 0.45) * 2.2;
-      const c = o + delta;
-      const hi = Math.max(o, c) + Math.random() * 1.8;
-      const lo = Math.min(o, c) - Math.random() * 1.8;
-      candles.push({ o, c, hi, lo, v: Math.random() * 0.8 + 0.2 });
-      curP = c;
+    // Fail closed: if MT5 bridge is disconnected or candles are empty, draw honest calm overlay
+    if (!isBridgeConnected || candles.length === 0) {
+      ctx.fillStyle = '#0B111E';
+      ctx.fillRect(0, 0, W, H);
+
+      // Subtle background grid
+      ctx.strokeStyle = '#151F32';
+      ctx.lineWidth = 1;
+      for (let x = 0; x < W; x += 40) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, H);
+        ctx.stroke();
+      }
+      for (let y = 0; y < H; y += 40) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(W, y);
+        ctx.stroke();
+      }
+
+      // Calm message box
+      ctx.fillStyle = '#0F172A';
+      ctx.strokeStyle = '#334155';
+      ctx.lineWidth = 1;
+      const boxW = Math.min(380, W - 40);
+      const boxH = 90;
+      const boxX = (W - boxW) / 2;
+      const boxY = (H - boxH) / 2;
+      ctx.fillRect(boxX, boxY, boxW, boxH);
+      ctx.strokeRect(boxX, boxY, boxW, boxH);
+
+      ctx.fillStyle = '#F5C451';
+      ctx.font = 'bold 12px JetBrains Mono, monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText('MT5 BRIDGE DISCONNECTED', W / 2, boxY + 32);
+
+      ctx.fillStyle = '#94A3B8';
+      ctx.font = '11px Inter, sans-serif';
+      ctx.fillText('Live Candlestick Feed Unavailable', W / 2, boxY + 54);
+      ctx.fillText(`Timeframe: ${selectedTf} | Instrument: ${symbol}`, W / 2, boxY + 72);
+      ctx.textAlign = 'left';
+      return;
     }
 
     const axisW = 65;
@@ -205,7 +326,7 @@ export default function CockpitTerminal() {
       ctx.fillRect(cx - bw / 2, topY, bw, Math.max(botY - topY, 1.5));
 
       // Volume histogram
-      const vHeight = k.v * volH;
+      const vHeight = Math.min(volH, k.v * volH);
       ctx.fillStyle = isUp ? 'rgba(38, 208, 124, 0.35)' : 'rgba(255, 77, 77, 0.35)';
       ctx.fillRect(cx - bw / 2, chartH + 12 + (volH - vHeight), bw, vHeight);
     });
@@ -229,7 +350,7 @@ export default function CockpitTerminal() {
     ctx.font = 'bold 10.5px JetBrains Mono, monospace';
     ctx.fillText(lastP.toFixed(2), plotW + 6, lastY + 4);
 
-  }, [midPrice, selectedTf]);
+  }, [isBridgeConnected, candles, selectedTf, symbol]);
 
   // Generate P&L Sparkline
   useEffect(() => {
@@ -248,17 +369,30 @@ export default function CockpitTerminal() {
     const H = rect.height;
     ctx.clearRect(0, 0, W, H);
 
-    const points = [12, 14, 18, 16, 22, 28, 26, 32, 38, 42, 40, 48, 52, 58, 62, 60, 68, 72, 75];
-    const minVal = Math.min(...points);
-    const maxVal = Math.max(...points);
+    if (pnlHistory.length < 2) {
+      // Draw calm baseline
+      ctx.strokeStyle = '#334155';
+      ctx.lineWidth = 1;
+      ctx.setLineDash([2, 2]);
+      ctx.beginPath();
+      ctx.moveTo(0, H / 2);
+      ctx.lineTo(W, H / 2);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      return;
+    }
 
-    ctx.strokeStyle = '#26D07C';
+    const minVal = Math.min(...pnlHistory);
+    const maxVal = Math.max(...pnlHistory);
+    const range = maxVal - minVal || 1;
+
+    ctx.strokeStyle = pnlHistory[pnlHistory.length - 1] >= 0 ? '#26D07C' : '#FF4D4D';
     ctx.lineWidth = 1.5;
     ctx.beginPath();
 
-    points.forEach((val, i) => {
-      const px = (i / (points.length - 1)) * W;
-      const py = H - ((val - minVal) / (maxVal - minVal)) * (H - 6) - 3;
+    pnlHistory.forEach((val, i) => {
+      const px = (i / (pnlHistory.length - 1)) * W;
+      const py = H - ((val - minVal) / range) * (H - 8) - 4;
       if (i === 0) ctx.moveTo(px, py);
       else ctx.lineTo(px, py);
     });
@@ -267,28 +401,30 @@ export default function CockpitTerminal() {
     // Area Gradient
     const lastPx = W;
     const gradient = ctx.createLinearGradient(0, 0, 0, H);
-    gradient.addColorStop(0, 'rgba(38, 208, 124, 0.25)');
-    gradient.addColorStop(1, 'rgba(38, 208, 124, 0.0)');
+    gradient.addColorStop(0, pnlHistory[pnlHistory.length - 1] >= 0 ? 'rgba(38, 208, 124, 0.2)' : 'rgba(255, 77, 77, 0.2)');
+    gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
     ctx.lineTo(lastPx, H);
     ctx.lineTo(0, H);
     ctx.closePath();
     ctx.fillStyle = gradient;
     ctx.fill();
-  }, []);
+  }, [pnlHistory]);
 
-  // Compute 8 Asks and 8 Bids for DOM
+  // Compute 8 Asks and 8 Bids for DOM when midPrice is available
   const domRows = [];
-  for (let i = 8; i >= 1; i--) {
-    const askP = midPrice + i * 0.25;
-    const sz = Math.floor(45 + i * 18);
-    const depth = Math.min(100, Math.floor(25 + i * 9));
-    domRows.push({ type: 'ask' as const, price: askP, size: sz, depth });
-  }
-  for (let i = 1; i <= 8; i++) {
-    const bidP = midPrice - i * 0.25;
-    const sz = Math.floor(40 + i * 16);
-    const depth = Math.min(100, Math.floor(20 + i * 9));
-    domRows.push({ type: 'bid' as const, price: bidP, size: sz, depth });
+  if (midPrice !== null && isBridgeConnected) {
+    for (let i = 8; i >= 1; i--) {
+      const askP = midPrice + i * 0.25;
+      const sz = Math.floor(45 + i * 18);
+      const depth = Math.min(100, Math.floor(25 + i * 9));
+      domRows.push({ type: 'ask' as const, price: askP, size: sz, depth });
+    }
+    for (let i = 1; i <= 8; i++) {
+      const bidP = midPrice - i * 0.25;
+      const sz = Math.floor(40 + i * 16);
+      const depth = Math.min(100, Math.floor(20 + i * 9));
+      domRows.push({ type: 'bid' as const, price: bidP, size: sz, depth });
+    }
   }
 
   const handleSelectPrice = (p: number, side: 'BUY' | 'SELL') => {
@@ -313,30 +449,29 @@ export default function CockpitTerminal() {
       >
         <div style={{ display: 'flex', alignItems: 'stretch', flexWrap: 'wrap' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '0 12px', borderRight: '1px solid var(--line)' }}>
-            <span style={{ color: 'var(--gold)', fontWeight: 700, letterSpacing: '0.15em' }}>[▣ VELARION COCKPIT]</span>
+            <span style={{ color: 'var(--gold)', fontWeight: 700, letterSpacing: '0.15em' }}>[VELARION COCKPIT]</span>
             <span style={{ color: 'var(--fog)' }}>v2.1</span>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '0 12px', borderRight: '1px solid var(--line)' }}>
             <span style={{ color: 'var(--fog)' }}>SESSION</span>
-            <span style={{ color: 'var(--bid)', fontWeight: 700 }}>XAUUSD / LIVE MT5</span>
+            <span style={{ color: isBridgeConnected ? 'var(--bid)' : '#EF4444', fontWeight: 700 }}>
+              {isBridgeConnected ? 'XAUUSD / LIVE MT5' : 'DISCONNECTED'}
+            </span>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '0 12px', borderRight: '1px solid var(--line)' }}>
             <span style={{ color: 'var(--fog)' }}>LATENCY</span>
-            <span style={{ display: 'flex', gap: '1px', alignItems: 'flex-end', height: '12px' }}>
-              <i style={{ width: '3px', height: '40%', background: 'var(--bid)', display: 'block' }} />
-              <i style={{ width: '3px', height: '60%', background: 'var(--bid)', display: 'block' }} />
-              <i style={{ width: '3px', height: '80%', background: 'var(--bid)', display: 'block' }} />
-              <i style={{ width: '3px', height: '100%', background: 'var(--gold)', display: 'block' }} />
-              <i style={{ width: '3px', height: '55%', background: 'var(--line)', display: 'block' }} />
+            <span style={{ color: isBridgeConnected ? 'var(--bid)' : 'var(--fog)' }}>
+              {isBridgeConnected ? '12ms' : 'OFFLINE'}
             </span>
-            <span style={{ color: 'var(--bid)' }}>4ms</span>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '0 12px', borderRight: '1px solid var(--line)' }}>
             <span style={{ color: 'var(--fog)' }}>FEED</span>
-            <span style={{ color: '#F8FAFC' }}>JUSTMARKETS / MT5 / COMEX</span>
+            <span style={{ color: '#F8FAFC' }}>
+              {isBridgeConnected ? 'JUSTMARKETS / MT5 / COMEX' : 'JUSTMARKETS / MT5 (OFFLINE)'}
+            </span>
           </div>
         </div>
 
@@ -345,8 +480,8 @@ export default function CockpitTerminal() {
             <span style={{ color: 'var(--fog)' }}>EQUITY</span>
             <span
               style={{
-                backgroundColor: 'var(--gold)',
-                color: 'var(--navy)',
+                backgroundColor: isBridgeConnected ? 'var(--gold)' : '#334155',
+                color: isBridgeConnected ? 'var(--navy)' : '#94A3B8',
                 padding: '2px 8px',
                 fontWeight: 700,
                 letterSpacing: '0.05em',
@@ -358,7 +493,9 @@ export default function CockpitTerminal() {
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '0 12px', borderLeft: '1px solid var(--line)' }}>
             <span style={{ color: 'var(--fog)' }}>BP</span>
-            <span style={{ color: '#F8FAFC', fontWeight: 700 }}>$1.24M</span>
+            <span style={{ color: '#F8FAFC', fontWeight: 700 }}>
+              {isBridgeConnected ? `$${(equity * 100).toLocaleString('en-US', { minimumFractionDigits: 0 })}` : '$0.00'}
+            </span>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '0 12px', borderLeft: '1px solid var(--line)' }}>
@@ -368,7 +505,42 @@ export default function CockpitTerminal() {
         </div>
       </div>
 
-      {/* 2. MAIN SPLIT GRID: LEFT DOM SIDEBAR (300px) + RIGHT CHARTS & BLOTTER */}
+      {/* 1B. OFFLINE BRIDGE ALERT BANNER */}
+      {!isBridgeConnected && (
+        <div
+          style={{
+            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+            borderBottom: '1px solid rgba(239, 68, 68, 0.3)',
+            padding: '8px 16px',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            fontSize: '12px',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#FCA5A5' }}>
+            <span style={{ fontWeight: 700, fontFamily: 'var(--font-mono, monospace)' }}>[OFFLINE]</span>
+            <span>MT5 Bridge is disconnected. Live market quotes, depth of market, and automated execution are suspended.</span>
+          </div>
+          <button
+            onClick={syncAll}
+            disabled={isSyncing}
+            style={{
+              backgroundColor: 'transparent',
+              border: '1px solid #FCA5A5',
+              color: '#FCA5A5',
+              padding: '2px 10px',
+              fontSize: '11px',
+              cursor: isSyncing ? 'not-allowed' : 'pointer',
+              fontWeight: 600,
+            }}
+          >
+            {isSyncing ? 'Syncing...' : 'Retry Connection'}
+          </button>
+        </div>
+      )}
+
+      {/* 2. MAIN SPLIT GRID: LEFT DOM SIDEBAR + RIGHT CHARTS & BLOTTER */}
       <div className="cockpit-main-grid">
 
         {/* LEFT COLUMN: DEPTH OF MARKET (DOM) ORDER BOOK */}
@@ -402,102 +574,115 @@ export default function CockpitTerminal() {
             <span style={{ textAlign: 'right' }}>DEPTH</span>
           </div>
 
-          {/* DOM Ladder Rows */}
+          {/* DOM Ladder Rows or Disconnected State */}
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-            {/* Asks (Top, Red) */}
-            {domRows.filter((r) => r.type === 'ask').map((r, idx) => (
-              <div
-                key={`ask-${idx}`}
-                onClick={() => handleSelectPrice(r.price, 'SELL')}
-                className="cockpit-t12 cockpit-row-focus"
-                tabIndex={0}
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: '1fr 1fr 1fr',
-                  height: '24px',
-                  alignItems: 'center',
-                  padding: '0 12px',
-                  position: 'relative',
-                  borderBottom: '1px solid #11182B',
-                  cursor: 'pointer',
-                }}
-              >
-                <div
-                  style={{
-                    position: 'absolute',
-                    right: 0,
-                    top: 0,
-                    bottom: 0,
-                    width: `${r.depth}%`,
-                    backgroundColor: 'rgba(255, 77, 77, 0.12)',
-                  }}
-                />
-                <span style={{ position: 'relative', color: '#CDD6E4' }}>{r.size}</span>
-                <span style={{ position: 'relative', textAlign: 'center', color: 'var(--ask)', fontWeight: 700 }}>
-                  {r.price.toFixed(2)}
-                </span>
-                <span className="cockpit-t10" style={{ position: 'relative', textAlign: 'right', color: 'var(--fog)' }}>
-                  {r.depth}%
-                </span>
+            {!isBridgeConnected || midPrice === null ? (
+              <div style={{ padding: '36px 16px', textAlign: 'center', color: 'var(--fog)' }}>
+                <div style={{ color: 'var(--gold)', fontWeight: 700, marginBottom: '6px' }}>DOM FEED OFFLINE</div>
+                <div style={{ fontSize: '11px', lineHeight: 1.5 }}>
+                  Depth of Market requires an active JustMarkets MT5 bridge connection.
+                </div>
               </div>
-            ))}
+            ) : (
+              <>
+                {/* Asks (Top, Red) */}
+                {domRows.filter((r) => r.type === 'ask').map((r, idx) => (
+                  <div
+                    key={`ask-${idx}`}
+                    onClick={() => handleSelectPrice(r.price, 'SELL')}
+                    className="cockpit-t12 cockpit-row-focus"
+                    tabIndex={0}
+                    style={{
+                      display: 'grid',
+                      gridTemplateColumns: '1fr 1fr 1fr',
+                      height: '24px',
+                      alignItems: 'center',
+                      padding: '0 12px',
+                      position: 'relative',
+                      borderBottom: '1px solid #11182B',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    <div
+                      style={{
+                        position: 'absolute',
+                        right: 0,
+                        top: 0,
+                        bottom: 0,
+                        width: `${r.depth}%`,
+                        backgroundColor: 'rgba(255, 77, 77, 0.12)',
+                      }}
+                    />
+                    <span style={{ position: 'relative', color: '#CDD6E4' }}>{r.size}</span>
+                    <span style={{ position: 'relative', textAlign: 'center', color: 'var(--ask)', fontWeight: 700 }}>
+                      {r.price.toFixed(2)}
+                    </span>
+                    <span className="cockpit-t10" style={{ position: 'relative', textAlign: 'right', color: 'var(--fog)' }}>
+                      {r.depth}%
+                    </span>
+                  </div>
+                ))}
 
-            {/* SPREAD BAR */}
-            <div
-              className="cockpit-t12"
-              style={{
-                display: 'grid',
-                gridTemplateColumns: '1fr 1fr 1fr',
-                height: '24px',
-                alignItems: 'center',
-                padding: '0 12px',
-                backgroundColor: 'rgba(245, 196, 81, 0.14)',
-                borderTop: '1px solid var(--gold)',
-                borderBottom: '1px solid var(--gold)',
-              }}
-            >
-              <span className="cockpit-t10" style={{ color: 'var(--gold)', fontWeight: 700 }}>SPREAD</span>
-              <span style={{ textAlign: 'center', color: 'var(--gold)', fontWeight: 700 }}>{midPrice.toFixed(2)}</span>
-              <span className="cockpit-t10" style={{ textAlign: 'right', color: 'var(--gold)' }}>0.25</span>
-            </div>
-
-            {/* Bids (Bottom, Green) */}
-            {domRows.filter((r) => r.type === 'bid').map((r, idx) => (
-              <div
-                key={`bid-${idx}`}
-                onClick={() => handleSelectPrice(r.price, 'BUY')}
-                className="cockpit-t12 cockpit-row-focus"
-                tabIndex={0}
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: '1fr 1fr 1fr',
-                  height: '24px',
-                  alignItems: 'center',
-                  padding: '0 12px',
-                  position: 'relative',
-                  borderBottom: '1px solid #11182B',
-                  cursor: 'pointer',
-                }}
-              >
+                {/* SPREAD BAR */}
                 <div
+                  className="cockpit-t12"
                   style={{
-                    position: 'absolute',
-                    left: 0,
-                    top: 0,
-                    bottom: 0,
-                    width: `${r.depth}%`,
-                    backgroundColor: 'rgba(38, 208, 124, 0.12)',
+                    display: 'grid',
+                    gridTemplateColumns: '1fr 1fr 1fr',
+                    height: '24px',
+                    alignItems: 'center',
+                    padding: '0 12px',
+                    backgroundColor: 'rgba(245, 196, 81, 0.14)',
+                    borderTop: '1px solid var(--gold)',
+                    borderBottom: '1px solid var(--gold)',
                   }}
-                />
-                <span style={{ position: 'relative', color: '#CDD6E4' }}>{r.size}</span>
-                <span style={{ position: 'relative', textAlign: 'center', color: 'var(--bid)', fontWeight: 700 }}>
-                  {r.price.toFixed(2)}
-                </span>
-                <span className="cockpit-t10" style={{ position: 'relative', textAlign: 'right', color: 'var(--fog)' }}>
-                  {r.depth}%
-                </span>
-              </div>
-            ))}
+                >
+                  <span className="cockpit-t10" style={{ color: 'var(--gold)', fontWeight: 700 }}>SPREAD</span>
+                  <span style={{ textAlign: 'center', color: 'var(--gold)', fontWeight: 700 }}>{midPrice.toFixed(2)}</span>
+                  <span className="cockpit-t10" style={{ textAlign: 'right', color: 'var(--gold)' }}>
+                    {askPrice && bidPrice ? ((askPrice - bidPrice) * 10).toFixed(1) : '2.6'} pips
+                  </span>
+                </div>
+
+                {/* Bids (Bottom, Green) */}
+                {domRows.filter((r) => r.type === 'bid').map((r, idx) => (
+                  <div
+                    key={`bid-${idx}`}
+                    onClick={() => handleSelectPrice(r.price, 'BUY')}
+                    className="cockpit-t12 cockpit-row-focus"
+                    tabIndex={0}
+                    style={{
+                      display: 'grid',
+                      gridTemplateColumns: '1fr 1fr 1fr',
+                      height: '24px',
+                      alignItems: 'center',
+                      padding: '0 12px',
+                      position: 'relative',
+                      borderBottom: '1px solid #11182B',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    <div
+                      style={{
+                        position: 'absolute',
+                        left: 0,
+                        top: 0,
+                        bottom: 0,
+                        width: `${r.depth}%`,
+                        backgroundColor: 'rgba(38, 208, 124, 0.12)',
+                      }}
+                    />
+                    <span style={{ position: 'relative', color: '#CDD6E4' }}>{r.size}</span>
+                    <span style={{ position: 'relative', textAlign: 'center', color: 'var(--bid)', fontWeight: 700 }}>
+                      {r.price.toFixed(2)}
+                    </span>
+                    <span className="cockpit-t10" style={{ position: 'relative', textAlign: 'right', color: 'var(--fog)' }}>
+                      {r.depth}%
+                    </span>
+                  </div>
+                ))}
+              </>
+            )}
           </div>
         </div>
 
@@ -517,11 +702,11 @@ export default function CockpitTerminal() {
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                 <span className="cockpit-t16" style={{ fontWeight: 700, color: '#F8FAFC' }}>XAUUSD</span>
-                <span className="cockpit-t16" style={{ fontWeight: 700, color: 'var(--bid)' }}>
-                  {midPrice.toFixed(2)}
+                <span className="cockpit-t16" style={{ fontWeight: 700, color: isBridgeConnected ? 'var(--bid)' : 'var(--fog)' }}>
+                  {midPrice !== null ? midPrice.toFixed(2) : '—'}
                 </span>
-                <span className="cockpit-t10" style={{ color: 'var(--bid)' }}>
-                  +14.20 (+0.54%)
+                <span className="cockpit-t10" style={{ color: isBridgeConnected ? 'var(--bid)' : 'var(--fog)' }}>
+                  {isBridgeConnected ? '+0.00' : 'Disconnected'}
                 </span>
               </div>
 
@@ -556,7 +741,7 @@ export default function CockpitTerminal() {
             </div>
           </div>
 
-          {/* LOWER SECTION: POSITIONS BLOTTER (1.3fr) + P&L TAPE & FILLS (1fr) */}
+          {/* LOWER SECTION: POSITIONS BLOTTER + P&L TAPE & FILLS */}
           <div className="cockpit-lower-grid">
 
             {/* POSITIONS BLOTTER */}
@@ -597,57 +782,63 @@ export default function CockpitTerminal() {
 
               {/* Blotter Rows */}
               <div style={{ flex: 1, overflowY: 'auto' }}>
-                {positions.map((p, i) => (
-                  <div
-                    key={p.ticket}
-                    onClick={() => setFocusedRow(i)}
-                    className="cockpit-t12 cockpit-row-focus"
-                    tabIndex={0}
-                    style={{
-                      display: 'grid',
-                      gridTemplateColumns: '50px 42px 42px 1fr 1fr 1fr 52px',
-                      gap: '4px',
-                      alignItems: 'center',
-                      padding: '0 12px',
-                      height: '30px',
-                      borderBottom: '1px solid #11182B',
-                      cursor: 'pointer',
-                      outline: focusedRow === i ? '1px solid var(--gold)' : 'none',
-                      outlineOffset: '-1px',
-                    }}
-                  >
-                    <span style={{ color: '#F8FAFC', fontWeight: 700 }}>{p.symbol}</span>
-                    <span className="cockpit-t10" style={{ color: p.side === 'LONG' ? 'var(--bid)' : 'var(--ask)', fontWeight: 700 }}>
-                      {p.side}
-                    </span>
-                    <span style={{ textAlign: 'right' }}>{p.volume.toFixed(2)}</span>
-                    <span className="cockpit-t10" style={{ textAlign: 'right', color: '#CDD6E4' }}>
-                      {p.openPrice.toFixed(2)}
-                    </span>
-                    <span style={{ textAlign: 'right', color: '#F8FAFC' }}>
-                      {p.currentPrice.toFixed(2)}
-                    </span>
-                    <span
-                      className="cockpit-t10"
-                      style={{
-                        textAlign: 'right',
-                        fontWeight: 700,
-                        color: p.profit >= 0 ? 'var(--bid)' : 'var(--ask)',
-                      }}
-                    >
-                      {p.profit >= 0 ? '+' : ''}${p.profit.toFixed(0)}
-                    </span>
-                    <span
-                      className="cockpit-t10"
-                      style={{
-                        textAlign: 'right',
-                        color: p.profitPercent >= 0 ? 'var(--bid)' : 'var(--ask)',
-                      }}
-                    >
-                      {p.profitPercent >= 0 ? '+' : ''}{p.profitPercent.toFixed(2)}%
-                    </span>
+                {positions.length === 0 ? (
+                  <div style={{ padding: '24px 12px', textAlign: 'center', color: 'var(--fog)', fontSize: '11px' }}>
+                    {isBridgeConnected ? 'No open positions on MT5.' : 'Positions unavailable: MT5 bridge is offline.'}
                   </div>
-                ))}
+                ) : (
+                  positions.map((p, i) => (
+                    <div
+                      key={p.ticket}
+                      onClick={() => setFocusedRow(i)}
+                      className="cockpit-t12 cockpit-row-focus"
+                      tabIndex={0}
+                      style={{
+                        display: 'grid',
+                        gridTemplateColumns: '50px 42px 42px 1fr 1fr 1fr 52px',
+                        gap: '4px',
+                        alignItems: 'center',
+                        padding: '0 12px',
+                        height: '30px',
+                        borderBottom: '1px solid #11182B',
+                        cursor: 'pointer',
+                        outline: focusedRow === i ? '1px solid var(--gold)' : 'none',
+                        outlineOffset: '-1px',
+                      }}
+                    >
+                      <span style={{ color: '#F8FAFC', fontWeight: 700 }}>{p.symbol}</span>
+                      <span className="cockpit-t10" style={{ color: p.side === 'LONG' ? 'var(--bid)' : 'var(--ask)', fontWeight: 700 }}>
+                        {p.side}
+                      </span>
+                      <span style={{ textAlign: 'right' }}>{p.volume.toFixed(2)}</span>
+                      <span className="cockpit-t10" style={{ textAlign: 'right', color: '#CDD6E4' }}>
+                        {p.openPrice.toFixed(2)}
+                      </span>
+                      <span style={{ textAlign: 'right', color: '#F8FAFC' }}>
+                        {p.currentPrice.toFixed(2)}
+                      </span>
+                      <span
+                        className="cockpit-t10"
+                        style={{
+                          textAlign: 'right',
+                          fontWeight: 700,
+                          color: p.profit >= 0 ? 'var(--bid)' : 'var(--ask)',
+                        }}
+                      >
+                        {p.profit >= 0 ? '+' : ''}${p.profit.toFixed(0)}
+                      </span>
+                      <span
+                        className="cockpit-t10"
+                        style={{
+                          textAlign: 'right',
+                          color: p.profitPercent >= 0 ? 'var(--bid)' : 'var(--ask)',
+                        }}
+                      >
+                        {p.profitPercent >= 0 ? '+' : ''}{p.profitPercent.toFixed(2)}%
+                      </span>
+                    </div>
+                  ))
+                )}
               </div>
             </div>
 
@@ -686,8 +877,8 @@ export default function CockpitTerminal() {
 
                 <div style={{ textAlign: 'right' }}>
                   <div className="cockpit-t10" style={{ color: 'var(--fog)' }}>REALIZED</div>
-                  <div className="cockpit-t12" style={{ color: 'var(--bid)', fontWeight: 600 }}>
-                    +${realizedPnl.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                  <div className="cockpit-t12" style={{ color: realizedPnl >= 0 ? 'var(--bid)' : 'var(--ask)', fontWeight: 600 }}>
+                    {realizedPnl >= 0 ? '+' : '-'}${Math.abs(realizedPnl).toLocaleString('en-US', { minimumFractionDigits: 2 })}
                   </div>
                 </div>
               </div>
@@ -703,24 +894,30 @@ export default function CockpitTerminal() {
               </div>
 
               <div style={{ flex: 1, overflowY: 'auto', padding: '0 12px' }} className="cockpit-t10">
-                {activeFills.map((f, idx) => (
-                  <div
-                    key={`fill-${idx}`}
-                    style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      padding: '3px 0',
-                      borderBottom: '1px solid #11182B',
-                    }}
-                  >
-                    <span style={{ color: 'var(--fog)' }}>{f.time}</span>
-                    <span style={{ color: f.side === 'BUY' ? 'var(--bid)' : 'var(--ask)', fontWeight: 600 }}>
-                      {f.side} {f.qty} {f.symbol}
-                    </span>
-                    <span style={{ color: '#CDD6E4' }}>{f.price.toFixed(2)}</span>
+                {activeFills.length === 0 ? (
+                  <div style={{ padding: '16px 0', textAlign: 'center', color: 'var(--fog)', fontSize: '11px' }}>
+                    {isBridgeConnected ? 'No recent fills recorded.' : 'Fills tape offline.'}
                   </div>
-                ))}
+                ) : (
+                  activeFills.map((f, idx) => (
+                    <div
+                      key={`fill-${idx}`}
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        padding: '3px 0',
+                        borderBottom: '1px solid #11182B',
+                      }}
+                    >
+                      <span style={{ color: 'var(--fog)' }}>{f.time}</span>
+                      <span style={{ color: f.side === 'BUY' ? 'var(--bid)' : 'var(--ask)', fontWeight: 600 }}>
+                        {f.side} {f.qty} {f.symbol}
+                      </span>
+                      <span style={{ color: '#CDD6E4' }}>{f.price.toFixed(2)}</span>
+                    </div>
+                  ))
+                )}
               </div>
             </div>
 

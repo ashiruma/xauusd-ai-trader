@@ -1,134 +1,68 @@
 // app/api/school/progress/route.ts
 import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
+import { getServerSession } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
 export async function GET() {
-  const cookieStore = await cookies();
-  const raw = cookieStore.get('velarion_school_progress')?.value;
-  let completed: number[] = [];
+  const session = await getServerSession();
+  const accountId = session?.mt5Account || session?.accountId;
 
-  if (raw) {
-    try {
-      const parsed = JSON.parse(decodeURIComponent(raw));
-      if (Array.isArray(parsed)) {
-        completed = parsed.map(Number).filter(n => !isNaN(n));
+  if (!session || !accountId) {
+    return NextResponse.json({
+      authenticated: false,
+      completedLessons: [],
+      sequentialCount: 0,
+      isComplete: false,
+      nextRequiredLesson: 1,
+    });
+  }
+
+  try {
+    const res = await fetch(`http://127.0.0.1:8000/api/school/progress?account_id=${encodeURIComponent(accountId)}`, {
+      cache: 'no-store',
+      signal: AbortSignal.timeout(3000),
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      const completed: number[] = Array.isArray(data.completed_lessons) ? data.completed_lessons : [];
+      let sequentialCount = 0;
+      for (let i = 1; i <= 5; i++) {
+        if (completed.includes(i)) sequentialCount++;
+        else break;
       }
-    } catch {
-      completed = [];
+      return NextResponse.json({
+        authenticated: true,
+        accountId,
+        completedLessons: completed,
+        sequentialCount,
+        isComplete: Boolean(data.school_completed) || sequentialCount >= 5,
+        nextRequiredLesson: sequentialCount < 5 ? sequentialCount + 1 : null,
+      });
     }
+  } catch {
+    // Backend unreachable
   }
 
-  // Calculate sequential count (must be unbroken from 1)
-  let sequentialCount = 0;
-  for (let i = 1; i <= 5; i++) {
-    if (completed.includes(i)) {
-      sequentialCount++;
-    } else {
-      break;
-    }
-  }
-
+  const isOwner = session.role === 'admin';
   return NextResponse.json({
-    completedLessons: completed,
-    sequentialCount,
-    isComplete: sequentialCount >= 5,
-    nextRequiredLesson: sequentialCount < 5 ? sequentialCount + 1 : null,
+    authenticated: true,
+    accountId,
+    completedLessons: isOwner ? [1, 2, 3, 4, 5] : [],
+    sequentialCount: isOwner ? 5 : 0,
+    isComplete: isOwner || Boolean(session.schoolCompleted),
+    nextRequiredLesson: isOwner ? null : 1,
   });
 }
 
 export async function POST(request: Request) {
-  try {
-    const body = await request.json().catch(() => ({}));
-    const globalNum = Number(body.globalNum || body.lessonNumber);
-    const quizPassed = Boolean(body.quizPassed ?? true);
-
-    if (!globalNum || isNaN(globalNum) || globalNum < 1 || globalNum > 10) {
-      return NextResponse.json(
-        { error: 'Valid sequential lesson number (1-10) is required.' },
-        { status: 400 }
-      );
-    }
-
-    if (!quizPassed) {
-      return NextResponse.json(
-        { error: 'A passing score on the lesson comprehension quiz is required before marking completion.' },
-        { status: 400 }
-      );
-    }
-
-    const cookieStore = await cookies();
-    const raw = cookieStore.get('velarion_school_progress')?.value;
-    let completed: number[] = [];
-
-    if (raw) {
-      try {
-        const parsed = JSON.parse(decodeURIComponent(raw));
-        if (Array.isArray(parsed)) {
-          completed = parsed.map(Number).filter(n => !isNaN(n));
-        }
-      } catch {
-        completed = [];
-      }
-    }
-
-    // Enforce strict sequential order: cannot complete lesson N if N-1 is not complete
-    if (globalNum > 1) {
-      for (let prev = 1; prev < globalNum; prev++) {
-        if (!completed.includes(prev)) {
-          return NextResponse.json(
-            {
-              error: `Sequential curriculum enforcement: You must complete Lesson ${prev} before Lesson ${globalNum}. Skipping ahead is not permitted.`,
-              nextRequiredLesson: prev,
-              completedLessons: completed,
-            },
-            { status: 403 }
-          );
-        }
-      }
-    }
-
-    if (!completed.includes(globalNum)) {
-      completed.push(globalNum);
-      completed.sort((a, b) => a - b);
-    }
-
-    let sequentialCount = 0;
-    for (let i = 1; i <= 5; i++) {
-      if (completed.includes(i)) {
-        sequentialCount++;
-      } else {
-        break;
-      }
-    }
-
-    const res = NextResponse.json({
-      success: true,
-      message: `Lesson ${globalNum} marked complete with passing quiz score.`,
-      completedLessons: completed,
-      sequentialCount,
-      isComplete: sequentialCount >= 5,
-      nextRequiredLesson: sequentialCount < 5 ? sequentialCount + 1 : null,
-    });
-
-    res.cookies.set({
-      name: 'velarion_school_progress',
-      value: encodeURIComponent(JSON.stringify(completed)),
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      maxAge: 60 * 60 * 24 * 365, // 1 year
-      path: '/',
-    });
-
-    return res;
-  } catch (error) {
-    console.error('[School Progress API Error]', error);
-    return NextResponse.json(
-      { error: 'Failed to record school progress.' },
-      { status: 500 }
-    );
-  }
+  // Disallow arbitrary client-side self-marking of completion
+  return NextResponse.json(
+    {
+      error: 'Direct progress manipulation is disabled. Please submit your comprehension quiz answers to /api/school/quiz/submit for authoritative server grading.',
+    },
+    { status: 400 }
+  );
 }

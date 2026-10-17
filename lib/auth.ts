@@ -1,7 +1,25 @@
 import { cookies } from 'next/headers';
 
-const SECRET_KEY = process.env.AUTH_SECRET || 'xauusd-velarion-secure-jwt-institutional-secret-2026';
+export const LEGACY_FALLBACK_SECRET = 'xauusd-velarion-secure-jwt-institutional-secret-2026';
 export const AUTH_COOKIE_NAME = 'jm_auth_session';
+
+let runtimeEphemeralSecret: string | null = null;
+
+export function getAuthSecret(): string {
+  const envSecret = process.env.AUTH_SECRET?.trim();
+  if (envSecret && envSecret !== LEGACY_FALLBACK_SECRET) {
+    return envSecret;
+  }
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error('FATAL: AUTH_SECRET environment variable is missing or set to insecure legacy default in production.');
+  }
+  if (!runtimeEphemeralSecret) {
+    const randomBytes = new Uint8Array(32);
+    crypto.getRandomValues(randomBytes);
+    runtimeEphemeralSecret = Array.from(randomBytes).map(b => b.toString(16).padStart(2, '0')).join('');
+  }
+  return runtimeEphemeralSecret;
+}
 
 export interface AuthSession {
   accountId: string;
@@ -54,9 +72,10 @@ export async function signSession(session: Omit<AuthSession, 'exp'>, expiresInSe
   const encodedPayload = base64UrlEncode(JSON.stringify(fullSession));
   const dataToSign = `${encodedHeader}.${encodedPayload}`;
 
+  const secret = getAuthSecret();
   const key = await crypto.subtle.importKey(
     'raw',
-    strToUint8(SECRET_KEY),
+    strToUint8(secret),
     { name: 'HMAC', hash: 'SHA-256' },
     false,
     ['sign']
@@ -80,20 +99,39 @@ export async function verifySession(token: string): Promise<AuthSession | null> 
   const dataToSign = `${encodedHeader}.${encodedPayload}`;
 
   try {
-    const key = await crypto.subtle.importKey(
-      'raw',
-      strToUint8(SECRET_KEY),
-      { name: 'HMAC', hash: 'SHA-256' },
-      false,
-      ['verify']
-    );
-
     const rawSig = base64UrlDecode(encodedSignature);
     const sigBytesArr = new Uint8Array(rawSig.length);
     for (let i = 0; i < rawSig.length; i++) {
       sigBytesArr[i] = rawSig.charCodeAt(i);
     }
     const sigBytes = sigBytesArr as unknown as BufferSource;
+
+    // Reject tokens signed with legacy fallback key
+    try {
+      const legacyKey = await crypto.subtle.importKey(
+        'raw',
+        strToUint8(LEGACY_FALLBACK_SECRET),
+        { name: 'HMAC', hash: 'SHA-256' },
+        false,
+        ['verify']
+      );
+      const isLegacySigned = await crypto.subtle.verify('HMAC', legacyKey, sigBytes, strToUint8(dataToSign));
+      if (isLegacySigned) {
+        console.warn('[Security Warning] Rejected session signed with deprecated fallback secret.');
+        return null;
+      }
+    } catch {
+      // ignore
+    }
+
+    const secret = getAuthSecret();
+    const key = await crypto.subtle.importKey(
+      'raw',
+      strToUint8(secret),
+      { name: 'HMAC', hash: 'SHA-256' },
+      false,
+      ['verify']
+    );
 
     const isValid = await crypto.subtle.verify('HMAC', key, sigBytes, strToUint8(dataToSign));
     if (!isValid) return null;

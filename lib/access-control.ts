@@ -51,14 +51,14 @@ export interface AccessStatusResponse {
 export async function evaluateAccessJourney(): Promise<AccessStatusResponse> {
   const cookieStore = await cookies();
   const session = await getServerSession();
-  const hasAdmin = Boolean(cookieStore.get('velarion_admin_token')?.value);
+  const masterSecret = process.env.ADMIN_MASTER_SECRET;
+  const adminToken = cookieStore.get('velarion_admin_token')?.value;
+  const hasAdmin = Boolean(masterSecret && adminToken === masterSecret);
 
-  const isOwner =
-    hasAdmin ||
+  const isOwner = Boolean(
     session?.role === 'admin' ||
-    session?.accountId === '1200533810' ||
-    session?.email === 'ashirumaabala@gmail.com' ||
-    Boolean(session?.email?.includes('ashiruma'));
+    hasAdmin
+  );
 
   // Step 1: Create Velarion account and verify its email
   const hasSession = Boolean(session && session.email);
@@ -132,16 +132,19 @@ export async function evaluateAccessJourney(): Promise<AccessStatusResponse> {
 
   // Step 4: Complete required School lessons sequentially (Foundation Lessons 1 to 5)
   let completedLessons: number[] = [];
-  try {
-    const rawSchool = cookieStore.get('velarion_school_progress')?.value;
-    if (rawSchool) {
-      const parsed = JSON.parse(decodeURIComponent(rawSchool));
-      if (Array.isArray(parsed)) {
-        completedLessons = parsed.map(Number).filter(n => !isNaN(n));
+  if (accountId) {
+    try {
+      const res = await fetch(`http://127.0.0.1:8000/api/school/progress?account_id=${encodeURIComponent(accountId)}`, {
+        cache: 'no-store',
+        signal: AbortSignal.timeout(2000),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        completedLessons = Array.isArray(data.completed_lessons) ? data.completed_lessons : [];
       }
+    } catch {
+      completedLessons = [];
     }
-  } catch {
-    completedLessons = [];
   }
 
   // Verify sequential progress: 1, 2, 3, 4, 5

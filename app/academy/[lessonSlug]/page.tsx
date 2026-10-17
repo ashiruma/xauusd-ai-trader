@@ -54,9 +54,12 @@ export default async function LessonPage({ params }: LessonPageProps) {
   }
 
   const cookieStore = await cookies();
-  const isMt5Verified = cookieStore.get('velarion_mt5_verified')?.value === 'true';
-  const hasAdminToken = Boolean(cookieStore.get('velarion_admin_token')?.value);
-  const isLocked = !hasAdminToken && (lesson.globalNum > 5 && !isMt5Verified);
+  const { getServerSession } = await import('@/lib/auth');
+  const session = await getServerSession();
+  const masterSecret = process.env.ADMIN_MASTER_SECRET;
+  const adminToken = cookieStore.get('velarion_admin_token')?.value;
+  const hasAdmin = Boolean(masterSecret && adminToken === masterSecret);
+  const isLocked = !hasAdmin && (lesson.globalNum > 5 && (!session || !session.verified || !session.schoolCompleted));
 
   const prevLessonNum = lesson.globalNum > 1 ? lesson.globalNum - 1 : null;
   const nextLessonNum = lesson.globalNum < 30 ? lesson.globalNum + 1 : null;

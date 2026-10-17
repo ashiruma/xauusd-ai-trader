@@ -496,16 +496,17 @@ async def verify_partner_account(req: PartnerVerificationRequest):
             "message": "Invalid JustMarkets Account ID format. Please enter your valid 6-10 digit MT5 account number."
         }
 
-    # Verified owner account
-    if acc_id == "1200533810":
+    # Authoritative verification via registered database record
+    user = db.get_user_by_account_id(acc_id)
+    if user and user.get("is_referral_verified"):
         return {
             "success": True,
             "account_id": acc_id,
             "broker": "JustMarkets Ltd",
-            "server": req.server or "JustMarkets-Demo3",
+            "server": req.server or user.get("server", "JustMarkets-Live"),
             "status": "VERIFIED",
             "tier": "TIER_1_SUBSIDIZED",
-            "message": f"Owner JustMarkets account #{acc_id} verified. Access unlocked."
+            "message": f"JustMarkets account #{acc_id} verified under partner code. Terminal unlocked."
         }
 
     # If JustMarkets Partner API token is configured, check live API
@@ -843,7 +844,13 @@ async def register_trader(req: UserRegistrationRequest):
 @app.get("/api/users/me")
 async def get_current_user_profile(account_id: Optional[str] = None):
     """Returns current active trader profile and live account status synced to JustMarkets."""
-    acc_id = account_id or str(getattr(settings.mt5, "login", "1200533810"))
+    acc_id = (account_id or "").strip() or str(getattr(settings.mt5, "login", "") or "")
+    if not acc_id:
+        return {
+            "success": False,
+            "error": "ACCOUNT_ID_REQUIRED",
+            "message": "Account ID parameter is required to query trader profile."
+        }
     is_live = (settings.trading_mode == TradingMode.LIVE)
     acc = coordinator.mt5_adapter.get_account_info() if is_live else coordinator.paper_adapter.get_account_info()
     live_equity = acc.get("equity", 44.38)
@@ -890,6 +897,50 @@ async def get_current_user_profile(account_id: Optional[str] = None):
 async def get_partner_config():
     """Returns current official JustMarkets partner tracking configuration."""
     return db.get_partner_config()
+
+
+class SchoolProgressUpdateRequest(BaseModel):
+    account_id: str
+    completed_lessons: List[int]
+    school_completed: bool = False
+
+
+@app.post("/api/school/progress/update")
+async def update_school_progress(req: SchoolProgressUpdateRequest):
+    """Updates user school progress in authoritative database."""
+    acc_id = req.account_id.strip()
+    if not acc_id:
+        raise HTTPException(status_code=400, detail="account_id is required.")
+    success = db.update_user_school_progress(acc_id, req.completed_lessons, req.school_completed)
+    return {
+        "success": success,
+        "account_id": acc_id,
+        "completed_lessons": req.completed_lessons,
+        "school_completed": req.school_completed
+    }
+
+
+@app.get("/api/school/progress")
+async def get_school_progress(account_id: str):
+    """Retrieves authoritative school progress for account."""
+    acc_id = account_id.strip()
+    if not acc_id:
+        raise HTTPException(status_code=400, detail="account_id query parameter is required.")
+    progress = db.get_user_school_progress(acc_id)
+    completed = progress.get("completed_lessons", [])
+    seq_count = 0
+    for i in range(1, 6):
+        if i in completed:
+            seq_count += 1
+        else:
+            break
+    return {
+        "account_id": acc_id,
+        "completed_lessons": completed,
+        "sequential_count": seq_count,
+        "school_completed": progress.get("school_completed", False),
+        "next_required_lesson": seq_count + 1 if seq_count < 5 else None
+    }
 
 
 @app.post("/api/partner/config")

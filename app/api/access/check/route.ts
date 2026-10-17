@@ -46,11 +46,12 @@ export async function POST(request: Request) {
     const targetAccount = inputAccount || currentSession?.mt5Account || currentSession?.accountId || cookieStore.get('velarion_mt5_account')?.value || '';
     const targetEmail = inputEmail || currentSession?.email || '';
 
-    const isOwner =
-      targetAccount === '1200533810' ||
-      targetEmail === 'ashirumaabala@gmail.com' ||
-      targetEmail.includes('ashiruma') ||
-      currentSession?.role === 'admin';
+    const masterSecret = process.env.ADMIN_MASTER_SECRET;
+    const adminToken = cookieStore.get('velarion_admin_token')?.value;
+    const isOwner = Boolean(
+      currentSession?.role === 'admin' ||
+      (masterSecret && adminToken === masterSecret)
+    );
 
     const res = NextResponse.json({
       status: 'pending',
@@ -70,9 +71,9 @@ export async function POST(request: Request) {
 
     if (isOwner) {
       const signedOwnerSession = await signSession({
-        accountId: '1200533810',
-        mt5Account: '1200533810',
-        email: 'ashirumaabala@gmail.com',
+        accountId: currentSession?.accountId || '1200533810',
+        mt5Account: currentSession?.mt5Account || '1200533810',
+        email: currentSession?.email || 'ashirumaabala@gmail.com',
         role: 'admin',
         partnerCode: 'tohstb0d83',
         verified: true,
@@ -81,30 +82,12 @@ export async function POST(request: Request) {
         depositVerified: true,
         schoolCompleted: true,
         accountLinked: true,
+        tradingActivated: false,
       });
 
       res.cookies.set({
         name: AUTH_COOKIE_NAME,
         value: signedOwnerSession,
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
-        maxAge: 60 * 60 * 24 * 30,
-        path: '/',
-      });
-
-      res.cookies.set({
-        name: 'velarion_mt5_verified',
-        value: 'true',
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
-        maxAge: 60 * 60 * 24 * 30,
-        path: '/',
-      });
-      res.cookies.set({
-        name: 'velarion_deposit_verified',
-        value: 'true',
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'strict',
@@ -163,28 +146,6 @@ export async function POST(request: Request) {
               maxAge: 60 * 60 * 24 * 30,
               path: '/',
             });
-
-            res.cookies.set({
-              name: 'velarion_mt5_verified',
-              value: 'true',
-              httpOnly: true,
-              secure: process.env.NODE_ENV === 'production',
-              sameSite: 'strict',
-              maxAge: 60 * 60 * 24 * 30,
-              path: '/',
-            });
-
-            if (hasDeposit) {
-              res.cookies.set({
-                name: 'velarion_deposit_verified',
-                value: 'true',
-                httpOnly: true,
-                secure: process.env.NODE_ENV === 'production',
-                sameSite: 'strict',
-                maxAge: 60 * 60 * 24 * 30,
-                path: '/',
-              });
-            }
 
             const updatedJourney = await evaluateAccessJourney();
             return NextResponse.json({

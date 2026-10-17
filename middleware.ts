@@ -1,8 +1,9 @@
 // middleware.ts
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { AUTH_COOKIE_NAME, verifySession } from '@/lib/auth';
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname;
   const clientIp = request.headers.get('x-forwarded-for') || '127.0.0.1';
 
@@ -29,15 +30,6 @@ export function middleware(request: NextRequest) {
         maxAge: 60 * 60 * 24 * 365,
         path: '/',
       });
-      response.cookies.set({
-        name: 'velarion_mt5_verified',
-        value: 'true',
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
-        maxAge: 60 * 60 * 24 * 365,
-        path: '/',
-      });
       return response;
     }
 
@@ -52,10 +44,23 @@ export function middleware(request: NextRequest) {
 
   // 2. Protected Terminal / Advanced Lessons Gate
   if (path.startsWith('/terminal') || path.startsWith('/academy/advanced')) {
-    const mt5Verified = request.cookies.get('velarion_mt5_verified')?.value;
-    const hasAdmin = Boolean(request.cookies.get('velarion_admin_token')?.value);
-    if (!hasAdmin && (!mt5Verified || mt5Verified !== 'true')) {
-      return NextResponse.redirect(new URL('/verification?redirect=' + path, request.url));
+    const masterSecret = process.env.ADMIN_MASTER_SECRET;
+    const adminToken = request.cookies.get('velarion_admin_token')?.value;
+    const hasAdmin = Boolean(masterSecret && adminToken === masterSecret);
+
+    const sessionToken = request.cookies.get(AUTH_COOKIE_NAME)?.value;
+    const session = sessionToken ? await verifySession(sessionToken) : null;
+
+    const isAuthorized =
+      hasAdmin ||
+      (session &&
+        session.verified === true &&
+        (path.startsWith('/academy/advanced')
+          ? Boolean(session.schoolCompleted)
+          : Boolean(session.accountLinked && session.tradingActivated)));
+
+    if (!isAuthorized) {
+      return NextResponse.redirect(new URL('/verification?redirect=' + encodeURIComponent(path), request.url));
     }
   }
 

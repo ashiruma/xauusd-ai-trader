@@ -8,10 +8,11 @@ export const revalidate = 0;
 export async function GET(request: Request) {
   const cookieStore = await cookies();
   const session = await getServerSession();
-  const isMt5Verified = cookieStore.get('velarion_mt5_verified')?.value === 'true';
-  const hasAdminToken = Boolean(cookieStore.get('velarion_admin_token')?.value);
+  const masterSecret = process.env.ADMIN_MASTER_SECRET;
+  const adminToken = cookieStore.get('velarion_admin_token')?.value;
+  const hasAdmin = Boolean(masterSecret && adminToken === masterSecret);
 
-  if (!session && !isMt5Verified && !hasAdminToken) {
+  if (!hasAdmin && (!session || !session.verified)) {
     return NextResponse.json(
       { error: 'Unauthorized. MT5 verified session required.' },
       { status: 401 }

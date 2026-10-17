@@ -65,7 +65,7 @@ export default function PrivacyPage() {
             3. Use of Cookies and Local Storage
           </h2>
           <p>
-            We use essential security cookies (<code className="mono-nums">velarion_mt5_verified</code>, <code className="mono-nums">velarion_completed_lessons</code>, and <code className="mono-nums">velarion_trading_settings</code>) strictly to maintain session authentication and ensure safety parameters persist across sessions. We do not sell personal data or track users across third-party websites.
+            We use essential security cookies (<code className="mono-nums">jm_auth_session</code>, <code className="mono-nums">velarion_cookie_consent</code>, and <code className="mono-nums">velarion_trading_settings</code>) strictly to maintain session authentication and ensure safety parameters persist across sessions. We do not sell personal data or track users across third-party websites.
           </p>
         </section>
 

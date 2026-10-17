@@ -1,3 +1,4 @@
+// app/api/auth/session/route.ts
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { getServerSession } from '@/lib/auth';
@@ -8,8 +9,9 @@ export const revalidate = 0;
 export async function GET() {
   const cookieStore = await cookies();
   const session = await getServerSession();
-  const isMt5Verified = cookieStore.get('velarion_mt5_verified')?.value === 'true';
-  const hasAdminToken = Boolean(cookieStore.get('velarion_admin_token')?.value);
+  const masterSecret = process.env.ADMIN_MASTER_SECRET;
+  const adminToken = cookieStore.get('velarion_admin_token')?.value;
+  const hasValidAdminToken = Boolean(masterSecret && adminToken === masterSecret);
 
   if (session) {
     const user = {
@@ -19,6 +21,11 @@ export async function GET() {
       role: session.role,
       partnerCode: session.partnerCode,
       verified: session.verified,
+      partnerAttributed: session.partnerAttributed,
+      depositVerified: session.depositVerified,
+      schoolCompleted: session.schoolCompleted,
+      accountLinked: session.accountLinked,
+      tradingActivated: session.tradingActivated,
     };
     return NextResponse.json({
       authenticated: true,
@@ -27,7 +34,7 @@ export async function GET() {
     });
   }
 
-  if (hasAdminToken) {
+  if (hasValidAdminToken) {
     const user = {
       accountId: '1200533810',
       mt5Account: '1200533810',
@@ -35,21 +42,11 @@ export async function GET() {
       role: 'admin',
       partnerCode: 'tohstb0d83',
       verified: true,
-    };
-    return NextResponse.json({
-      authenticated: true,
-      user,
-      session: user,
-    });
-  }
-
-  if (isMt5Verified) {
-    const user = {
-      accountId: 'VERIFIED-TRADER',
-      mt5Account: 'VERIFIED-TRADER',
-      role: 'trader',
-      partnerCode: 'tohstb0d83',
-      verified: true,
+      partnerAttributed: true,
+      depositVerified: true,
+      schoolCompleted: true,
+      accountLinked: true,
+      tradingActivated: false,
     };
     return NextResponse.json({
       authenticated: true,

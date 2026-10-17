@@ -2,12 +2,24 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 
+import { getServerSession } from '@/lib/auth';
+
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
     const cookieStore = await cookies();
+    const session = await getServerSession();
+    const masterSecret = process.env.ADMIN_MASTER_SECRET;
     const adminToken = cookieStore.get('velarion_admin_token')?.value;
+    const isAuthorizedAdmin = Boolean(
+      (masterSecret && adminToken === masterSecret) ||
+      session?.role === 'admin'
+    );
+
+    if (!isAuthorizedAdmin) {
+      return NextResponse.json({ error: 'Unauthorized: Admin access required.' }, { status: 401 });
+    }
 
     // Direct proxy to backend FastAPI
     const backendRes = await fetch('http://127.0.0.1:8000/api/admin/users', {

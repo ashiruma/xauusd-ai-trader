@@ -29,19 +29,6 @@ let cachedQuote: LiveQuote | null = null;
 let lastFetchTime = 0;
 
 export async function GET() {
-  const cookieStore = await cookies();
-  const session = await getServerSession();
-  const isMt5Verified = cookieStore.get('velarion_mt5_verified')?.value === 'true';
-  const hasAdminToken = Boolean(cookieStore.get('velarion_admin_token')?.value);
-
-  // Server-side session verification: reject unauthenticated access
-  if (!session && !isMt5Verified && !hasAdminToken) {
-    return NextResponse.json(
-      { error: 'Unauthorized. MT5 verified session required.' },
-      { status: 401 }
-    );
-  }
-
   const now = Date.now();
 
   // Return cached quote if less than 800ms old

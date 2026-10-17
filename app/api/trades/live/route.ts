@@ -62,18 +62,19 @@ export interface ExecutedTrade {
 export async function GET() {
   const cookieStore = await cookies();
   const session = await getServerSession();
-  const isMt5Verified = cookieStore.get('velarion_mt5_verified')?.value === 'true';
-  const hasAdminToken = Boolean(cookieStore.get('velarion_admin_token')?.value);
+  const masterSecret = process.env.ADMIN_MASTER_SECRET;
+  const adminToken = cookieStore.get('velarion_admin_token')?.value;
+  const hasAdmin = Boolean(masterSecret && adminToken === masterSecret);
 
   // Server-side session verification: reject unauthenticated access
-  if (!session && !isMt5Verified && !hasAdminToken) {
+  if (!hasAdmin && (!session || !session.verified)) {
     return NextResponse.json(
       { error: 'Unauthorized. MT5 verified session required.' },
       { status: 401 }
     );
   }
 
-  const userAccountId = session?.mt5Account || session?.accountId || (hasAdminToken ? '1200533810' : 'VERIFIED-TRADER');
+  const userAccountId = session?.mt5Account || session?.accountId || (hasAdmin ? '1200533810 (ADMIN)' : 'UNLINKED');
   const settingsCookie = cookieStore.get('velarion_trading_settings')?.value;
   let userSettings = null;
   if (settingsCookie) {
@@ -317,10 +318,11 @@ export async function GET() {
 export async function POST(request: Request) {
   const cookieStore = await cookies();
   const session = await getServerSession();
-  const isMt5Verified = cookieStore.get('velarion_mt5_verified')?.value === 'true';
-  const hasAdminToken = Boolean(cookieStore.get('velarion_admin_token')?.value);
+  const masterSecret = process.env.ADMIN_MASTER_SECRET;
+  const adminToken = cookieStore.get('velarion_admin_token')?.value;
+  const hasAdmin = Boolean(masterSecret && adminToken === masterSecret);
 
-  if (!session && !isMt5Verified && !hasAdminToken) {
+  if (!hasAdmin && (!session || !session.verified)) {
     return NextResponse.json(
       { error: 'Unauthorized. MT5 verified session required.' },
       { status: 401 }

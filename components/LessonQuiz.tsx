@@ -29,17 +29,28 @@ export default function LessonQuiz({
   const [assessmentFailed, setAssessmentFailed] = useState(false);
   const [showGraduationModal, setShowGraduationModal] = useState<boolean>(false);
 
-  // Load completion state from localStorage
+  const [submitting, setSubmitting] = useState(false);
+  const [isPassed, setIsPassed] = useState(false);
+
+  // Load completion state from authoritative server API
   useEffect(() => {
-    try {
-      setCompletedLessons(parseCourseProgress(localStorage.getItem(COURSE_PROGRESS_STORAGE_KEY)));
-    } catch {
-      // ignore
-    }
-    const refreshProgress = () => setCompletedLessons(parseCourseProgress(localStorage.getItem(COURSE_PROGRESS_STORAGE_KEY)));
-    window.addEventListener(COURSE_PROGRESS_CHANGED_EVENT, refreshProgress);
-    return () => window.removeEventListener(COURSE_PROGRESS_CHANGED_EVENT, refreshProgress);
-  }, []);
+    let mounted = true;
+    fetch('/api/school/progress')
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (!mounted || !data) return;
+        const completed: number[] = Array.isArray(data.completedLessons) ? data.completedLessons : [];
+        setCompletedLessons(completed);
+        if (completed.includes(globalNum)) {
+          setIsPassed(true);
+        }
+      })
+      .catch(() => {});
+
+    return () => {
+      mounted = false;
+    };
+  }, [globalNum]);
 
   if (quizList.length === 0) {
     return null;
@@ -48,48 +59,53 @@ export default function LessonQuiz({
   // Count how many of Foundation Track (Lessons 1-5) are completed
   const foundationCompletedCount = [1, 2, 3, 4, 5].filter((num) => completedLessons.includes(num)).length;
 
-  // Any wrong response restarts the whole course and hides all answer-level feedback.
-  const handleSelect = (qIdx: number, optIdx: number) => {
-    if (assessmentFailed || selectedAnswers[qIdx] !== undefined) return;
-
-    const question = quizList[qIdx];
-    const target = question.correct !== undefined ? question.correct : (question as unknown as { correctAnswer: number }).correctAnswer;
-    if (optIdx !== target) {
-      setSelectedAnswers({});
-      setCompletedLessons(saveCourseProgress([]));
-      setAssessmentFailed(true);
-      setShowGraduationModal(false);
-      return;
-    }
+  const handleSelect = async (qIdx: number, optIdx: number) => {
+    if (assessmentFailed || isPassed || submitting) return;
 
     const updated = { ...selectedAnswers, [qIdx]: optIdx };
     setSelectedAnswers(updated);
+
+    // If all questions in this assessment have been answered, submit to server for grading
     if (Object.keys(updated).length === quizList.length) {
+      setSubmitting(true);
       try {
-        const stored = parseCourseProgress(localStorage.getItem(COURSE_PROGRESS_STORAGE_KEY));
-        const completed = saveCourseProgress([...stored, globalNum]);
-        setCompletedLessons(completed);
-        if (globalNum === 5) {
-          setTimeout(() => setShowGraduationModal(true), 600);
+        const res = await fetch('/api/school/quiz/submit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            lessonId: globalNum,
+            answers: updated,
+          }),
+        });
+
+        const data = await res.json().catch(() => ({}));
+
+        if (res.ok && data.passed) {
+          setIsPassed(true);
+          setCompletedLessons(data.completedLessons || []);
+          if (globalNum === 5) {
+            setTimeout(() => setShowGraduationModal(true), 600);
+          }
+        } else {
+          // Failure: Server wiped progress back to Lesson 1
+          setSelectedAnswers({});
+          setCompletedLessons([]);
+          setAssessmentFailed(true);
+          setShowGraduationModal(false);
         }
       } catch {
-        // Completion remains visible in this assessment even if browser storage is unavailable.
+        setSelectedAnswers({});
+        setCompletedLessons([]);
+        setAssessmentFailed(true);
+      } finally {
+        setSubmitting(false);
       }
     }
   };
 
-  // Calculate current score
   const answeredCount = Object.keys(selectedAnswers).length;
-  let correctCount = 0;
-  quizList.forEach((q, idx) => {
-    const target = q.correct !== undefined ? q.correct : (q as unknown as { correctAnswer: number }).correctAnswer;
-    if (selectedAnswers[idx] === target) {
-      correctCount++;
-    }
-  });
-
-  const isComplete = answeredCount === quizList.length;
-  const isPassed = isComplete && correctCount === quizList.length;
+  const isComplete = answeredCount === quizList.length || isPassed;
+  const correctCount = isPassed ? quizList.length : 0;
 
   return (
     <>
@@ -182,10 +198,8 @@ export default function LessonQuiz({
         ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '22px' }}>
           {quizList.map((q, qIdx) => {
-            const targetAns = q.correct !== undefined ? q.correct : (q as unknown as { correctAnswer: number }).correctAnswer;
             const selectedOpt = selectedAnswers[qIdx];
             const hasAnswered = selectedOpt !== undefined;
-            const isAnswerCorrect = hasAnswered && selectedOpt === targetAns;
 
             return (
               <div
@@ -193,7 +207,7 @@ export default function LessonQuiz({
                 className="lesson-quiz-question"
                 style={{
                   background: '#090D16',
-                  border: isPassed && isAnswerCorrect ? '1px solid rgba(16, 185, 129, 0.4)' : hasAnswered ? '1px solid rgba(197, 160, 89, 0.4)' : '1px solid #1E293B',
+                  border: isPassed ? '1px solid rgba(16, 185, 129, 0.4)' : hasAnswered ? '1px solid rgba(197, 160, 89, 0.4)' : '1px solid #1E293B',
                   borderRadius: '10px',
                   padding: '18px 20px',
                   transition: 'border-color 0.2s ease'
@@ -207,7 +221,7 @@ export default function LessonQuiz({
                     {q.question}
                   </div>
 
-                  {isPassed && isAnswerCorrect && (
+                  {isPassed && (
                     <span
                       style={{
                         fontSize: '11px',
@@ -216,9 +230,9 @@ export default function LessonQuiz({
                         padding: '2px 8px',
                         borderRadius: '4px',
                         flexShrink: 0,
-                        background: isAnswerCorrect ? 'rgba(16, 185, 129, 0.15)' : 'rgba(244, 63, 94, 0.15)',
-                        color: isAnswerCorrect ? '#10B981' : '#F43F5E',
-                        border: `1px solid ${isAnswerCorrect ? 'rgba(16, 185, 129, 0.3)' : 'rgba(244, 63, 94, 0.3)'}`
+                        background: 'rgba(16, 185, 129, 0.15)',
+                        color: '#10B981',
+                        border: '1px solid rgba(16, 185, 129, 0.3)'
                       }}
                     >
                       VERIFIED
@@ -230,7 +244,6 @@ export default function LessonQuiz({
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                   {q.options.map((opt, optIdx) => {
                     const isSelected = selectedOpt === optIdx;
-                    const isTarget = optIdx === targetAns;
 
                     let bg = '#0F172A';
                     let border = '#1E293B';
@@ -238,25 +251,25 @@ export default function LessonQuiz({
                     let markerBg = '#1E293B';
                     let markerColor = '#94A3B8';
 
-                    if (isPassed && isAnswerCorrect && isTarget) {
-                        bg = 'rgba(16, 185, 129, 0.12)';
-                        border = '#10B981';
-                        color = '#F8FAFC';
-                        markerBg = '#10B981';
-                        markerColor = '#090D16';
+                    if (isPassed && isSelected) {
+                      bg = 'rgba(16, 185, 129, 0.12)';
+                      border = '#10B981';
+                      color = '#F8FAFC';
+                      markerBg = '#10B981';
+                      markerColor = '#090D16';
                     } else if (hasAnswered && isSelected) {
-                        bg = 'rgba(197, 160, 89, 0.12)';
-                        border = '#C5A059';
-                        color = '#F8FAFC';
-                        markerBg = '#C5A059';
-                        markerColor = '#090D16';
+                      bg = 'rgba(197, 160, 89, 0.12)';
+                      border = '#C5A059';
+                      color = '#F8FAFC';
+                      markerBg = '#C5A059';
+                      markerColor = '#090D16';
                     }
 
                     return (
                       <button
                         key={optIdx}
                         type="button"
-                        className={`lesson-quiz-option ${isPassed && isTarget ? 'correct' : hasAnswered && isSelected ? 'selected' : ''}`}
+                        className={`lesson-quiz-option ${isPassed && isSelected ? 'correct' : hasAnswered && isSelected ? 'selected' : ''}`}
                         onClick={() => handleSelect(qIdx, optIdx)}
                         disabled={hasAnswered || assessmentFailed || isPassed}
                         style={{
@@ -300,7 +313,7 @@ export default function LessonQuiz({
                 </div>
 
                 {/* Instant 1-Sentence Institutional Explanation */}
-                {isPassed && isAnswerCorrect && q.explanation && (
+                {isPassed && q.explanation && (
                   <div
                     className="lesson-quiz-explanation"
                     style={{
@@ -309,12 +322,12 @@ export default function LessonQuiz({
                       borderRadius: '6px',
                       fontSize: '12px',
                       lineHeight: 1.5,
-                      background: isAnswerCorrect ? 'rgba(16, 185, 129, 0.08)' : 'rgba(244, 63, 94, 0.08)',
-                      borderLeft: `3px solid ${isAnswerCorrect ? '#10B981' : '#F43F5E'}`,
+                      background: 'rgba(16, 185, 129, 0.08)',
+                      borderLeft: '3px solid #10B981',
                       color: '#E2E8F0'
                     }}
                   >
-                    <strong style={{ color: isAnswerCorrect ? '#10B981' : '#F43F5E', marginRight: '6px' }}>
+                    <strong style={{ color: '#10B981', marginRight: '6px' }}>
                       Institutional Context:
                     </strong>
                     {q.explanation}

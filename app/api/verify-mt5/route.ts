@@ -1,6 +1,7 @@
 // app/api/verify-mt5/route.ts
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
+import { AUTH_COOKIE_NAME, signSession, getServerSession } from '@/lib/auth';
 
 export async function POST(request: Request) {
   try {
@@ -17,20 +18,26 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Please enter a valid JustMarkets MT5 account ID (6 to 10 digits).' }, { status: 400 });
     }
 
-    // Record attribution and consent telemetry
+    const cookieStore = await cookies();
+    const currentSession = await getServerSession();
+    const masterSecret = process.env.ADMIN_MASTER_SECRET;
+    const adminToken = cookieStore.get('velarion_admin_token')?.value;
+
+    // Check if the caller already possesses authenticated admin authority
+    const isOwner = Boolean(
+      currentSession?.role === 'admin' ||
+      (masterSecret && adminToken === masterSecret)
+    );
+
+    // Record attribution telemetry
     console.log('[Account Verification Telemetry]', JSON.stringify({
       mt5AccountId,
       email: email ? `${email.slice(0, 3)}***` : 'unspecified',
       attribution: { utmSource, utmMedium, utmCampaign, ref },
       newsletterOptIn,
+      isOwner,
       verifiedAt: new Date().toISOString()
     }));
-
-    // Check if this is the website owner account (Chrispine Abala Ashiruma)
-    const isOwner =
-      mt5AccountId === '1200533810' ||
-      email === 'ashirumaabala@gmail.com' ||
-      email.includes('ashiruma');
 
     // Register user record in backend SQLite database if not present
     try {
@@ -43,7 +50,7 @@ export async function POST(request: Request) {
           justmarkets_account_id: mt5AccountId,
           referral_code: ref || 'tohstb0d83',
           server: 'JustMarkets-Live',
-          equity: isOwner ? 145.21 : 0.0
+          equity: 0.0
         }),
         signal: AbortSignal.timeout(3000)
       });
@@ -53,21 +60,19 @@ export async function POST(request: Request) {
 
     // Connect to JustMarkets Partner verification check
     const isAffiliateValid = await verifyWithBrokerAPI(mt5AccountId, 'tohstb0d83');
+    const isVerified = isOwner || isAffiliateValid;
 
-    // Set secure HTTP-only cookies
-    const cookieStore = await cookies();
-
-    const { AUTH_COOKIE_NAME, signSession } = await import('@/lib/auth');
+    // Sign cryptographic session
     const sessionToken = await signSession({
       accountId: mt5AccountId,
       mt5Account: mt5AccountId,
-      email: email || (isOwner ? 'ashirumaabala@gmail.com' : `trader-${mt5AccountId}@velarion.internal`),
+      email: email || currentSession?.email || `trader-${mt5AccountId}@velarion.internal`,
       role: isOwner ? 'admin' : 'trader',
       partnerCode: 'tohstb0d83',
-      verified: isOwner || isAffiliateValid,
-      emailVerified: Boolean(email || isOwner),
-      partnerAttributed: isOwner || isAffiliateValid,
-      partnerPending: !isOwner && !isAffiliateValid,
+      verified: isVerified,
+      emailVerified: Boolean(email || currentSession?.emailVerified || isOwner),
+      partnerAttributed: isVerified,
+      partnerPending: !isVerified,
       depositVerified: isOwner,
       accountLinked: true,
       tradingActivated: false, // Linking NEVER activates automated trading
@@ -93,17 +98,7 @@ export async function POST(request: Request) {
       path: '/',
     });
 
-    cookieStore.set({
-      name: 'velarion_mt5_verified',
-      value: (isOwner || isAffiliateValid) ? 'true' : 'false',
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      maxAge: 60 * 60 * 24 * 30,
-      path: '/',
-    });
-
-    if (!isOwner && !isAffiliateValid) {
+    if (!isVerified) {
       cookieStore.set({
         name: 'velarion_partner_pending',
         value: 'true',
@@ -115,30 +110,18 @@ export async function POST(request: Request) {
       });
     }
 
-    if (isOwner && process.env.ADMIN_MASTER_SECRET) {
-      cookieStore.set({
-        name: 'velarion_admin_token',
-        value: process.env.ADMIN_MASTER_SECRET,
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
-        maxAge: 60 * 60 * 24 * 365, // 1 year permanent owner access
-        path: '/',
-      });
-    }
-
     return NextResponse.json({
       success: true,
-      pending: !isOwner && !isAffiliateValid,
+      pending: !isVerified,
       isOwner,
-      message: isAffiliateValid || isOwner
+      message: isVerified
         ? 'MT5 verified successfully!'
         : 'MT5 account linked. Submitted for desk verification via the official JustMarkets Partner Area.',
       user: {
         accountId: mt5AccountId,
-        email: email || (isOwner ? 'ashirumaabala@gmail.com' : undefined),
+        email: email || currentSession?.email,
         role: isOwner ? 'admin' : 'trader',
-        verified: isOwner || isAffiliateValid,
+        verified: isVerified,
       },
     });
   } catch (err: unknown) {
@@ -151,11 +134,6 @@ async function verifyWithBrokerAPI(accountId: string, partnerCode: string): Prom
   const trimmed = accountId.trim();
   if (!/^\d{6,10}$/.test(trimmed)) {
     return false;
-  }
-
-  // Pre-verified owner MT5 account
-  if (trimmed === '1200533810') {
-    return true;
   }
 
   // Check if account has been marked verified in backend database

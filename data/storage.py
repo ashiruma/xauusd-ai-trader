@@ -247,6 +247,15 @@ class DatabaseStorage:
                 )
             """)
 
+            try:
+                cursor.execute("ALTER TABLE users ADD COLUMN completed_lessons TEXT DEFAULT '[]'")
+            except Exception:
+                pass
+            try:
+                cursor.execute("ALTER TABLE users ADD COLUMN school_completed INTEGER DEFAULT 0")
+            except Exception:
+                pass
+
             # 11. Partner Settings & Referral Configuration (Primary: tohstb0d83, Secondary: p4cui0wkfz with 10 partner drip)
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS partner_config (
@@ -657,6 +666,30 @@ class DatabaseStorage:
                 )
             conn.commit()
             return cursor.rowcount > 0
+
+    def update_user_school_progress(self, account_id: str, completed_lessons: List[int], school_completed: bool) -> bool:
+        with self.get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                "UPDATE users SET completed_lessons = ?, school_completed = ? WHERE justmarkets_account_id = ?",
+                (json.dumps(completed_lessons), 1 if school_completed else 0, str(account_id).strip())
+            )
+            conn.commit()
+            return cursor.rowcount > 0
+
+    def get_user_school_progress(self, account_id: str) -> Dict[str, Any]:
+        user = self.get_user_by_account_id(str(account_id).strip())
+        if not user:
+            return {"completed_lessons": [], "school_completed": False}
+        raw = user.get("completed_lessons") or "[]"
+        try:
+            completed = json.loads(raw) if isinstance(raw, str) else (raw or [])
+        except Exception:
+            completed = []
+        return {
+            "completed_lessons": completed,
+            "school_completed": bool(user.get("school_completed", 0))
+        }
 
     def get_partner_config(self) -> Dict[str, Any]:
         defaults = {

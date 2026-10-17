@@ -47,11 +47,13 @@ export async function POST(request: Request) {
     const body = await request.json().catch(() => ({}));
     const cookieStore = await cookies();
 
-    // Verify user has funded deposit & prerequisite learning completed before authorizing
-    const isMt5Verified = cookieStore.get('velarion_mt5_verified')?.value === 'true';
-    const hasAdminToken = Boolean(cookieStore.get('velarion_admin_token')?.value);
+    const { getServerSession } = await import('@/lib/auth');
+    const session = await getServerSession();
+    const masterSecret = process.env.ADMIN_MASTER_SECRET;
+    const adminToken = cookieStore.get('velarion_admin_token')?.value;
+    const hasAdmin = Boolean(masterSecret && adminToken === masterSecret);
 
-    if (!isMt5Verified && !hasAdminToken) {
+    if (!hasAdmin && (!session || !session.verified || !session.accountLinked)) {
       return NextResponse.json(
         { error: 'Prerequisite requirement: Referral registration and verified deposit are mandatory before configuring trading settings.' },
         { status: 403 }

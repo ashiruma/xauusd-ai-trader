@@ -10,15 +10,16 @@ interface LiveSpotFeedProps {
 
 export interface QuoteResponse {
   symbol: string;
-  price: number;
-  bid: number;
-  ask: number;
+  price: number | null;
+  bid: number | null;
+  ask: number | null;
   spread: string;
   spreadPips: number;
   delta: string;
   timestamp: number;
   source: string;
   status?: string;
+  isConnected?: boolean;
 }
 
 export default function LiveSpotFeed({ className = '', style, initialQuote }: LiveSpotFeedProps) {
@@ -63,7 +64,7 @@ export default function LiveSpotFeed({ className = '', style, initialQuote }: Li
     };
 
     fetchQuote();
-    const interval = setInterval(fetchQuote, 1000); // 1-second real-time polling
+    const interval = setInterval(fetchQuote, 2500);
 
     return () => {
       isMounted = false;
@@ -72,14 +73,14 @@ export default function LiveSpotFeed({ className = '', style, initialQuote }: Li
     };
   }, []);
 
-  const displayPrice = quote?.price ?? (lastPriceRef.current || 4158.52);
-  const displayBid = quote?.bid ?? Number((displayPrice - 0.13).toFixed(2));
-  const displayAsk = quote?.ask ?? Number((displayPrice + 0.13).toFixed(2));
-  const displaySpread = quote?.spread ?? '4.1 PIPS';
-  const deltaVal = quote?.delta ?? '+51.23 (+1.25%)';
+  const isFeedConnected = Boolean(isConnected && quote?.isConnected && typeof quote?.price === 'number' && quote?.status !== 'DISCONNECTED');
+  const displayPrice = isFeedConnected && quote?.price ? quote.price : null;
+  const displayBid = isFeedConnected && quote?.bid ? quote.bid : null;
+  const displayAsk = isFeedConnected && quote?.ask ? quote.ask : null;
+  const displaySpread = isFeedConnected ? (quote?.spread || '2.6 PIPS') : 'Unavailable';
+  const deltaVal = isFeedConnected ? (quote?.delta || '+0.00') : '—';
   const isNegative = deltaVal.startsWith('-');
   const isDirectMT5 = quote?.source === 'JUSTMARKETS_MT5_DIRECT';
-  const isTradingView = quote?.source?.includes('TRADINGVIEW') ?? true;
 
   return (
     <div
@@ -108,12 +109,9 @@ export default function LiveSpotFeed({ className = '', style, initialQuote }: Li
         </div>
 
         {/* Live Source Badge */}
-        <a
-          href="https://www.tradingview.com/symbols/XAUUSD/"
-          target="_blank"
-          rel="noopener noreferrer"
-          className={`status-badge market-source-badge ${isConnected ? isDirectMT5 ? 'source-broker' : 'source-public' : 'source-offline'}`}
-          title="Live Gold Spot Price via TradingView (XAUUSD)"
+        <span
+          className={`status-badge market-source-badge ${isFeedConnected ? 'source-broker' : 'source-offline'}`}
+          title={isFeedConnected ? "Live Gold Spot Price via JustMarkets MT5" : "Broker feed is currently disconnected"}
           style={{
             fontSize: '10px',
             fontFamily: 'var(--font-mono, monospace)',
@@ -125,12 +123,8 @@ export default function LiveSpotFeed({ className = '', style, initialQuote }: Li
             border: 0
           }}
         >
-          {isConnected
-            ? isDirectMT5
-              ? 'JUSTMARKETS MT5'
-              : 'TRADINGVIEW REALTIME'
-            : 'RECONNECTING...'}
-        </a>
+          {isFeedConnected ? 'JUSTMARKETS MT5' : 'MT5 DISCONNECTED'}
+        </span>
       </div>
 
       {/* Primary Quote Display */}
@@ -138,15 +132,17 @@ export default function LiveSpotFeed({ className = '', style, initialQuote }: Li
         <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '4px' }}>
           Mid Market Price (USD)
         </div>
-          <div className="market-price-row" style={{ display: 'flex', alignItems: 'baseline', gap: '12px' }}>
-            <div
-              className="mono-nums"
-              data-market-price="true"
+        <div className="market-price-row" style={{ display: 'flex', alignItems: 'baseline', gap: '12px' }}>
+          <div
+            className="mono-nums"
+            data-market-price="true"
             style={{
               fontSize: '34px',
               fontWeight: 800,
               lineHeight: 1.1,
-              color: flashType === 'up'
+              color: !isFeedConnected
+                ? 'var(--text-muted)'
+                : flashType === 'up'
                 ? 'var(--accent-green)'
                 : flashType === 'down'
                 ? 'var(--accent-red)'
@@ -154,20 +150,29 @@ export default function LiveSpotFeed({ className = '', style, initialQuote }: Li
               transition: 'color 0.15s ease'
             }}
           >
-            ${displayPrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            {displayPrice !== null
+              ? `$${displayPrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+              : 'Unavailable'}
           </div>
+          {isFeedConnected && (
             <div
               className="mono-nums"
               data-market-change="true"
-            style={{
-              fontSize: '13px',
-              fontWeight: 700,
-              color: isNegative ? 'var(--accent-red)' : 'var(--accent-green)'
-            }}
-          >
-            {deltaVal}
-          </div>
+              style={{
+                fontSize: '13px',
+                fontWeight: 700,
+                color: isNegative ? 'var(--accent-red)' : 'var(--accent-green)'
+              }}
+            >
+              {deltaVal}
+            </div>
+          )}
         </div>
+        {!isFeedConnected && (
+          <div style={{ fontSize: '11px', color: 'var(--accent-gold)', marginTop: '4px' }}>
+            Broker bridge offline. Live quotes unavailable until MT5 connects.
+          </div>
+        )}
       </div>
 
       {/* Bid / Ask Breakdown */}
@@ -175,20 +180,20 @@ export default function LiveSpotFeed({ className = '', style, initialQuote }: Li
         <div className="market-quote-tile" style={{ background: 'var(--bg-surface-2)', padding: '10px 12px', borderRadius: 'var(--radius-xs)', border: '1px solid var(--border-subtle)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2px' }}>
             <span style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Bid</span>
-            <span style={{ fontSize: '9px', fontWeight: 700, color: 'var(--accent-green)' }}>SELL</span>
+            <span style={{ fontSize: '9px', fontWeight: 700, color: isFeedConnected ? 'var(--accent-green)' : 'var(--text-muted)' }}>SELL</span>
           </div>
-          <div className="mono-nums" style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)' }}>
-            ${displayBid.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          <div className="mono-nums" style={{ fontSize: '16px', fontWeight: 700, color: isFeedConnected ? 'var(--text-primary)' : 'var(--text-muted)' }}>
+            {displayBid !== null ? `$${displayBid.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '—'}
           </div>
         </div>
 
         <div className="market-quote-tile" style={{ background: 'var(--bg-surface-2)', padding: '10px 12px', borderRadius: 'var(--radius-xs)', border: '1px solid var(--border-subtle)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2px' }}>
             <span style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Ask</span>
-            <span style={{ fontSize: '9px', fontWeight: 700, color: 'var(--accent-gold)' }}>BUY</span>
+            <span style={{ fontSize: '9px', fontWeight: 700, color: isFeedConnected ? 'var(--accent-gold)' : 'var(--text-muted)' }}>BUY</span>
           </div>
-          <div className="mono-nums" style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)' }}>
-            ${displayAsk.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          <div className="mono-nums" style={{ fontSize: '16px', fontWeight: 700, color: isFeedConnected ? 'var(--text-primary)' : 'var(--text-muted)' }}>
+            {displayAsk !== null ? `$${displayAsk.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '—'}
           </div>
         </div>
       </div>
@@ -212,14 +217,14 @@ export default function LiveSpotFeed({ className = '', style, initialQuote }: Li
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <span style={{ color: 'var(--text-secondary)' }}>Trading Session</span>
-          <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>
-            London / NY Active
+          <span style={{ color: isFeedConnected ? 'var(--text-primary)' : 'var(--text-muted)', fontWeight: 600 }}>
+            {isFeedConnected ? 'London / NY Active' : 'Bridge Offline'}
           </span>
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <span style={{ color: 'var(--text-secondary)' }}>Model Regime</span>
-          <span style={{ color: 'var(--accent-gold)', fontWeight: 600 }}>
-            Trend Continuation
+          <span style={{ color: isFeedConnected ? 'var(--accent-gold)' : 'var(--text-muted)', fontWeight: 600 }}>
+            {isFeedConnected ? 'Active Bridge' : 'Standby (Disconnected)'}
           </span>
         </div>
       </div>
