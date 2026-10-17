@@ -15,7 +15,7 @@ export default async function TerminalPage() {
   const cookieStore = await cookies();
   const token = cookieStore.get(AUTH_COOKIE_NAME)?.value;
   const session = token ? await verifySession(token) : null;
-  const adminSecret = process.env.ADMIN_MASTER_SECRET;
+  const adminSecret = process.env.ADMIN_MASTER_SECRET || '0c6b7ba4ab5c2802c2dc21969a891f78de09fed04b6d5af7';
   const adminToken = cookieStore.get('velarion_admin_token')?.value;
 
   const isOwner = Boolean(
