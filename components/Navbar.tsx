@@ -115,6 +115,22 @@ export default function Navbar() {
         { href: '/assistant', label: 'AI Assistant' },
       ];
 
+  const isMemberPortalPage =
+    pathname.startsWith('/overview') ||
+    pathname.startsWith('/accounts') ||
+    pathname.startsWith('/automation') ||
+    pathname.startsWith('/activity') ||
+    pathname.startsWith('/settings') ||
+    pathname === '/school';
+
+  const isAuthAssistant =
+    pathname.startsWith('/assistant') &&
+    (isAuthenticated || (typeof document !== 'undefined' && document.cookie.includes('jm_auth_session')));
+
+  if (isMemberPortalPage || isAuthAssistant) {
+    return null;
+  }
+
   return (
     <>
       <header
