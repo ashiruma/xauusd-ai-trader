@@ -42,7 +42,29 @@ export async function middleware(request: NextRequest) {
     return new NextResponse('Not Found', { status: 404 });
   }
 
-  // 2. Protected Terminal / Advanced Lessons Gate
+  // 2. Member Portal Protected Routes (Overview, Accounts, Automation, Activity, Settings, School)
+  const isMemberRoute =
+    path.startsWith('/overview') ||
+    path.startsWith('/accounts') ||
+    path.startsWith('/automation') ||
+    path.startsWith('/activity') ||
+    path.startsWith('/settings') ||
+    path === '/school';
+
+  if (isMemberRoute) {
+    const masterSecret = process.env.ADMIN_MASTER_SECRET;
+    const adminToken = request.cookies.get('velarion_admin_token')?.value;
+    const hasAdmin = Boolean(masterSecret && adminToken === masterSecret);
+
+    const sessionToken = request.cookies.get(AUTH_COOKIE_NAME)?.value;
+    const session = sessionToken ? await verifySession(sessionToken) : null;
+
+    if (!hasAdmin && !session) {
+      return NextResponse.redirect(new URL('/login?redirect=' + encodeURIComponent(path), request.url));
+    }
+  }
+
+  // 3. Protected Terminal & Advanced Gated Lessons
   if (path.startsWith('/terminal') || path.startsWith('/academy/advanced')) {
     const masterSecret = process.env.ADMIN_MASTER_SECRET;
     const adminToken = request.cookies.get('velarion_admin_token')?.value;
@@ -68,5 +90,17 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/admin', '/admin/:path*', '/admin-secure-x9f8k2/:path*', '/terminal/:path*', '/academy/advanced/:path*'],
+  matcher: [
+    '/admin',
+    '/admin/:path*',
+    '/admin-secure-x9f8k2/:path*',
+    '/terminal/:path*',
+    '/academy/advanced/:path*',
+    '/overview/:path*',
+    '/accounts/:path*',
+    '/automation/:path*',
+    '/activity/:path*',
+    '/settings/:path*',
+    '/school',
+  ],
 };

@@ -134,6 +134,55 @@ export default function HomePage() {
                 Zero Platform Fees
               </span>
             </div>
+
+            {/* Quick Public Navigation Links */}
+            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginTop: '6px' }}>
+              <Link
+                href="/how-it-works"
+                style={{
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  color: 'var(--text-primary)',
+                  backgroundColor: 'var(--bg-surface-1)',
+                  border: '1px solid var(--border-default)',
+                  borderRadius: '6px',
+                  padding: '6px 12px',
+                  textDecoration: 'none',
+                }}
+              >
+                How It Works &rarr;
+              </Link>
+              <Link
+                href="/school-preview"
+                style={{
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  color: 'var(--text-primary)',
+                  backgroundColor: 'var(--bg-surface-1)',
+                  border: '1px solid var(--border-default)',
+                  borderRadius: '6px',
+                  padding: '6px 12px',
+                  textDecoration: 'none',
+                }}
+              >
+                School Preview &rarr;
+              </Link>
+              <Link
+                href="/risk-and-performance"
+                style={{
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  color: 'var(--accent-red)',
+                  backgroundColor: 'var(--accent-red-subtle)',
+                  border: '1px solid var(--accent-red-border)',
+                  borderRadius: '6px',
+                  padding: '6px 12px',
+                  textDecoration: 'none',
+                }}
+              >
+                Risk &amp; Performance Audit &rarr;
+              </Link>
+            </div>
           </div>
 
           {/* Right: Focused JustMarkets Gated Access Card */}

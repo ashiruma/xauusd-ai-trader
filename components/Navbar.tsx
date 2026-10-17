@@ -94,14 +94,24 @@ export default function Navbar() {
     }
   };
 
-  const navLinks = [
-    { href: '/', label: 'Home' },
-    { href: '/academy', label: 'Forex School' },
-    { href: '/terminal', label: 'Trading Terminal' },
-  ];
-
   const isAuthenticated = Boolean(session?.verified);
   const displayAccountId = session?.mt5Account || session?.accountId || '';
+
+  const navLinks = isAuthenticated
+    ? [
+        { href: '/overview', label: 'Overview' },
+        { href: '/school', label: 'School' },
+        { href: '/accounts', label: 'Accounts' },
+        { href: '/automation', label: 'Automation' },
+        { href: '/activity', label: 'Activity' },
+        { href: '/settings', label: 'Settings / Help' },
+      ]
+    : [
+        { href: '/', label: 'Home' },
+        { href: '/how-it-works', label: 'How It Works' },
+        { href: '/school-preview', label: 'School Preview' },
+        { href: '/risk-and-performance', label: 'Risk & Performance' },
+      ];
 
   return (
     <>
