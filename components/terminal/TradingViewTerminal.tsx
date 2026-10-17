@@ -135,7 +135,7 @@ export default function TradingViewTerminal({ accountId = '1200533810' }: { acco
 
     const widgetWrapper = document.createElement('div');
     widgetWrapper.className = 'tradingview-widget-container__widget';
-    widgetWrapper.style.height = '680px';
+    widgetWrapper.style.height = '740px';
     widgetWrapper.style.width = '100%';
     container.appendChild(widgetWrapper);
 
@@ -159,11 +159,15 @@ export default function TradingViewTerminal({ accountId = '1200533810' }: { acco
       gridColor: theme === 'dark' ? 'rgba(30, 41, 59, 0.45)' : 'rgba(226, 232, 240, 0.75)',
       hide_top_toolbar: false,
       hide_legend: false,
-      save_image: false,
+      save_image: true,
       studies: [
         'STD;EMA',
-        'STD;RSI'
+        'STD;RSI',
+        'STD;MACD'
       ],
+      show_popup_button: true,
+      popup_width: '1200',
+      popup_height: '800',
       toolbar_bg: theme === 'dark' ? '#0B0F19' : '#F8FAFC',
       withdateranges: true,
       hide_side_toolbar: false,
@@ -362,18 +366,32 @@ export default function TradingViewTerminal({ accountId = '1200533810' }: { acco
             gap: '10px',
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
             <span style={{ fontSize: '13px', fontWeight: 800, color: 'var(--accent-gold)', letterSpacing: '0.5px' }}>
               TRADINGVIEW ADVANCED CHART
             </span>
             <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Spot Gold ({activeSymbol})</span>
+            <span
+              style={{
+                fontSize: '11px',
+                fontFamily: 'var(--font-mono, monospace)',
+                color: 'var(--accent-green)',
+                background: 'var(--accent-green-subtle)',
+                padding: '2px 8px',
+                borderRadius: '4px',
+                border: '1px solid var(--accent-green-border)',
+              }}
+            >
+              Left Toolbar: Harmonic Patterns (ABCD, XABCD) &amp; Fibs Active
+            </span>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
             {[
               { label: 'OANDA XAUUSD', val: 'OANDA:XAUUSD' },
               { label: 'FX GOLD', val: 'FX:XAUUSD' },
               { label: 'CAPITALCOM', val: 'CAPITALCOM:GOLD' },
+              { label: 'TVC GOLD', val: 'TVC:GOLD' },
             ].map((s) => (
               <button
                 key={s.val}
@@ -393,11 +411,34 @@ export default function TradingViewTerminal({ accountId = '1200533810' }: { acco
                 {s.label}
               </button>
             ))}
+
+            <a
+              href={`https://www.tradingview.com/chart/?symbol=${encodeURIComponent(activeSymbol)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                padding: '4px 10px',
+                fontSize: '11px',
+                fontWeight: 700,
+                borderRadius: '4px',
+                border: '1px solid var(--border-accent)',
+                backgroundColor: 'var(--accent-gold-subtle)',
+                color: 'var(--accent-gold)',
+                textDecoration: 'none',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '4px',
+              }}
+              title="Open full interactive TradingView charting workbench in an external tab"
+            >
+              <span>Full Screen Workbench</span>
+              <span aria-hidden="true">&rarr;</span>
+            </a>
           </div>
         </div>
 
         {/* Embedded TradingView Advanced Container */}
-        <div ref={chartContainerRef} style={{ height: '680px', width: '100%', background: 'var(--bg-base)' }} />
+        <div ref={chartContainerRef} style={{ height: '740px', width: '100%', background: 'var(--bg-base)' }} />
       </div>
 
       {/* 3. STRUCTURED TRADE BLOTTER (POSITIONS & CLOSED DEALS HISTORY) */}
