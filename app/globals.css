@@ -46,6 +46,39 @@
   --radius-lg: 12px;
 }
 
+html[data-theme="dark"] {
+  color-scheme: dark;
+  --bg-base: #070B14;
+  --bg-surface-1: #0D1322;
+  --bg-surface-2: #11182B;
+  --bg-surface-3: #1E293B;
+  --bg-card: #0D1322;
+  --bg-card-hover: #11182B;
+  --bg-input: #070B14;
+
+  --border-subtle: #1E293B;
+  --border-default: #334155;
+  --border-hover: #475569;
+  --border-accent: rgba(245, 196, 81, 0.35);
+
+  --text-primary: #F8FAFC;
+  --text-secondary: #CBD5E1;
+  --text-muted: #94A3B8;
+  --text-gold: #F5C451;
+
+  --accent-gold: #F5C451;
+  --accent-gold-hover: #D9A835;
+  --accent-gold-subtle: rgba(245, 196, 81, 0.12);
+
+  --accent-green: #10B981;
+  --accent-green-subtle: rgba(16, 185, 129, 0.12);
+  --accent-green-border: rgba(16, 185, 129, 0.35);
+
+  --accent-red: #EF4444;
+  --accent-red-subtle: rgba(239, 68, 68, 0.12);
+  --accent-red-border: rgba(239, 68, 68, 0.35);
+}
+
 * {
   box-sizing: border-box;
   margin: 0;
@@ -848,13 +881,17 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
   outline-offset: 2px;
 }
 
-/* Header & Navigation - Uniform Dark Navy */
+/* Header & Navigation - Adaptive to Light / Dark Mode */
 .header-wrapper {
   height: 72px;
-  background: #0B0F19 !important;
-  border-bottom: 1px solid #1E293B !important;
+  background: var(--bg-base);
+  border-bottom: 1px solid var(--border-default);
   backdrop-filter: blur(12px);
-  color: #F8FAFC !important;
+  color: var(--text-primary);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  width: 100%;
 }
 
 .header-container {
@@ -1385,18 +1422,18 @@ footer a:hover {
   .content-page, .academy-page, .onboarding-page, .growth-calculator-page, .lesson-content { margin-top: 28px; margin-bottom: 48px; }
 }
 
-/* Velarion Terminal Workspace: Full-width dark navy deliberate theme */
+/* Velarion Terminal Workspace: Adaptive layout */
 body:has(.terminal-workspace-wrapper),
 .terminal-workspace-wrapper {
-  background-color: #0B0F19 !important;
-  color: #F8FAFC !important;
+  background-color: var(--bg-base);
+  color: var(--text-primary);
 }
 
 body:has(.terminal-workspace-wrapper) .header-wrapper,
 .header-wrapper.header-terminal {
-  background-color: #0B0F19 !important;
-  border-bottom: 1px solid #1E293B !important;
-  color: #F8FAFC !important;
+  background-color: var(--bg-base);
+  border-bottom: 1px solid var(--border-default);
+  color: var(--text-primary);
 }
 
 body:has(.terminal-workspace-wrapper) .header-container {

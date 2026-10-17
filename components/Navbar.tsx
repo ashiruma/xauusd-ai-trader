@@ -17,6 +17,39 @@ export default function Navbar() {
     accountId?: string;
     role?: string;
   } | null>(null);
+  const [theme, setTheme] = useState<'light' | 'dark'>('light');
+
+  // Synchronize client eye-comfort theme preference
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('velarion_theme') as 'light' | 'dark' | null;
+      if (saved) {
+        setTheme(saved);
+        if (saved === 'dark') {
+          document.documentElement.setAttribute('data-theme', 'dark');
+        } else {
+          document.documentElement.removeAttribute('data-theme');
+        }
+      }
+    } catch {
+      // ignore
+    }
+  }, []);
+
+  const toggleTheme = () => {
+    const next = theme === 'light' ? 'dark' : 'light';
+    setTheme(next);
+    try {
+      localStorage.setItem('velarion_theme', next);
+    } catch {
+      // ignore
+    }
+    if (next === 'dark') {
+      document.documentElement.setAttribute('data-theme', 'dark');
+    } else {
+      document.documentElement.removeAttribute('data-theme');
+    }
+  };
 
   // Fetch session from server
   useEffect(() => {
@@ -76,9 +109,9 @@ export default function Navbar() {
         className={`header-wrapper ${isTerminalPage ? 'header-terminal' : ''}`}
         role="banner"
         style={{
-          backgroundColor: '#FFFFFF',
-          borderBottom: '1px solid #CBD5E1',
-          color: '#0F172A',
+          backgroundColor: 'var(--bg-base)',
+          borderBottom: '1px solid var(--border-default)',
+          color: 'var(--text-primary)',
         }}
       >
         <div className="header-container" style={isTerminalPage ? { maxWidth: '1680px' } : undefined}>
@@ -90,24 +123,40 @@ export default function Navbar() {
             style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}
           >
             <picture>
-              <source srcSet="/velarion_brand_navy.webp" type="image/webp" />
-              <img
-                src="/velarion_brand_navy.png"
-                alt="VELARION MARKETS"
-                width={140}
-                height={36}
-                style={{ height: '32px', width: 'auto', display: 'block' }}
-                fetchPriority="high"
-              />
+              {theme === 'dark' ? (
+                <>
+                  <source srcSet="/velarion_brand_dark.webp" type="image/webp" />
+                  <img
+                    src="/velarion_brand_dark.png"
+                    alt="VELARION MARKETS"
+                    width={140}
+                    height={36}
+                    style={{ height: '32px', width: 'auto', display: 'block' }}
+                    fetchPriority="high"
+                  />
+                </>
+              ) : (
+                <>
+                  <source srcSet="/velarion_brand_navy.webp" type="image/webp" />
+                  <img
+                    src="/velarion_brand_navy.png"
+                    alt="VELARION MARKETS"
+                    width={140}
+                    height={36}
+                    style={{ height: '32px', width: 'auto', display: 'block' }}
+                    fetchPriority="high"
+                  />
+                </>
+              )}
             </picture>
             {isTerminalPage && (
               <span
                 style={{
                   fontSize: '11px',
                   fontWeight: 700,
-                  color: '#B45309',
-                  background: 'rgba(180, 83, 9, 0.08)',
-                  border: '1px solid rgba(180, 83, 9, 0.25)',
+                  color: 'var(--accent-gold)',
+                  background: 'var(--accent-gold-subtle)',
+                  border: '1px solid var(--border-accent)',
                   padding: '2px 8px',
                   borderRadius: '4px',
                   letterSpacing: '0.5px',
@@ -130,7 +179,7 @@ export default function Navbar() {
                   className={`nav-link-item ${isActive ? 'active' : ''}`}
                   aria-current={isActive ? 'page' : undefined}
                   style={{
-                    color: isActive ? '#B45309' : '#334155',
+                    color: isActive ? 'var(--accent-gold)' : 'var(--text-secondary)',
                     fontWeight: isActive ? 700 : 500,
                     fontSize: '13.5px',
                   }}
@@ -142,7 +191,42 @@ export default function Navbar() {
           </nav>
 
           {/* Right Action Group */}
-          <div className="header-actions">
+          <div className="header-actions" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            {/* Eye-Comfort Light / Dark Mode Toggle */}
+            <button
+              onClick={toggleTheme}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '6px 11px',
+                fontSize: '11px',
+                fontWeight: 700,
+                fontFamily: 'var(--font-mono, monospace)',
+                cursor: 'pointer',
+                borderRadius: '6px',
+                backgroundColor: 'var(--bg-surface-2)',
+                color: 'var(--text-secondary)',
+                border: '1px solid var(--border-default)',
+                transition: 'all 0.15s ease',
+              }}
+              title="Toggle Light / Dark Eye Comfort Mode"
+              aria-label="Toggle Color Theme"
+              type="button"
+            >
+              {theme === 'dark' ? (
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <circle cx="12" cy="12" r="5" />
+                  <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
+                </svg>
+              ) : (
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+                </svg>
+              )}
+              <span>{theme === 'dark' ? 'LIGHT' : 'DARK'}</span>
+            </button>
+
             {isAuthenticated ? (
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 {isTerminalPage && <TerminalAccountStatus />}
@@ -151,11 +235,11 @@ export default function Navbar() {
                   style={{
                     fontSize: '11px',
                     fontFamily: 'var(--font-mono, monospace)',
-                    color: '#334155',
+                    color: 'var(--text-secondary)',
                     padding: '4px 10px',
                     borderRadius: '5px',
-                    border: '1px solid #CBD5E1',
-                    background: '#F8FAFC',
+                    border: '1px solid var(--border-default)',
+                    background: 'var(--bg-surface-1)',
                     fontWeight: 600,
                   }}
                 >
@@ -166,7 +250,7 @@ export default function Navbar() {
                   <Link
                     href="/terminal"
                     className="btn btn-secondary"
-                    style={{ padding: '7px 14px', fontSize: '12px', background: '#0F172A', color: '#FFFFFF', border: 'none' }}
+                    style={{ padding: '7px 14px', fontSize: '12px', background: 'var(--text-primary)', color: 'var(--bg-base)', border: 'none' }}
                   >
                     Open Terminal &rarr;
                   </Link>
@@ -178,8 +262,8 @@ export default function Navbar() {
                   style={{
                     padding: '6px 12px',
                     fontSize: '11.5px',
-                    color: '#64748B',
-                    border: '1px solid #CBD5E1',
+                    color: 'var(--text-muted)',
+                    border: '1px solid var(--border-default)',
                     borderRadius: '5px',
                     cursor: 'pointer',
                     background: 'transparent',
@@ -197,12 +281,12 @@ export default function Navbar() {
                   style={{
                     padding: '7px 14px',
                     fontSize: '12.5px',
-                    color: '#0F172A',
-                    border: '1px solid #CBD5E1',
+                    color: 'var(--text-primary)',
+                    border: '1px solid var(--border-default)',
                     borderRadius: '6px',
                     textDecoration: 'none',
                     fontWeight: 600,
-                    background: '#FFFFFF',
+                    background: 'var(--bg-card)',
                   }}
                 >
                   Sign In
@@ -215,7 +299,7 @@ export default function Navbar() {
                   style={{
                     padding: '7px 16px',
                     fontSize: '12.5px',
-                    backgroundColor: '#B45309',
+                    backgroundColor: 'var(--accent-gold)',
                     color: '#FFFFFF',
                     borderRadius: '6px',
                     fontWeight: 700,
@@ -280,7 +364,7 @@ export default function Navbar() {
           <nav
             className="mobile-drawer-content"
             aria-label="Mobile Navigation"
-            style={{ background: '#FFFFFF', borderBottom: '1px solid #CBD5E1' }}
+            style={{ background: 'var(--bg-base)', borderBottom: '1px solid var(--border-default)' }}
           >
             {navLinks.map((item) => {
               const isActive = pathname === item.href;
@@ -291,15 +375,47 @@ export default function Navbar() {
                   onClick={() => setMobileMenuOpen(false)}
                   className={`mobile-nav-link ${isActive ? 'active' : ''}`}
                   aria-current={isActive ? 'page' : undefined}
-                  style={{ color: isActive ? '#B45309' : '#0F172A', fontWeight: isActive ? 700 : 500 }}
+                  style={{ color: isActive ? 'var(--accent-gold)' : 'var(--text-primary)', fontWeight: isActive ? 700 : 500 }}
                 >
                   <span>{item.label}</span>
                 </Link>
               );
             })}
 
-            {/* Mobile Drawer Footer */}
-            <div className="mobile-drawer-footer" style={{ borderTop: '1px solid #E2E8F0', paddingTop: '16px' }}>
+            {/* Mobile Drawer Footer with High-Impact CTA and Theme Switcher */}
+            <div className="mobile-drawer-footer" style={{ borderTop: '1px solid var(--border-subtle)', paddingTop: '16px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <button
+                onClick={toggleTheme}
+                type="button"
+                className="btn btn-secondary"
+                style={{
+                  width: '100%',
+                  padding: '10px',
+                  fontSize: '12px',
+                  justifyContent: 'center',
+                  background: 'var(--bg-surface-2)',
+                  color: 'var(--text-primary)',
+                  border: '1px solid var(--border-default)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  cursor: 'pointer',
+                  borderRadius: '6px',
+                }}
+              >
+                {theme === 'dark' ? (
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <circle cx="12" cy="12" r="5" />
+                    <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
+                  </svg>
+                ) : (
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+                  </svg>
+                )}
+                <span>{theme === 'dark' ? 'Switch to Eye-Comfort White' : 'Switch to Dark Mode'}</span>
+              </button>
+
               {!isAuthenticated ? (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                   <a
@@ -307,7 +423,7 @@ export default function Navbar() {
                     target="_blank"
                     rel="noopener noreferrer"
                     className="btn btn-primary"
-                    style={{ width: '100%', padding: '12px', fontSize: '13px', textAlign: 'center', backgroundColor: '#B45309', color: '#FFFFFF', borderRadius: '6px', fontWeight: 700, textDecoration: 'none' }}
+                    style={{ width: '100%', padding: '12px', fontSize: '13px', textAlign: 'center', backgroundColor: 'var(--accent-gold)', color: '#FFFFFF', borderRadius: '6px', fontWeight: 700, textDecoration: 'none' }}
                   >
                     Register on JustMarkets
                   </a>
@@ -315,7 +431,7 @@ export default function Navbar() {
                     href="/login"
                     onClick={() => setMobileMenuOpen(false)}
                     className="btn btn-secondary"
-                    style={{ width: '100%', padding: '10px', fontSize: '13px', textAlign: 'center', textDecoration: 'none', background: '#F1F5F9', color: '#0F172A', border: '1px solid #CBD5E1', borderRadius: '6px' }}
+                    style={{ width: '100%', padding: '10px', fontSize: '13px', textAlign: 'center', textDecoration: 'none', background: 'var(--bg-surface-2)', color: 'var(--text-primary)', border: '1px solid var(--border-default)', borderRadius: '6px' }}
                   >
                     Sign In
                   </Link>

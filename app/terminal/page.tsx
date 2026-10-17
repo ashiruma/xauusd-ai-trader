@@ -44,9 +44,9 @@ export default async function TerminalPage() {
     <div
       className="terminal-workspace-wrapper"
       style={{
-        backgroundColor: '#070B14',
+        backgroundColor: 'var(--bg-base)',
         minHeight: 'calc(100vh - 65px)',
-        color: '#F8FAFC',
+        color: 'var(--text-primary)',
         padding: '16px 20px 48px',
       }}
     >
@@ -68,7 +68,7 @@ export default async function TerminalPage() {
             <span
               style={{
                 fontSize: '11px',
-                color: '#F5C451',
+                color: 'var(--accent-gold)',
                 textTransform: 'uppercase',
                 fontWeight: 700,
                 letterSpacing: '0.6px',
@@ -77,28 +77,28 @@ export default async function TerminalPage() {
             >
               [VELARION TERMINAL]
             </span>
-            <span style={{ color: '#334155' }}>/</span>
+            <span style={{ color: 'var(--border-default)' }}>/</span>
             <span
               style={{
                 fontSize: '11px',
                 fontWeight: 700,
-                color: '#10B981',
-                background: 'rgba(16, 185, 129, 0.1)',
+                color: 'var(--accent-green)',
+                background: 'var(--accent-green-subtle)',
                 padding: '2px 8px',
                 borderRadius: '4px',
-                border: '1px solid rgba(16, 185, 129, 0.25)',
+                border: '1px solid var(--accent-green-border)',
                 fontFamily: 'JetBrains Mono, monospace',
               }}
             >
               Verified Partner Session
             </span>
-            <span style={{ color: '#334155' }}>/</span>
-            <span style={{ color: '#CBD5E1', fontSize: '12px', fontFamily: 'JetBrains Mono, monospace' }}>
-              JustMarkets MT5: <strong style={{ color: '#F5C451' }}>#{accountId}</strong>
+            <span style={{ color: 'var(--border-default)' }}>/</span>
+            <span style={{ color: 'var(--text-secondary)', fontSize: '12px', fontFamily: 'JetBrains Mono, monospace' }}>
+              JustMarkets MT5: <strong style={{ color: 'var(--accent-gold)' }}>#{accountId}</strong>
             </span>
           </div>
 
-          <div style={{ fontSize: '11px', color: '#64748B', fontFamily: 'JetBrains Mono, monospace' }}>
+          <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'JetBrains Mono, monospace' }}>
             Non-custodial execution guarantee: Capital deposited exclusively with JustMarkets
           </div>
         </div>

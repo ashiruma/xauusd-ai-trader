@@ -14,7 +14,7 @@ export default function HomePage() {
   const initialQuote = getServerLiveQuote();
 
   return (
-    <div style={{ backgroundColor: '#F8FAFC', minHeight: '100vh', color: '#0F172A' }}>
+    <div style={{ backgroundColor: 'var(--bg-base)', minHeight: '100vh', color: 'var(--text-primary)' }}>
 
       {/* ============================================================== */}
       {/* 1. HERO: ROLLS-ROYCE EXECUTIVE & TRADZY-STYLE GATED ACCESS     */}
@@ -35,8 +35,8 @@ export default function HomePage() {
                 position: 'relative',
                 borderRadius: '16px',
                 overflow: 'hidden',
-                border: '1px solid #CBD5E1',
-                boxShadow: '0 20px 25px -5px rgba(15, 23, 42, 0.1), 0 8px 10px -6px rgba(15, 23, 42, 0.05)',
+                border: '1px solid var(--border-default)',
+                boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.05)',
                 aspectRatio: '16/9',
                 backgroundColor: '#0F172A',
               }}
@@ -146,14 +146,14 @@ export default function HomePage() {
       {/* ============================================================== */}
       {/* 2. THREE CLEAN DIRECT PILLARS — "MONEY DOES NOT LOVE NOISE"   */}
       {/* ============================================================== */}
-      <section style={{ backgroundColor: '#FFFFFF', borderTop: '1px solid #E2E8F0', borderBottom: '1px solid #E2E8F0', padding: '54px 24px' }}>
+      <section style={{ backgroundColor: 'var(--bg-surface-1)', borderTop: '1px solid var(--border-default)', borderBottom: '1px solid var(--border-default)', padding: '54px 24px' }}>
         <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
           <div style={{ marginBottom: '32px', textAlign: 'center' }}>
             <span
               style={{
                 fontSize: '11px',
                 fontFamily: 'var(--font-mono, monospace)',
-                color: '#B45309',
+                color: 'var(--accent-gold)',
                 fontWeight: 700,
                 letterSpacing: '1px',
                 textTransform: 'uppercase',
@@ -161,7 +161,7 @@ export default function HomePage() {
             >
               Straightforward Architecture
             </span>
-            <h2 style={{ fontSize: '24px', fontWeight: 800, color: '#0F172A', marginTop: '4px' }}>
+            <h2 style={{ fontSize: '24px', fontWeight: 800, color: 'var(--text-primary)', marginTop: '4px' }}>
               Built for precision, not noise.
             </h2>
           </div>
@@ -176,19 +176,19 @@ export default function HomePage() {
             {/* Pillar 1 */}
             <div
               style={{
-                background: '#F8FAFC',
-                border: '1px solid #CBD5E1',
+                background: 'var(--bg-card)',
+                border: '1px solid var(--border-default)',
                 borderRadius: '10px',
                 padding: '24px',
               }}
             >
-              <div style={{ fontSize: '11px', fontFamily: 'var(--font-mono, monospace)', color: '#B45309', fontWeight: 700, marginBottom: '8px' }}>
+              <div style={{ fontSize: '11px', fontFamily: 'var(--font-mono, monospace)', color: 'var(--accent-gold)', fontWeight: 700, marginBottom: '8px' }}>
                 01 / SECURITY
               </div>
-              <h3 style={{ fontSize: '17px', fontWeight: 700, color: '#0F172A', margin: '0 0 8px' }}>
+              <h3 style={{ fontSize: '17px', fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 8px' }}>
                 Non-Custodial Safety
               </h3>
-              <p style={{ fontSize: '13.5px', color: '#64748B', lineHeight: 1.6, margin: 0 }}>
+              <p style={{ fontSize: '13.5px', color: 'var(--text-muted)', lineHeight: 1.6, margin: 0 }}>
                 Your capital remains 100% inside your own JustMarkets MT5 account. Velarion never accepts deposits or manages client money.
               </p>
             </div>
@@ -196,19 +196,19 @@ export default function HomePage() {
             {/* Pillar 2 */}
             <div
               style={{
-                background: '#F8FAFC',
-                border: '1px solid #CBD5E1',
+                background: 'var(--bg-card)',
+                border: '1px solid var(--border-default)',
                 borderRadius: '10px',
                 padding: '24px',
               }}
             >
-              <div style={{ fontSize: '11px', fontFamily: 'var(--font-mono, monospace)', color: '#047857', fontWeight: 700, marginBottom: '8px' }}>
+              <div style={{ fontSize: '11px', fontFamily: 'var(--font-mono, monospace)', color: 'var(--accent-green)', fontWeight: 700, marginBottom: '8px' }}>
                 02 / ACCESS
               </div>
-              <h3 style={{ fontSize: '17px', fontWeight: 700, color: '#0F172A', margin: '0 0 8px' }}>
+              <h3 style={{ fontSize: '17px', fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 8px' }}>
                 Subsidized Membership
               </h3>
-              <p style={{ fontSize: '13.5px', color: '#64748B', lineHeight: 1.6, margin: 0 }}>
+              <p style={{ fontSize: '13.5px', color: 'var(--text-muted)', lineHeight: 1.6, margin: 0 }}>
                 Zero platform subscription fees. Access to the terminal and educational courses is fully covered through our official broker partner rebate.
               </p>
             </div>
@@ -216,19 +216,19 @@ export default function HomePage() {
             {/* Pillar 3 */}
             <div
               style={{
-                background: '#F8FAFC',
-                border: '1px solid #CBD5E1',
+                background: 'var(--bg-card)',
+                border: '1px solid var(--border-default)',
                 borderRadius: '10px',
                 padding: '24px',
               }}
             >
-              <div style={{ fontSize: '11px', fontFamily: 'var(--font-mono, monospace)', color: '#0369A1', fontWeight: 700, marginBottom: '8px' }}>
+              <div style={{ fontSize: '11px', fontFamily: 'var(--font-mono, monospace)', color: 'var(--accent-gold)', fontWeight: 700, marginBottom: '8px' }}>
                 03 / MASTERY
               </div>
-              <h3 style={{ fontSize: '17px', fontWeight: 700, color: '#0F172A', margin: '0 0 8px' }}>
+              <h3 style={{ fontSize: '17px', fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 8px' }}>
                 30-Lesson Forex School
               </h3>
-              <p style={{ fontSize: '13.5px', color: '#64748B', lineHeight: 1.6, margin: 0 }}>
+              <p style={{ fontSize: '13.5px', color: 'var(--text-muted)', lineHeight: 1.6, margin: 0 }}>
                 Master market mechanics, liquidity sweeps, and disciplined risk limits before entering live execution.
               </p>
             </div>
@@ -246,7 +246,7 @@ export default function HomePage() {
               fontSize: '11px',
               fontFamily: 'var(--font-mono, monospace)',
               fontWeight: 700,
-              color: '#64748B',
+              color: 'var(--text-muted)',
               letterSpacing: '1px',
               textTransform: 'uppercase',
             }}

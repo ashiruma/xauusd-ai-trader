@@ -47,6 +47,19 @@ export default function TradingViewTerminal({ accountId = '1200533810' }: { acco
   const [positions, setPositions] = useState<PositionItem[]>([]);
   const [closedTrades, setClosedTrades] = useState<ClosedTradeItem[]>([]);
   const [lastSyncTime, setLastSyncTime] = useState<string>('');
+  const [theme, setTheme] = useState<'light' | 'dark'>('light');
+
+  // Track global theme for chart and blotter styling
+  useEffect(() => {
+    const updateTheme = () => {
+      const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+      setTheme(isDark ? 'dark' : 'light');
+    };
+    updateTheme();
+    const observer = new MutationObserver(updateTheme);
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+    return () => observer.disconnect();
+  }, []);
 
   const chartContainerRef = useRef<HTMLDivElement>(null);
 
@@ -135,15 +148,15 @@ export default function TradingViewTerminal({ accountId = '1200533810' }: { acco
       symbol: activeSymbol,
       interval: '15',
       timezone: 'Etc/UTC',
-      theme: 'dark',
+      theme: theme === 'dark' ? 'dark' : 'light',
       style: '1',
       locale: 'en',
       enable_publishing: false,
       allow_symbol_change: true,
       calendar: false,
       support_host: 'https://www.tradingview.com',
-      backgroundColor: '#070B14',
-      gridColor: 'rgba(30, 41, 59, 0.45)',
+      backgroundColor: theme === 'dark' ? '#070B14' : '#FFFFFF',
+      gridColor: theme === 'dark' ? 'rgba(30, 41, 59, 0.45)' : 'rgba(226, 232, 240, 0.75)',
       hide_top_toolbar: false,
       hide_legend: false,
       save_image: false,
@@ -151,7 +164,7 @@ export default function TradingViewTerminal({ accountId = '1200533810' }: { acco
         'STD;EMA',
         'STD;RSI'
       ],
-      toolbar_bg: '#0B0F19',
+      toolbar_bg: theme === 'dark' ? '#0B0F19' : '#F8FAFC',
       withdateranges: true,
       hide_side_toolbar: false,
       details: true,
@@ -163,7 +176,7 @@ export default function TradingViewTerminal({ accountId = '1200533810' }: { acco
     return () => {
       if (container) container.innerHTML = '';
     };
-  }, [activeSymbol]);
+  }, [activeSymbol, theme]);
 
   // Handle Immediate Position Close
   const handleClosePosition = async (ticket: number) => {
@@ -220,7 +233,7 @@ export default function TradingViewTerminal({ accountId = '1200533810' }: { acco
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', width: '100%', color: '#F8FAFC' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', width: '100%', color: 'var(--text-primary)' }}>
 
       {/* 1. TOP BROKER TELEMETRY STRIP (JUSTMARKETS ECN) */}
       <div
@@ -228,8 +241,8 @@ export default function TradingViewTerminal({ accountId = '1200533810' }: { acco
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          backgroundColor: '#0B0F19',
-          border: '1px solid #1E293B',
+          backgroundColor: 'var(--bg-card)',
+          border: '1px solid var(--border-default)',
           borderRadius: '8px',
           padding: '12px 18px',
           flexWrap: 'wrap',
@@ -238,47 +251,47 @@ export default function TradingViewTerminal({ accountId = '1200533810' }: { acco
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
           <div>
-            <span style={{ fontSize: '11px', fontFamily: 'var(--font-mono, monospace)', color: '#94A3B8', textTransform: 'uppercase' }}>
+            <span style={{ fontSize: '11px', fontFamily: 'var(--font-mono, monospace)', color: 'var(--text-muted)', textTransform: 'uppercase' }}>
               Broker Gateway
             </span>
-            <div style={{ fontSize: '14px', fontWeight: 800, color: '#F8FAFC' }}>
+            <div style={{ fontSize: '14px', fontWeight: 800, color: 'var(--text-primary)' }}>
               JustMarkets Ltd (Raw ECN)
             </div>
           </div>
 
-          <div style={{ height: '24px', width: '1px', backgroundColor: '#1E293B' }} />
+          <div style={{ height: '24px', width: '1px', backgroundColor: 'var(--border-subtle)' }} />
 
           <div>
-            <span style={{ fontSize: '11px', fontFamily: 'var(--font-mono, monospace)', color: '#94A3B8', textTransform: 'uppercase' }}>
+            <span style={{ fontSize: '11px', fontFamily: 'var(--font-mono, monospace)', color: 'var(--text-muted)', textTransform: 'uppercase' }}>
               Account Number
             </span>
-            <div style={{ fontSize: '14px', fontWeight: 700, color: '#F5C451', fontFamily: 'var(--font-mono, monospace)' }}>
+            <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--accent-gold)', fontFamily: 'var(--font-mono, monospace)' }}>
               #{accountId}
             </div>
           </div>
 
-          <div style={{ height: '24px', width: '1px', backgroundColor: '#1E293B' }} />
+          <div style={{ height: '24px', width: '1px', backgroundColor: 'var(--border-subtle)' }} />
 
           <div>
-            <span style={{ fontSize: '11px', fontFamily: 'var(--font-mono, monospace)', color: '#94A3B8', textTransform: 'uppercase' }}>
+            <span style={{ fontSize: '11px', fontFamily: 'var(--font-mono, monospace)', color: 'var(--text-muted)', textTransform: 'uppercase' }}>
               Balance / Equity
             </span>
-            <div style={{ fontSize: '14px', fontWeight: 700, color: '#F8FAFC', fontFamily: 'var(--font-mono, monospace)' }}>
-              ${balance.toFixed(2)} <span style={{ color: '#64748B' }}>/</span> ${equity.toFixed(2)}
+            <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)', fontFamily: 'var(--font-mono, monospace)' }}>
+              ${balance.toFixed(2)} <span style={{ color: 'var(--text-muted)' }}>/</span> ${equity.toFixed(2)}
             </div>
           </div>
 
-          <div style={{ height: '24px', width: '1px', backgroundColor: '#1E293B' }} />
+          <div style={{ height: '24px', width: '1px', backgroundColor: 'var(--border-subtle)' }} />
 
           <div>
-            <span style={{ fontSize: '11px', fontFamily: 'var(--font-mono, monospace)', color: '#94A3B8', textTransform: 'uppercase' }}>
+            <span style={{ fontSize: '11px', fontFamily: 'var(--font-mono, monospace)', color: 'var(--text-muted)', textTransform: 'uppercase' }}>
               Floating P&L
             </span>
             <div
               style={{
                 fontSize: '14px',
                 fontWeight: 800,
-                color: floatingPnl >= 0 ? '#10B981' : '#EF4444',
+                color: floatingPnl >= 0 ? 'var(--accent-green)' : 'var(--accent-red)',
                 fontFamily: 'var(--font-mono, monospace)',
               }}
             >
@@ -295,16 +308,16 @@ export default function TradingViewTerminal({ accountId = '1200533810' }: { acco
               fontWeight: 700,
               padding: '3px 10px',
               borderRadius: '4px',
-              backgroundColor: isBridgeConnected ? 'rgba(16, 185, 129, 0.12)' : 'rgba(239, 68, 68, 0.12)',
-              color: isBridgeConnected ? '#10B981' : '#EF4444',
-              border: `1px solid ${isBridgeConnected ? 'rgba(16, 185, 129, 0.3)' : 'rgba(239, 68, 68, 0.3)'}`,
+              backgroundColor: isBridgeConnected ? 'var(--accent-green-subtle)' : 'var(--accent-red-subtle)',
+              color: isBridgeConnected ? 'var(--accent-green)' : 'var(--accent-red)',
+              border: `1px solid ${isBridgeConnected ? 'var(--accent-green-border)' : 'var(--accent-red-border)'}`,
             }}
           >
             {isBridgeConnected ? 'MT5 GATEWAY ONLINE' : 'MT5 DISCONNECTED'}
           </span>
 
           {lastSyncTime && (
-            <span style={{ fontSize: '11px', color: '#64748B', fontFamily: 'var(--font-mono, monospace)' }}>
+            <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono, monospace)' }}>
               {lastSyncTime} UTC
             </span>
           )}
@@ -314,12 +327,12 @@ export default function TradingViewTerminal({ accountId = '1200533810' }: { acco
       {actionNotice && (
         <div
           style={{
-            backgroundColor: '#0F172A',
-            border: '1px solid #F5C451',
+            backgroundColor: 'var(--bg-surface-2)',
+            border: '1px solid var(--border-accent)',
             borderRadius: '6px',
             padding: '10px 16px',
             fontSize: '12.5px',
-            color: '#F5C451',
+            color: 'var(--text-gold)',
           }}
         >
           {actionNotice}
@@ -329,11 +342,11 @@ export default function TradingViewTerminal({ accountId = '1200533810' }: { acco
       {/* 2. EXPANSIVE FULL-SIZE TRADINGVIEW ADVANCED CHART (680px TALL) */}
       <div
         style={{
-          background: '#070B14',
+          background: 'var(--bg-card)',
           borderRadius: '10px',
-          border: '1px solid #1E293B',
+          border: '1px solid var(--border-default)',
           overflow: 'hidden',
-          boxShadow: '0 10px 30px rgba(0, 0, 0, 0.5)',
+          boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
         }}
       >
         {/* Symbol Switcher & Tools Header */}
@@ -343,17 +356,17 @@ export default function TradingViewTerminal({ accountId = '1200533810' }: { acco
             justifyContent: 'space-between',
             alignItems: 'center',
             padding: '10px 16px',
-            backgroundColor: '#0B0F19',
-            borderBottom: '1px solid #1E293B',
+            backgroundColor: 'var(--bg-surface-1)',
+            borderBottom: '1px solid var(--border-default)',
             flexWrap: 'wrap',
             gap: '10px',
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <span style={{ fontSize: '13px', fontWeight: 800, color: '#F5C451', letterSpacing: '0.5px' }}>
+            <span style={{ fontSize: '13px', fontWeight: 800, color: 'var(--accent-gold)', letterSpacing: '0.5px' }}>
               TRADINGVIEW ADVANCED CHART
             </span>
-            <span style={{ fontSize: '12px', color: '#94A3B8' }}>Spot Gold ({activeSymbol})</span>
+            <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Spot Gold ({activeSymbol})</span>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -371,9 +384,9 @@ export default function TradingViewTerminal({ accountId = '1200533810' }: { acco
                   fontSize: '11px',
                   fontWeight: 600,
                   borderRadius: '4px',
-                  border: activeSymbol === s.val ? '1px solid #F5C451' : '1px solid #334155',
-                  backgroundColor: activeSymbol === s.val ? 'rgba(245, 196, 81, 0.15)' : 'transparent',
-                  color: activeSymbol === s.val ? '#F5C451' : '#94A3B8',
+                  border: activeSymbol === s.val ? '1px solid var(--accent-gold)' : '1px solid var(--border-default)',
+                  backgroundColor: activeSymbol === s.val ? 'var(--accent-gold-subtle)' : 'transparent',
+                  color: activeSymbol === s.val ? 'var(--accent-gold)' : 'var(--text-muted)',
                   cursor: 'pointer',
                 }}
               >
@@ -384,15 +397,15 @@ export default function TradingViewTerminal({ accountId = '1200533810' }: { acco
         </div>
 
         {/* Embedded TradingView Advanced Container */}
-        <div ref={chartContainerRef} style={{ height: '680px', width: '100%', background: '#070B14' }} />
+        <div ref={chartContainerRef} style={{ height: '680px', width: '100%', background: 'var(--bg-base)' }} />
       </div>
 
       {/* 3. STRUCTURED TRADE BLOTTER (POSITIONS & CLOSED DEALS HISTORY) */}
       <div
         style={{
-          background: '#0B0F19',
+          background: 'var(--bg-card)',
           borderRadius: '10px',
-          border: '1px solid #1E293B',
+          border: '1px solid var(--border-default)',
           overflow: 'hidden',
         }}
       >
@@ -401,8 +414,8 @@ export default function TradingViewTerminal({ accountId = '1200533810' }: { acco
           style={{
             display: 'flex',
             alignItems: 'center',
-            backgroundColor: '#090D16',
-            borderBottom: '1px solid #1E293B',
+            backgroundColor: 'var(--bg-surface-1)',
+            borderBottom: '1px solid var(--border-default)',
             padding: '0 12px',
           }}
         >
@@ -413,8 +426,8 @@ export default function TradingViewTerminal({ accountId = '1200533810' }: { acco
               padding: '12px 18px',
               fontSize: '12.5px',
               fontWeight: activeTab === 'positions' ? 700 : 500,
-              color: activeTab === 'positions' ? '#F5C451' : '#94A3B8',
-              borderBottom: activeTab === 'positions' ? '2px solid #F5C451' : '2px solid transparent',
+              color: activeTab === 'positions' ? 'var(--accent-gold)' : 'var(--text-muted)',
+              borderBottom: activeTab === 'positions' ? '2px solid var(--accent-gold)' : '2px solid transparent',
               background: 'transparent',
               borderTop: 'none',
               borderLeft: 'none',
@@ -431,7 +444,7 @@ export default function TradingViewTerminal({ accountId = '1200533810' }: { acco
                 fontSize: '10.5px',
                 padding: '1px 6px',
                 borderRadius: '10px',
-                backgroundColor: positions.length > 0 ? '#10B981' : '#334155',
+                backgroundColor: positions.length > 0 ? 'var(--accent-green)' : 'var(--border-default)',
                 color: '#FFFFFF',
               }}
             >
@@ -446,8 +459,8 @@ export default function TradingViewTerminal({ accountId = '1200533810' }: { acco
               padding: '12px 18px',
               fontSize: '12.5px',
               fontWeight: activeTab === 'history' ? 700 : 500,
-              color: activeTab === 'history' ? '#F5C451' : '#94A3B8',
-              borderBottom: activeTab === 'history' ? '2px solid #F5C451' : '2px solid transparent',
+              color: activeTab === 'history' ? 'var(--accent-gold)' : 'var(--text-muted)',
+              borderBottom: activeTab === 'history' ? '2px solid var(--accent-gold)' : '2px solid transparent',
               background: 'transparent',
               borderTop: 'none',
               borderLeft: 'none',
@@ -464,8 +477,8 @@ export default function TradingViewTerminal({ accountId = '1200533810' }: { acco
                 fontSize: '10.5px',
                 padding: '1px 6px',
                 borderRadius: '10px',
-                backgroundColor: '#334155',
-                color: '#FFFFFF',
+                backgroundColor: 'var(--border-default)',
+                color: 'var(--text-muted)',
               }}
             >
               {closedTrades.length}
@@ -477,7 +490,7 @@ export default function TradingViewTerminal({ accountId = '1200533810' }: { acco
         {activeTab === 'positions' && (
           <div>
             {positions.length === 0 ? (
-              <div style={{ padding: '36px 20px', textAlign: 'center', color: '#64748B', fontSize: '13px' }}>
+              <div style={{ padding: '36px 20px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '13px' }}>
                 {isBridgeConnected
                   ? 'No active positions on JustMarkets MT5.'
                   : 'Positions unavailable: MT5 bridge is disconnected.'}
@@ -486,7 +499,7 @@ export default function TradingViewTerminal({ accountId = '1200533810' }: { acco
               <div style={{ overflowX: 'auto' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px', textAlign: 'left' }}>
                   <thead>
-                    <tr style={{ borderBottom: '1px solid #1E293B', color: '#64748B' }}>
+                    <tr style={{ borderBottom: '1px solid var(--border-default)', color: 'var(--text-muted)' }}>
                       <th style={{ padding: '10px 14px' }}>Ticket</th>
                       <th style={{ padding: '10px 14px' }}>Side</th>
                       <th style={{ padding: '10px 14px', textAlign: 'right' }}>Lots</th>
@@ -502,8 +515,8 @@ export default function TradingViewTerminal({ accountId = '1200533810' }: { acco
                     {positions.map((p) => {
                       const isClosing = closingTickets.has(p.ticket);
                       return (
-                        <tr key={p.ticket} style={{ borderBottom: '1px solid #141D2E' }}>
-                          <td style={{ padding: '10px 14px', fontFamily: 'var(--font-mono, monospace)', color: '#CBD5E1' }}>
+                        <tr key={p.ticket} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+                          <td style={{ padding: '10px 14px', fontFamily: 'var(--font-mono, monospace)', color: 'var(--text-secondary)' }}>
                             #{p.ticket}
                           </td>
                           <td style={{ padding: '10px 14px' }}>
@@ -511,7 +524,7 @@ export default function TradingViewTerminal({ accountId = '1200533810' }: { acco
                               style={{
                                 fontSize: '10.5px',
                                 fontWeight: 700,
-                                color: p.side === 'BUY' ? '#10B981' : '#EF4444',
+                                color: p.side === 'BUY' ? 'var(--accent-green)' : 'var(--accent-red)',
                               }}
                             >
                               {p.side}
@@ -523,13 +536,13 @@ export default function TradingViewTerminal({ accountId = '1200533810' }: { acco
                           <td style={{ padding: '10px 14px', textAlign: 'right', fontFamily: 'var(--font-mono, monospace)' }}>
                             {p.openPrice.toFixed(2)}
                           </td>
-                          <td style={{ padding: '10px 14px', textAlign: 'right', fontFamily: 'var(--font-mono, monospace)', color: '#F8FAFC' }}>
+                          <td style={{ padding: '10px 14px', textAlign: 'right', fontFamily: 'var(--font-mono, monospace)', color: 'var(--text-primary)' }}>
                             {p.currentPrice.toFixed(2)}
                           </td>
-                          <td style={{ padding: '10px 14px', textAlign: 'right', fontFamily: 'var(--font-mono, monospace)', color: '#94A3B8' }}>
+                          <td style={{ padding: '10px 14px', textAlign: 'right', fontFamily: 'var(--font-mono, monospace)', color: 'var(--text-muted)' }}>
                             {p.stopLoss && p.stopLoss > 0 ? p.stopLoss.toFixed(2) : '—'}
                           </td>
-                          <td style={{ padding: '10px 14px', textAlign: 'right', fontFamily: 'var(--font-mono, monospace)', color: '#94A3B8' }}>
+                          <td style={{ padding: '10px 14px', textAlign: 'right', fontFamily: 'var(--font-mono, monospace)', color: 'var(--text-muted)' }}>
                             {p.takeProfit && p.takeProfit > 0 ? p.takeProfit.toFixed(2) : '—'}
                           </td>
                           <td
@@ -538,7 +551,7 @@ export default function TradingViewTerminal({ accountId = '1200533810' }: { acco
                               textAlign: 'right',
                               fontFamily: 'var(--font-mono, monospace)',
                               fontWeight: 700,
-                              color: p.profit >= 0 ? '#10B981' : '#EF4444',
+                              color: p.profit >= 0 ? 'var(--accent-green)' : 'var(--accent-red)',
                             }}
                           >
                             {p.profit >= 0 ? '+' : ''}${p.profit.toFixed(2)}
@@ -552,9 +565,9 @@ export default function TradingViewTerminal({ accountId = '1200533810' }: { acco
                                 padding: '4px 10px',
                                 fontSize: '11px',
                                 fontWeight: 600,
-                                backgroundColor: isClosing ? '#334155' : 'rgba(239, 68, 68, 0.15)',
-                                color: isClosing ? '#94A3B8' : '#EF4444',
-                                border: '1px solid rgba(239, 68, 68, 0.3)',
+                                backgroundColor: isClosing ? 'var(--bg-surface-2)' : 'var(--accent-red-subtle)',
+                                color: isClosing ? 'var(--text-muted)' : 'var(--accent-red)',
+                                border: '1px solid var(--accent-red-border)',
                                 borderRadius: '4px',
                                 cursor: isClosing ? 'not-allowed' : 'pointer',
                               }}
@@ -576,14 +589,14 @@ export default function TradingViewTerminal({ accountId = '1200533810' }: { acco
         {activeTab === 'history' && (
           <div>
             {closedTrades.length === 0 ? (
-              <div style={{ padding: '36px 20px', textAlign: 'center', color: '#64748B', fontSize: '13px' }}>
+              <div style={{ padding: '36px 20px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '13px' }}>
                 No closed trades recorded yet for this session.
               </div>
             ) : (
               <div style={{ overflowX: 'auto' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px', textAlign: 'left' }}>
                   <thead>
-                    <tr style={{ borderBottom: '1px solid #1E293B', color: '#64748B' }}>
+                    <tr style={{ borderBottom: '1px solid var(--border-default)', color: 'var(--text-muted)' }}>
                       <th style={{ padding: '10px 14px' }}>Ticket</th>
                       <th style={{ padding: '10px 14px' }}>Time</th>
                       <th style={{ padding: '10px 14px' }}>Side</th>
@@ -597,11 +610,11 @@ export default function TradingViewTerminal({ accountId = '1200533810' }: { acco
                   </thead>
                   <tbody>
                     {closedTrades.map((t) => (
-                      <tr key={t.id} style={{ borderBottom: '1px solid #141D2E' }}>
-                        <td style={{ padding: '10px 14px', fontFamily: 'var(--font-mono, monospace)', color: '#CBD5E1' }}>
+                      <tr key={t.id} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+                        <td style={{ padding: '10px 14px', fontFamily: 'var(--font-mono, monospace)', color: 'var(--text-secondary)' }}>
                           #{t.ticket}
                         </td>
-                        <td style={{ padding: '10px 14px', color: '#94A3B8', fontFamily: 'var(--font-mono, monospace)' }}>
+                        <td style={{ padding: '10px 14px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono, monospace)' }}>
                           {(t.closeTime || '').slice(11, 19) || '—'}
                         </td>
                         <td style={{ padding: '10px 14px' }}>
@@ -609,7 +622,7 @@ export default function TradingViewTerminal({ accountId = '1200533810' }: { acco
                             style={{
                               fontSize: '10.5px',
                               fontWeight: 700,
-                              color: t.side === 'BUY' ? '#10B981' : '#EF4444',
+                              color: t.side === 'BUY' ? 'var(--accent-green)' : 'var(--accent-red)',
                             }}
                           >
                             {t.side}
@@ -621,7 +634,7 @@ export default function TradingViewTerminal({ accountId = '1200533810' }: { acco
                         <td style={{ padding: '10px 14px', textAlign: 'right', fontFamily: 'var(--font-mono, monospace)' }}>
                           {t.entryPrice.toFixed(2)}
                         </td>
-                        <td style={{ padding: '10px 14px', textAlign: 'right', fontFamily: 'var(--font-mono, monospace)', color: '#F8FAFC' }}>
+                        <td style={{ padding: '10px 14px', textAlign: 'right', fontFamily: 'var(--font-mono, monospace)', color: 'var(--text-primary)' }}>
                           {t.exitPrice.toFixed(2)}
                         </td>
                         <td
@@ -630,7 +643,7 @@ export default function TradingViewTerminal({ accountId = '1200533810' }: { acco
                             textAlign: 'right',
                             fontFamily: 'var(--font-mono, monospace)',
                             fontWeight: 700,
-                            color: t.pnl >= 0 ? '#10B981' : '#EF4444',
+                            color: t.pnl >= 0 ? 'var(--accent-green)' : 'var(--accent-red)',
                           }}
                         >
                           {t.pnl >= 0 ? '+' : ''}${t.pnl.toFixed(2)}
@@ -640,12 +653,12 @@ export default function TradingViewTerminal({ accountId = '1200533810' }: { acco
                             padding: '10px 14px',
                             textAlign: 'right',
                             fontFamily: 'var(--font-mono, monospace)',
-                            color: t.pips >= 0 ? '#10B981' : '#EF4444',
+                            color: t.pips >= 0 ? 'var(--accent-green)' : 'var(--accent-red)',
                           }}
                         >
                           {t.pips >= 0 ? '+' : ''}{t.pips.toFixed(1)}
                         </td>
-                        <td style={{ padding: '10px 14px', color: '#94A3B8', fontSize: '11px' }}>
+                        <td style={{ padding: '10px 14px', color: 'var(--text-muted)', fontSize: '11px' }}>
                           {t.exitReason}
                         </td>
                       </tr>

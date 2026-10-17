@@ -62,11 +62,11 @@ export default function GatedAccessCard() {
   return (
     <div
       style={{
-        background: '#FFFFFF',
-        border: '1px solid #CBD5E1',
+        background: 'var(--bg-card)',
+        border: '1px solid var(--border-default)',
         borderRadius: '12px',
         padding: '28px 24px',
-        boxShadow: '0 10px 25px -5px rgba(15, 23, 42, 0.08), 0 8px 10px -6px rgba(15, 23, 42, 0.04)',
+        boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.08)',
         width: '100%',
         maxWidth: '460px',
       }}
@@ -79,17 +79,17 @@ export default function GatedAccessCard() {
             fontWeight: 700,
             letterSpacing: '1px',
             textTransform: 'uppercase',
-            color: '#B45309',
+            color: 'var(--accent-gold)',
             display: 'block',
             marginBottom: '4px',
           }}
         >
           Partner Gated Access
         </span>
-        <h2 style={{ fontSize: '20px', fontWeight: 800, color: '#0F172A', margin: '0 0 6px' }}>
+        <h2 style={{ fontSize: '20px', fontWeight: 800, color: 'var(--text-primary)', margin: '0 0 6px' }}>
           Access Velarion For Free
         </h2>
-        <p style={{ fontSize: '13px', color: '#64748B', margin: 0, lineHeight: 1.5 }}>
+        <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: 0, lineHeight: 1.5 }}>
           Sign up for JustMarkets through our partner link. Verify your MT5 account number to unlock the terminal.
         </p>
       </div>
@@ -169,7 +169,7 @@ export default function GatedAccessCard() {
                 display: 'block',
                 fontSize: '12px',
                 fontWeight: 700,
-                color: '#334155',
+                color: 'var(--text-secondary)',
                 marginBottom: '6px',
               }}
             >
@@ -187,9 +187,9 @@ export default function GatedAccessCard() {
                 width: '100%',
                 padding: '11px 14px',
                 borderRadius: '6px',
-                border: status === 'error' ? '1px solid #EF4444' : '1px solid #CBD5E1',
-                backgroundColor: '#F8FAFC',
-                color: '#0F172A',
+                border: status === 'error' ? '1px solid var(--accent-red)' : '1px solid var(--border-default)',
+                backgroundColor: 'var(--bg-surface-1)',
+                color: 'var(--text-primary)',
                 fontSize: '14px',
                 fontFamily: 'var(--font-mono, monospace)',
                 outline: 'none',
@@ -202,7 +202,7 @@ export default function GatedAccessCard() {
             <div
               style={{
                 fontSize: '12px',
-                color: status === 'verified' ? '#047857' : '#B91C1C',
+                color: status === 'verified' ? 'var(--accent-green)' : 'var(--accent-red)',
                 lineHeight: 1.4,
               }}
             >
@@ -215,7 +215,7 @@ export default function GatedAccessCard() {
             disabled={loading}
             style={{
               width: '100%',
-              backgroundColor: '#B45309',
+              backgroundColor: 'var(--accent-gold)',
               color: '#FFFFFF',
               padding: '12px 16px',
               borderRadius: '6px',
@@ -233,12 +233,12 @@ export default function GatedAccessCard() {
           </button>
 
           <div style={{ textAlign: 'center', marginTop: '4px' }}>
-            <span style={{ fontSize: '12px', color: '#64748B' }}>New to JustMarkets? </span>
+            <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>New to JustMarkets? </span>
             <a
               href={DEFAULT_PARTNER_CONFIG.primaryLink}
               target="_blank"
               rel="noopener noreferrer"
-              style={{ fontSize: '12px', color: '#B45309', fontWeight: 700, textDecoration: 'none' }}
+              style={{ fontSize: '12px', color: 'var(--accent-gold)', fontWeight: 700, textDecoration: 'none' }}
             >
               Create Account with Code {DEFAULT_PARTNER_CONFIG.primaryCode} &rarr;
             </a>
