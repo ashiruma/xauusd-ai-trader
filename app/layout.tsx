@@ -4,6 +4,7 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import CookieConsent from '@/components/CookieConsent';
 import FinancialProductSchema from '@/components/FinancialProductSchema';
+import AiAssistantWidget from '@/components/AiAssistantWidget';
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://velarionmarkets.com'),
@@ -102,6 +103,7 @@ export default function RootLayout({
         <main style={{ flex: 1 }}>
           {children}
         </main>
+        <AiAssistantWidget />
         <Footer />
       </body>
     </html>

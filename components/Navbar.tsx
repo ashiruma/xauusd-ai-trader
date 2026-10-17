@@ -104,6 +104,7 @@ export default function Navbar() {
         { href: '/accounts', label: 'Accounts' },
         { href: '/automation', label: 'Automation' },
         { href: '/activity', label: 'Activity' },
+        { href: '/assistant', label: 'AI Assistant' },
         { href: '/settings', label: 'Settings / Help' },
       ]
     : [
@@ -111,6 +112,7 @@ export default function Navbar() {
         { href: '/how-it-works', label: 'How It Works' },
         { href: '/school-preview', label: 'School Preview' },
         { href: '/risk-and-performance', label: 'Risk & Performance' },
+        { href: '/assistant', label: 'AI Assistant' },
       ];
 
   return (

@@ -58,6 +58,7 @@ export default function MemberNav({
     { href: '/accounts', label: 'Accounts' },
     { href: '/automation', label: 'Automation' },
     { href: '/activity', label: 'Activity' },
+    { href: '/assistant', label: 'AI Assistant' },
     { href: '/settings', label: 'Settings / Help' },
   ];
 
