@@ -740,19 +740,19 @@ function VerificationContent() {
             </p>
           </div>
           <a
-            href="mailto:ashirumaabala@gmail.com?subject=Velarion%20Partner%20Verification%20Request"
+            href="mailto:coordinator@velarion.internal?subject=Velarion%20Partner%20Verification%20Request"
             style={{
-              background: '#1E293B',
-              border: '1px solid #334155',
-              color: '#F8FAFC',
+              background: 'var(--bg-surface-2)',
+              border: '1px solid var(--border-default)',
+              color: 'var(--text-primary)',
               textDecoration: 'none',
               padding: '9px 18px',
-              borderRadius: '6px',
+              borderRadius: 'var(--radius-xs)',
               fontSize: '12.5px',
               fontWeight: 600,
             }}
           >
-            Contact Owner Support &rarr;
+            Contact Desk Coordinator &rarr;
           </a>
         </section>
       </main>

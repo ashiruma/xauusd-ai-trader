@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Why Spot Gold (XAUUSD) Only | Velarion Markets',
     description: 'Detailed breakdown of the macroeconomic and mathematical advantages of trading Spot Gold over retail currency pairs.',
-    url: 'https://velarionmarkets.com/why-gold'
+    url: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://velarion-one.vercel.app'}/why-gold`
   }
 };
 
@@ -46,7 +46,7 @@ export default function WhyGoldPage() {
             &ldquo;In a global regime of sovereign fiat debasement and fragmented multi-pair noise, Spot Gold remains the singular non-dilutable reserve asset with $130B+ in daily execution depth.&rdquo;
           </div>
 
-          <p style={{ fontSize: '16px', lineHeight: 1.7, color: '#CBD5E1', maxWidth: '820px', marginBottom: '36px' }}>
+          <p style={{ fontSize: '16px', lineHeight: 1.7, color: 'var(--text-secondary)', maxWidth: '820px', marginBottom: '36px' }}>
             In retail Forex, traders routinely spread attention across 20+ currency crosses, falling victim to hidden correlated beta, central bank intervention surprises, and unpredictable bilateral geopolitics. Velarion Markets concentrates 100% of our algorithmic intelligence on a single sovereign asset: Spot Gold.
           </p>
 
@@ -80,10 +80,10 @@ export default function WhyGoldPage() {
             {/* Column 1: Deep Navy Panel */}
             <article className="herbaria-triptych-col herbaria-panel-green">
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                <span className="herbaria-badge-sharp" style={{ background: 'rgba(234, 177, 103, 0.15)', color: '#eab167', border: '1px solid rgba(234, 177, 103, 0.35)' }}>
+                <span className="herbaria-badge-sharp" style={{ background: 'var(--accent-gold-subtle)', color: 'var(--accent-gold)', border: '1px solid var(--border-accent)' }}>
                   PILLAR 01
                 </span>
-                <span style={{ fontFamily: 'var(--font-herbaria-mono)', fontSize: '11px', color: '#eab167' }}>
+                <span style={{ fontFamily: 'var(--font-herbaria-mono)', fontSize: '11px', color: 'var(--accent-gold)' }}>
                   LIQUIDITY DEPTH
                 </span>
               </div>
@@ -92,11 +92,11 @@ export default function WhyGoldPage() {
                 $130B+
               </div>
 
-              <h2 style={{ fontFamily: 'var(--font-herbaria-display)', fontSize: '24px', fontWeight: 500, color: '#F8FAFC', margin: '0 0 12px', lineHeight: 1.2 }}>
+              <h2 style={{ fontFamily: 'var(--font-herbaria-display)', fontSize: '24px', fontWeight: 500, color: 'var(--text-primary)', margin: '0 0 12px', lineHeight: 1.2 }}>
                 Continuous Daily Turnover
               </h2>
 
-              <p style={{ fontSize: '14px', lineHeight: 1.6, color: '#CBD5E1', flex: 1 }}>
+              <p style={{ fontSize: '14px', lineHeight: 1.6, color: 'var(--text-secondary)', flex: 1 }}>
                 Spot Gold is one of the deepest financial instruments on earth. Deep institutional order books ensure immediate execution with zero dealer re-quotes and minimal slippage during high-impact US economic releases.
               </p>
 
@@ -128,40 +128,40 @@ export default function WhyGoldPage() {
                 <span className="herbaria-badge-sharp" style={{ background: 'rgba(56, 189, 248, 0.14)', color: '#38BDF8', border: '1px solid rgba(56, 189, 248, 0.35)' }}>
                   PILLAR 02
                 </span>
-                <span style={{ fontFamily: 'var(--font-herbaria-mono)', fontSize: '11px', color: '#eab167', fontWeight: 600 }}>
+                <span style={{ fontFamily: 'var(--font-herbaria-mono)', fontSize: '11px', color: 'var(--accent-gold)', fontWeight: 600 }}>
                   SOVEREIGN RESERVES
                 </span>
               </div>
 
-              <div className="herbaria-numeral" style={{ color: '#eab167', marginBottom: '12px' }}>
+              <div className="herbaria-numeral" style={{ color: 'var(--accent-gold)', marginBottom: '12px' }}>
                 1,000+ T
               </div>
 
-              <h2 style={{ fontFamily: 'var(--font-herbaria-display)', fontSize: '24px', fontWeight: 500, color: '#F8FAFC', margin: '0 0 12px', lineHeight: 1.2 }}>
+              <h2 style={{ fontFamily: 'var(--font-herbaria-display)', fontSize: '24px', fontWeight: 500, color: 'var(--text-primary)', margin: '0 0 12px', lineHeight: 1.2 }}>
                 Central Bank Accumulation
               </h2>
 
-              <p style={{ fontSize: '14px', lineHeight: 1.6, color: '#CBD5E1', flex: 1 }}>
+              <p style={{ fontSize: '14px', lineHeight: 1.6, color: 'var(--text-secondary)', flex: 1 }}>
                 Sovereign central banks are systematically reallocating reserves from fiat foreign treasuries into physical bullion, providing structural, non-cyclical institutional demand floor under every pull-back.
               </p>
 
               <table className="herbaria-dossier-table">
                 <tbody>
                   <tr>
-                    <td style={{ color: '#94A3B8' }}>Annual Inflow</td>
-                    <td style={{ color: '#eab167' }}>1,000+ Metric Tonnes / Year</td>
+                    <td style={{ color: 'var(--text-muted)' }}>Annual Inflow</td>
+                    <td style={{ color: 'var(--accent-gold)' }}>1,000+ Metric Tonnes / Year</td>
                   </tr>
                   <tr>
-                    <td style={{ color: '#94A3B8' }}>Credit Default Risk</td>
-                    <td style={{ color: '#eab167' }}>0.00% Non-Debasable</td>
+                    <td style={{ color: 'var(--text-muted)' }}>Credit Default Risk</td>
+                    <td style={{ color: 'var(--accent-gold)' }}>0.00% Non-Debasable</td>
                   </tr>
                   <tr>
-                    <td style={{ color: '#94A3B8' }}>Sanction Invariance</td>
-                    <td style={{ color: '#eab167' }}>100% Physical Sovereign</td>
+                    <td style={{ color: 'var(--text-muted)' }}>Sanction Invariance</td>
+                    <td style={{ color: 'var(--accent-gold)' }}>100% Physical Sovereign</td>
                   </tr>
                   <tr>
-                    <td style={{ color: '#94A3B8' }}>Institutional Buyer</td>
-                    <td style={{ color: '#eab167' }}>Global Central Bank Treasuries</td>
+                    <td style={{ color: 'var(--text-muted)' }}>Institutional Buyer</td>
+                    <td style={{ color: 'var(--accent-gold)' }}>Global Central Bank Treasuries</td>
                   </tr>
                 </tbody>
               </table>
@@ -170,10 +170,10 @@ export default function WhyGoldPage() {
             {/* Column 3: Dark Obsidian Panel */}
             <article className="herbaria-triptych-col herbaria-panel-dark">
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                <span className="herbaria-badge-sharp" style={{ background: 'rgba(16, 185, 129, 0.14)', color: '#10B981', border: '1px solid rgba(16, 185, 129, 0.35)' }}>
+                <span className="herbaria-badge-sharp" style={{ background: 'var(--accent-green-subtle)', color: 'var(--accent-green)', border: '1px solid var(--accent-green-border)' }}>
                   PILLAR 03
                 </span>
-                <span style={{ fontFamily: 'var(--font-herbaria-mono)', fontSize: '11px', color: '#eab167' }}>
+                <span style={{ fontFamily: 'var(--font-herbaria-mono)', fontSize: '11px', color: 'var(--accent-gold)' }}>
                   MACRO REGIME
                 </span>
               </div>
@@ -182,11 +182,11 @@ export default function WhyGoldPage() {
                 -0.82
               </div>
 
-              <h2 style={{ fontFamily: 'var(--font-herbaria-display)', fontSize: '24px', fontWeight: 500, color: '#F8FAFC', margin: '0 0 12px', lineHeight: 1.2 }}>
+              <h2 style={{ fontFamily: 'var(--font-herbaria-display)', fontSize: '24px', fontWeight: 500, color: 'var(--text-primary)', margin: '0 0 12px', lineHeight: 1.2 }}>
                 Real Yield Sensitivity
               </h2>
 
-              <p style={{ fontSize: '14px', lineHeight: 1.6, color: '#CBD5E1', flex: 1 }}>
+              <p style={{ fontSize: '14px', lineHeight: 1.6, color: 'var(--text-secondary)', flex: 1 }}>
                 Gold acts as a zero-coupon perpetual sovereign asset. Its mathematical trajectory is driven cleanly by US 10-Year TIPS real yields and the broad Dollar Index (DXY), allowing rule-based models to compute high-conviction entries.
               </p>
 
@@ -222,11 +222,11 @@ export default function WhyGoldPage() {
             <span>SYSTEM COMPARATIVE LEDGER: SPOT GOLD VS MULTI-PAIR FX</span>
           </div>
 
-          <h2 style={{ fontFamily: 'var(--font-herbaria-display)', fontSize: '28px', color: '#F2EADA', margin: '0 0 16px', fontWeight: 400 }}>
+          <h2 style={{ fontFamily: 'var(--font-herbaria-display)', fontSize: '28px', color: 'var(--text-primary)', margin: '0 0 16px', fontWeight: 400 }}>
             Eliminating Correlated Multi-Pair Drawdown Ruins
           </h2>
 
-          <p style={{ fontSize: '14.5px', lineHeight: 1.7, color: '#CBD5E1', maxWidth: '860px', marginBottom: '28px' }}>
+          <p style={{ fontSize: '14.5px', lineHeight: 1.7, color: 'var(--text-secondary)', maxWidth: '860px', marginBottom: '28px' }}>
             When a retail trader holds positions across EURUSD, GBPUSD, AUDUSD, and USDJPY, they are not diversified. They are taking on quadruple-leveraged US Dollar beta. A single Federal Reserve rate surprise hits all four positions simultaneously. By focusing exclusively on Spot Gold, Velarion Markets isolates single-asset purity and eliminates multi-pair drawdown contagion.
           </p>
 
@@ -242,27 +242,27 @@ export default function WhyGoldPage() {
               </thead>
               <tbody>
                 <tr style={{ borderBottom: '1px dotted var(--hb-hairline-amber)' }}>
-                  <td style={{ padding: '12px 14px 12px 0', color: '#F2EADA' }}>Correlation Hazard</td>
+                  <td style={{ padding: '12px 14px 12px 0', color: 'var(--text-primary)' }}>Correlation Hazard</td>
                   <td style={{ padding: '12px 14px', color: 'var(--hb-accent-citron)', fontWeight: 700 }}>Single Isolated Sovereign Asset</td>
                   <td style={{ padding: '12px 14px', color: 'var(--hb-accent-vermillion)' }}>Severe Hidden Beta Overlap</td>
-                  <td style={{ padding: '12px 0 12px 14px', color: '#94A3B8' }}>High Altcoin Contagion</td>
+                  <td style={{ padding: '12px 0 12px 14px', color: 'var(--text-muted)' }}>High Altcoin Contagion</td>
                 </tr>
                 <tr style={{ borderBottom: '1px dotted var(--hb-hairline-amber)' }}>
-                  <td style={{ padding: '12px 14px 12px 0', color: '#F2EADA' }}>Execution Liquidity</td>
+                  <td style={{ padding: '12px 14px 12px 0', color: 'var(--text-primary)' }}>Execution Liquidity</td>
                   <td style={{ padding: '12px 14px', color: 'var(--hb-accent-citron)', fontWeight: 700 }}>$130B+ Daily Turnover</td>
-                  <td style={{ padding: '12px 14px', color: '#CBD5E1' }}>Fragmented Across Crosses</td>
-                  <td style={{ padding: '12px 0 12px 14px', color: '#94A3B8' }}>Thin Books on Flash Crashes</td>
+                  <td style={{ padding: '12px 14px', color: 'var(--text-secondary)' }}>Fragmented Across Crosses</td>
+                  <td style={{ padding: '12px 0 12px 14px', color: 'var(--text-muted)' }}>Thin Books on Flash Crashes</td>
                 </tr>
                 <tr style={{ borderBottom: '1px dotted var(--hb-hairline-amber)' }}>
-                  <td style={{ padding: '12px 14px 12px 0', color: '#F2EADA' }}>Sovereign Floor</td>
+                  <td style={{ padding: '12px 14px 12px 0', color: 'var(--text-primary)' }}>Sovereign Floor</td>
                   <td style={{ padding: '12px 14px', color: 'var(--hb-accent-citron)', fontWeight: 700 }}>Central Bank Official Reserves</td>
                   <td style={{ padding: '12px 14px', color: 'var(--hb-accent-vermillion)' }}>Zero (Fiat Debasement Driven)</td>
-                  <td style={{ padding: '12px 0 12px 14px', color: '#94A3B8' }}>None (Speculative Retail Flows)</td>
+                  <td style={{ padding: '12px 0 12px 14px', color: 'var(--text-muted)' }}>None (Speculative Retail Flows)</td>
                 </tr>
                 <tr style={{ borderBottom: '1px dotted var(--hb-hairline-amber)' }}>
-                  <td style={{ padding: '12px 14px 12px 0', color: '#F2EADA' }}>Broker Custody</td>
+                  <td style={{ padding: '12px 14px 12px 0', color: 'var(--text-primary)' }}>Broker Custody</td>
                   <td style={{ padding: '12px 14px', color: 'var(--hb-accent-citron)', fontWeight: 700 }}>100% Regulated Broker (JustMarkets)</td>
-                  <td style={{ padding: '12px 14px', color: '#CBD5E1' }}>Broker Dependent</td>
+                  <td style={{ padding: '12px 14px', color: 'var(--text-secondary)' }}>Broker Dependent</td>
                   <td style={{ padding: '12px 0 12px 14px', color: 'var(--hb-accent-vermillion)' }}>Unregulated Offshore Exchanges</td>
                 </tr>
               </tbody>
@@ -285,10 +285,10 @@ export default function WhyGoldPage() {
             <div style={{ fontFamily: 'var(--font-herbaria-mono)', fontSize: '10px', letterSpacing: '0.25em', color: 'var(--hb-accent-citron)', textTransform: 'uppercase', marginBottom: '8px' }}>
               &sect; 04 / NON-CUSTODIAL EXECUTION DEPLOYMENT
             </div>
-            <h3 style={{ fontFamily: 'var(--font-herbaria-display)', fontSize: '26px', color: '#F2EADA', margin: '0 0 10px', fontWeight: 400, lineHeight: 1.2 }}>
+            <h3 style={{ fontFamily: 'var(--font-herbaria-display)', fontSize: '26px', color: 'var(--text-primary)', margin: '0 0 10px', fontWeight: 400, lineHeight: 1.2 }}>
               Execute Systematic Gold Strategies on JustMarkets MT5
             </h3>
-            <p style={{ fontSize: '14px', color: '#E2E8F0', lineHeight: 1.6, margin: 0 }}>
+            <p style={{ fontSize: '14px', color: 'var(--text-secondary)', lineHeight: 1.6, margin: 0 }}>
               Traders maintain 100% direct custody over all deposits, equity, and withdrawals through regulated broker partner JustMarkets. Velarion Markets never touches client capital.
             </p>
           </div>

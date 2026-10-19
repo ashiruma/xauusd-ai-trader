@@ -48,8 +48,8 @@ export default function Footer() {
               Quantitative Spot Gold (XAUUSD) execution technology and 30-lesson structured academy. No platform subscription fee; subsidized through an official Introducing Broker partnership with JustMarkets.
             </p>
             <div style={{ marginTop: '16px' }}>
-              <span className="status-badge status-completed" style={{ fontSize: '10.5px' }}>
-                NON-CUSTODIAL / REGULATED BROKER PARTNER
+              <span className="status-badge status-neutral" style={{ fontSize: '10.5px' }}>
+                FUNDS HELD WITH YOUR BROKER / TRADING RISK APPLIES
               </span>
             </div>
           </div>
@@ -111,7 +111,7 @@ export default function Footer() {
               Broker Sponsorship
             </div>
             <p style={{ fontSize: '12.5px', color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: '14px' }}>
-              Subsidized access via JustMarkets with partner code <code className="mono-nums" style={{ color: 'var(--accent-gold)' }}>{DEFAULT_PARTNER_CONFIG.primaryCode}</code>. Non-custodial capital protection; zero platform subscription fees.
+              Partner-sponsored access via JustMarkets with code <code className="mono-nums" style={{ color: 'var(--accent-gold)' }}>{DEFAULT_PARTNER_CONFIG.primaryCode}</code>. No platform subscription fee; broker costs and eligibility requirements apply. Funds staying with your broker does not protect against trading losses.
             </p>
             <a
               href={partnerLink}
@@ -137,7 +137,7 @@ export default function Footer() {
             <strong>High-Risk Investment Warning:</strong> Trading foreign exchange and Spot Gold (XAUUSD) Contracts for Difference (CFDs) with leverage carries a high degree of risk and can result in the loss of your entire deposited capital. Spreads, overnight financing swaps, and market execution slippage apply to all broker orders. Past performance, hypothetical backtests, and growth compounding simulations are not indicative of future results.
           </p>
           <p style={{ marginBottom: '10px' }}>
-            <strong>Introducing Broker (IB) Relationship &amp; Conflict Notice:</strong> Velarion Markets acts as an independent technology affiliate and Introducing Broker for JustMarkets. Velarion Markets receives volume-based commission rebates and referral compensation when clients register with partner code <strong>{DEFAULT_PARTNER_CONFIG.primaryCode}</strong> and execute trades. This commercial structure represents an inherent conflict of interest. To protect capital, Velarion enforces user-controlled risk governors including lot caps, maximum daily loss limits, and emergency kill switches.
+            <strong>Introducing Broker (IB) Relationship &amp; Conflict Notice:</strong> Velarion Markets acts as an independent technology affiliate and Introducing Broker for JustMarkets. Velarion Markets receives volume-based commission rebates and referral compensation when clients register with partner code <strong>{DEFAULT_PARTNER_CONFIG.primaryCode}</strong> and execute trades. This commercial structure represents an inherent conflict of interest. Risk controls, including lot caps, daily loss limits, and emergency stops, do not guarantee protection from loss; availability and execution readiness require verification.
           </p>
           <p>
             <strong>Regulatory Jurisdiction Notice:</strong> Velarion Markets has not yet obtained an algorithmic trading license or retail investment advisor approval from the Capital Markets Authority (CMA) of Kenya. A formal legal and regulatory compliance review is designated as an essential pre-launch requirement prior to commercial deployment of the referral-plus-automated-execution model in Kenya.

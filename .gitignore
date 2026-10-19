@@ -43,6 +43,7 @@ lighthouse-*.json
 Thumbs.db
 # Agents internal
 .agents/
+.agent/
 .vscode/
 .idea/
 *.swp

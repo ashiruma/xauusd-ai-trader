@@ -94,8 +94,8 @@ export default function TerminalWorkspace() {
             justifyContent: 'space-between',
             alignItems: 'center',
             padding: '14px 20px',
-            background: '#0D1322',
-            borderBottom: showContext ? '1px solid #1E293B' : 'none',
+            background: 'var(--bg-surface-2)',
+            borderBottom: showContext ? '1px solid var(--border-default)' : 'none',
             cursor: 'pointer',
             userSelect: 'none',
             flexWrap: 'wrap',
@@ -103,27 +103,27 @@ export default function TerminalWorkspace() {
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <span style={{ fontSize: '12px', color: '#64748B' }}>
+            <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
               {showContext ? '▼' : '▶'}
             </span>
-            <h2 style={{ fontSize: '14px', fontWeight: 800, color: '#F8FAFC', margin: 0, letterSpacing: '0.3px', textTransform: 'uppercase' }}>
+            <h2 style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-primary)', margin: 0, letterSpacing: '0.3px', textTransform: 'uppercase' }}>
               Execution Risk Governor &amp; Model Safety
             </h2>
             <span
               style={{
                 fontSize: '11px',
                 padding: '2px 8px',
-                borderRadius: '4px',
-                background: 'rgba(16, 185, 129, 0.1)',
-                color: '#10B981',
-                border: '1px solid rgba(16, 185, 129, 0.25)',
+                borderRadius: '2px',
+                background: 'var(--accent-green-subtle)',
+                color: 'var(--accent-green)',
+                border: '1px solid var(--accent-green-border)',
               }}
             >
               Non-Custodial Architecture
             </span>
           </div>
 
-          <div style={{ fontSize: '12px', color: '#64748B' }}>
+          <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
             Click to {showContext ? 'collapse' : 'expand'} risk parameters and safety protocols
           </div>
         </div>
@@ -133,19 +133,19 @@ export default function TerminalWorkspace() {
             {/* Account Safety Guarantee Card */}
             <div
               style={{
-                background: '#0D1322',
-                border: '1px solid #1E293B',
-                borderRadius: '8px',
+                background: 'var(--bg-surface-1)',
+                border: '1px solid var(--border-default)',
+                borderRadius: 'var(--radius-xs)',
                 padding: '16px 20px',
               }}
             >
-              <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--accent-gold, #C5A059)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+              <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--accent-gold)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                 Non-Custodial Architecture Guarantee
               </div>
-              <h3 style={{ fontSize: '15px', fontWeight: 800, color: '#F8FAFC', margin: '6px 0 8px' }}>
+              <h3 style={{ fontSize: '15px', fontWeight: 800, color: 'var(--text-primary)', margin: '6px 0 8px' }}>
                 Capital Remains 100% in JustMarkets Ltd Account
               </h3>
-              <p style={{ fontSize: '12.5px', color: '#94A3B8', lineHeight: 1.6, margin: 0 }}>
+              <p style={{ fontSize: '12.5px', color: 'var(--text-muted)', lineHeight: 1.6, margin: 0 }}>
                 Velarion operates purely as an algorithmic strategy engine. No client funds are ever held, received, or transferred by Velarion. All deposits, withdrawals, and margin balances are maintained directly with JustMarkets Ltd under your authenticated MT5 credentials. Orders route exclusively through authenticated MT5 bridge protocols.
               </p>
             </div>

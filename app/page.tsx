@@ -1,853 +1,124 @@
-import React from 'react';
 import Link from 'next/link';
-import LiveSpotFeed from '@/components/LiveSpotFeed';
-import GatedAccessCard from '@/components/GatedAccessCard';
+import type { Metadata } from 'next';
 import { DEFAULT_PARTNER_CONFIG } from '@/lib/partner';
-import { getServerLiveQuote } from '@/lib/marketFeed';
+import styles from './home.module.css';
 
-export const metadata = {
-  title: 'Velarion Markets | Trade XAUUSD from a Position of Clarity',
-  description: 'Autonomous spot gold quantitative intelligence, 4 rule-based execution models, 200-pip growth calculator, and 30-lesson structured Forex School subsidized through our official JustMarkets partnership.',
+export const metadata: Metadata = {
+  title: 'Velarion Markets | A More Considered Approach to Gold',
+  description: 'An education-led approach to XAUUSD. Explore structured learning, rule-based research, and a transparent path from broker registration to separately authorized automation.',
+  openGraph: {
+    title: 'Velarion Markets | Clarity before capital.',
+    description: 'Structured education, rule-based research, and deliberate decisions. Trading involves risk; Kenya regulatory review remains a pre-launch requirement.',
+    url: '/',
+    type: 'website',
+    images: [{ url: '/velarion_brand_navy.png', alt: 'Velarion Markets' }],
+  },
+  twitter: {
+    card: 'summary',
+    title: 'Velarion Markets | Clarity before capital.',
+    description: 'An education-led approach to gold markets. Trading involves risk of loss.',
+    images: ['/velarion_brand_navy.png'],
+  },
 };
 
+const journey = [
+  { number: '01', title: 'Register with JustMarkets', copy: 'Use the referral link and confirm partner attribution. Eligibility and broker terms apply.' },
+  { number: '02', title: 'Fund your broker account', copy: 'Deposit directly with the broker—not Velarion. Review the risks before committing capital.' },
+  { number: '03', title: 'Complete required learning', copy: 'Complete foundation lessons 1–5 in order, with mandatory quizzes, before account linking. The full School has 30 lessons.' },
+  { number: '04', title: 'Link your account', copy: 'After learning, complete verification and review account permissions. Linking is not activation.' },
+  { number: '05', title: 'Authorize automation', copy: 'Automation starts off. Activation is a separate, explicit decision after eligibility, risk settings, and demo-first checks.' },
+];
+
 export default function HomePage() {
-  const initialQuote = getServerLiveQuote();
-
   return (
-    <div style={{ backgroundColor: 'var(--bg-base)', minHeight: '100vh', color: 'var(--text-primary)' }}>
-
-      {/* ============================================================== */}
-      {/* 1. HERO: ROLLS-ROYCE EXECUTIVE & JUSTMARKETS GATED ACCESS CARD */}
-      {/* ============================================================== */}
-      <section style={{ padding: '48px 24px 64px', maxWidth: '1280px', margin: '0 auto' }}>
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))',
-            gap: '40px',
-            alignItems: 'center',
-          }}
-        >
-          {/* Left: Rolls-Royce Executive Image & Editorial Lifestyle Visual */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            <div
-              style={{
-                position: 'relative',
-                borderRadius: '16px',
-                overflow: 'hidden',
-                border: '1px solid var(--border-default)',
-                boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.05)',
-                aspectRatio: '16/9',
-                backgroundColor: '#0F172A',
-              }}
-            >
-              <img
-                src="/rolls_royce_black_exec.jpg"
-                alt="Velarion Quantitative Gold Trading Lifestyle"
-                style={{
-                  width: '100%',
-                  height: '100%',
-                  objectFit: 'cover',
-                  display: 'block',
-                }}
-              />
-              <div
-                style={{
-                  position: 'absolute',
-                  inset: 0,
-                  background: 'linear-gradient(to top, rgba(15, 23, 42, 0.88) 0%, rgba(15, 23, 42, 0.25) 60%, transparent 100%)',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'flex-end',
-                  padding: '24px',
-                }}
-              >
-                <span
-                  style={{
-                    fontSize: '11px',
-                    fontFamily: 'var(--font-mono, monospace)',
-                    color: '#F5C451',
-                    fontWeight: 700,
-                    letterSpacing: '1px',
-                    textTransform: 'uppercase',
-                    marginBottom: '4px',
-                  }}
-                >
-                  Quantitative Spot Gold
-                </span>
-                <h1
-                  style={{
-                    fontSize: '26px',
-                    fontWeight: 800,
-                    color: '#FFFFFF',
-                    margin: 0,
-                    lineHeight: 1.25,
-                  }}
-                >
-                  Trade the market from a position of clarity.
-                </h1>
-              </div>
-            </div>
-
-            <p style={{ fontSize: '15px', color: 'var(--text-secondary)', lineHeight: 1.6, margin: 0 }}>
-              Autonomous spot gold quantitative execution, 4 disciplined strategy systems, and 30-lesson structured Forex School. Subsidized 100% through our official JustMarkets Introducing Broker partnership.
-            </p>
-
-            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-              <span
-                style={{
-                  fontSize: '11.5px',
-                  fontWeight: 600,
-                  color: 'var(--accent-green)',
-                  background: 'var(--accent-green-subtle)',
-                  padding: '4px 10px',
-                  borderRadius: '6px',
-                  border: '1px solid var(--accent-green-border)',
-                }}
-              >
-                Non-Custodial Broker Protection
-              </span>
-              <span
-                style={{
-                  fontSize: '11.5px',
-                  fontWeight: 600,
-                  color: 'var(--accent-gold)',
-                  background: 'var(--accent-gold-subtle)',
-                  padding: '4px 10px',
-                  borderRadius: '6px',
-                  border: '1px solid var(--border-accent)',
-                }}
-              >
-                $10 Micro-Deposit Eligible
-              </span>
-              <span
-                style={{
-                  fontSize: '11.5px',
-                  fontWeight: 600,
-                  color: 'var(--text-secondary)',
-                  background: 'var(--bg-surface-2)',
-                  padding: '4px 10px',
-                  borderRadius: '6px',
-                  border: '1px solid var(--border-default)',
-                }}
-              >
-                Zero Platform Fees
-              </span>
-            </div>
-
-            {/* Quick Public Navigation Links */}
-            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginTop: '6px' }}>
-              <Link
-                href="/how-it-works"
-                style={{
-                  fontSize: '12px',
-                  fontWeight: 600,
-                  color: 'var(--text-primary)',
-                  backgroundColor: 'var(--bg-surface-1)',
-                  border: '1px solid var(--border-default)',
-                  borderRadius: '6px',
-                  padding: '6px 12px',
-                  textDecoration: 'none',
-                }}
-              >
-                How It Works &rarr;
-              </Link>
-              <Link
-                href="/school-preview"
-                style={{
-                  fontSize: '12px',
-                  fontWeight: 600,
-                  color: 'var(--text-primary)',
-                  backgroundColor: 'var(--bg-surface-1)',
-                  border: '1px solid var(--border-default)',
-                  borderRadius: '6px',
-                  padding: '6px 12px',
-                  textDecoration: 'none',
-                }}
-              >
-                School Preview &rarr;
-              </Link>
-              <Link
-                href="/risk-and-performance"
-                style={{
-                  fontSize: '12px',
-                  fontWeight: 600,
-                  color: 'var(--accent-red)',
-                  backgroundColor: 'var(--accent-red-subtle)',
-                  border: '1px solid var(--accent-red-border)',
-                  borderRadius: '6px',
-                  padding: '6px 12px',
-                  textDecoration: 'none',
-                }}
-              >
-                Risk &amp; Performance Audit &rarr;
-              </Link>
+    <div className={styles.page}>
+      <section className={styles.hero} aria-labelledby="home-title">
+        {/* Original CSS architectural artwork: no unlicensed photography or performance chart. */}
+        <div className={styles.architecture} aria-hidden="true">
+          <div className={styles.light} />
+          <div className={`${styles.plane} ${styles.planeBack}`} />
+          <div className={`${styles.plane} ${styles.planeMiddle}`} />
+          <div className={`${styles.plane} ${styles.planeFront}`} />
+          <div className={styles.horizon} />
+        </div>
+        <div className={styles.heroShade} aria-hidden="true" />
+        <div className={styles.heroInner}>
+          <div className={styles.heroTopline}><span>VELARION / A CONSIDERED APPROACH</span><span>XAUUSD</span></div>
+          <div className={styles.heroCopy}>
+            <p className={styles.eyebrow}>Gold markets. Clear perspective.</p>
+            <h1 id="home-title">Clarity before<br /><span>capital.</span></h1>
+            <p className={styles.heroDescription}>A more considered approach to gold trading. Structured education, rule-based research, and deliberate decisions—before execution.</p>
+            <div className={styles.actions}>
+              <Link className={styles.primaryButton} href="/how-it-works">Explore the approach <span aria-hidden="true">↗</span></Link>
+              <Link className={styles.heroLink} href="/school-preview">Preview the School <span aria-hidden="true">→</span></Link>
             </div>
           </div>
-
-          {/* Right: Focused JustMarkets Gated Access Card */}
-          <div style={{ display: 'flex', justifyContent: 'center' }}>
-            <GatedAccessCard />
+          <div className={styles.heroBottom}>
+            <p>Education first.<br /><span>Your capital stays with your broker.</span></p>
+            <a href="#framework" className={styles.scrollLink}>Discover the framework <span aria-hidden="true">↓</span></a>
           </div>
         </div>
       </section>
 
-      {/* ============================================================== */}
-      {/* 2. FOUR CORE PILLARS OF VELARION MARKETS                       */}
-      {/* ============================================================== */}
-      <section style={{ backgroundColor: 'var(--bg-surface-1)', borderTop: '1px solid var(--border-default)', borderBottom: '1px solid var(--border-default)', padding: '56px 24px' }}>
-        <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
-          <div style={{ marginBottom: '36px', textAlign: 'center' }}>
-            <span
-              style={{
-                fontSize: '11px',
-                fontFamily: 'var(--font-mono, monospace)',
-                color: 'var(--accent-gold)',
-                fontWeight: 700,
-                letterSpacing: '1px',
-                textTransform: 'uppercase',
-              }}
-            >
-              Platform Capabilities
-            </span>
-            <h2 style={{ fontSize: '26px', fontWeight: 800, color: 'var(--text-primary)', marginTop: '4px', letterSpacing: '-0.3px' }}>
-              Four Core Pillars of Velarion Markets
-            </h2>
-            <p style={{ fontSize: '14px', color: 'var(--text-secondary)', maxWidth: '640px', margin: '6px auto 0' }}>
-              From systematic algorithmic execution to structured trader education, every module is designed for measurable consistency and disciplined risk control.
-            </p>
+      <aside className={styles.riskStrip} aria-label="Important trading risk">
+        <div className={styles.container}><strong>Risk comes first</strong><p>Leveraged gold trading can result in the loss of your entire deposit. Larger deposits do not guarantee returns or safety.</p><Link href="/risk-and-performance">Review risks <span aria-hidden="true">↗</span></Link></div>
+      </aside>
+
+      <section id="framework" className={`${styles.section} ${styles.framework}`} aria-labelledby="framework-title">
+        <div className={styles.container}>
+          <div className={styles.sectionHeading}>
+            <div><p className={styles.eyebrow}>01 / The framework</p><h2 id="framework-title">Less noise.<br />More understanding.</h2></div>
+            <p className={styles.intro}>One focused environment for learning the gold market, examining strategy rules, and making informed decisions. No promises of performance.</p>
           </div>
-
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
-              gap: '20px',
-            }}
-          >
-            {/* Pillar 1 */}
-            <div
-              style={{
-                background: 'var(--bg-card)',
-                border: '1px solid var(--border-default)',
-                borderRadius: '10px',
-                padding: '24px',
-              }}
-            >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-                <span style={{ fontSize: '10.5px', fontFamily: 'var(--font-mono, monospace)', color: 'var(--text-muted)', textTransform: 'uppercase' }}>
-                  SPECIALIZATION
-                </span>
-                <span className="mono-nums" style={{ fontSize: '11px', fontWeight: 700, color: 'var(--accent-gold)' }}>
-                  XAUUSD
-                </span>
-              </div>
-              <h3 style={{ fontSize: '17px', fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 8px' }}>
-                Spot Gold Focus
-              </h3>
-              <p style={{ fontSize: '13.5px', color: 'var(--text-secondary)', lineHeight: 1.6, margin: 0 }}>
-                Concentrated algorithmic execution on Spot Gold, capturing institutional liquidity sweeps, session opens, and macro yield differentials with zero instrument dilution.
-              </p>
-            </div>
-
-            {/* Pillar 2 */}
-            <div
-              style={{
-                background: 'var(--bg-card)',
-                border: '1px solid var(--border-default)',
-                borderRadius: '10px',
-                padding: '24px',
-              }}
-            >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-                <span style={{ fontSize: '10.5px', fontFamily: 'var(--font-mono, monospace)', color: 'var(--text-muted)', textTransform: 'uppercase' }}>
-                  QUANT MODELS
-                </span>
-                <span className="mono-nums" style={{ fontSize: '11px', fontWeight: 700, color: 'var(--accent-gold)' }}>
-                  4 SYSTEMS
-                </span>
-              </div>
-              <h3 style={{ fontSize: '17px', fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 8px' }}>
-                Systematic Strategies
-              </h3>
-              <p style={{ fontSize: '13.5px', color: 'var(--text-secondary)', lineHeight: 1.6, margin: 0 }}>
-                Four rule-based quantitative strategies: SMC Liquidity Sweep, Dynamic Trend Pullback, Session Breakout, and Statistical Mean Reversion.
-              </p>
-            </div>
-
-            {/* Pillar 3 */}
-            <div
-              style={{
-                background: 'var(--bg-card)',
-                border: '1px solid var(--border-default)',
-                borderRadius: '10px',
-                padding: '24px',
-              }}
-            >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-                <span style={{ fontSize: '10.5px', fontFamily: 'var(--font-mono, monospace)', color: 'var(--text-muted)', textTransform: 'uppercase' }}>
-                  CALCULATOR
-                </span>
-                <span className="mono-nums" style={{ fontSize: '11px', fontWeight: 700, color: 'var(--accent-green)' }}>
-                  COMPOUNDING
-                </span>
-              </div>
-              <h3 style={{ fontSize: '17px', fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 8px' }}>
-                200-Pip Growth Engine
-              </h3>
-              <p style={{ fontSize: '13.5px', color: 'var(--text-secondary)', lineHeight: 1.6, margin: 0 }}>
-                Interactive risk management tool projecting mathematical capital compounding with strict 2% account risk limits and micro-lot sizing.
-              </p>
-            </div>
-
-            {/* Pillar 4 */}
-            <div
-              style={{
-                background: 'var(--bg-card)',
-                border: '1px solid var(--border-default)',
-                borderRadius: '10px',
-                padding: '24px',
-              }}
-            >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-                <span style={{ fontSize: '10.5px', fontFamily: 'var(--font-mono, monospace)', color: 'var(--text-muted)', textTransform: 'uppercase' }}>
-                  CURRICULUM
-                </span>
-                <span className="mono-nums" style={{ fontSize: '11px', fontWeight: 700, color: 'var(--accent-gold)' }}>
-                  30 LESSONS
-                </span>
-              </div>
-              <h3 style={{ fontSize: '17px', fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 8px' }}>
-                Forex Academy
-              </h3>
-              <p style={{ fontSize: '13.5px', color: 'var(--text-secondary)', lineHeight: 1.6, margin: 0 }}>
-                A rigorous 30-lesson progressive curriculum with mandatory comprehension quizzes gating access across foundations, analysis, and risk management.
-              </p>
-            </div>
+          <div className={styles.pillars}>
+            <Link href="/school-preview" className={styles.pillar}>
+              <div className={styles.pillarTop}><span>LEARN</span><span aria-hidden="true">↗</span></div>
+              <h3>A foundation<br />before a position.</h3>
+              <p>A 30-lesson School covering market mechanics, analysis, and risk—with mandatory comprehension checks.</p>
+              <span className={styles.pillarFooter}>Explore the curriculum <span aria-hidden="true">→</span></span>
+            </Link>
+            <Link href="/strategies" className={styles.pillar}>
+              <div className={styles.pillarTop}><span>UNDERSTAND</span><span aria-hidden="true">↗</span></div>
+              <h3>Rules.<br />Not guesswork.</h3>
+              <p>Explore four XAUUSD strategy models and the conditions behind each setup. Model rules are not evidence of future returns.</p>
+              <span className={styles.pillarFooter}>Examine the models <span aria-hidden="true">→</span></span>
+            </Link>
+            <Link href="/risk-and-performance" className={styles.pillar}>
+              <div className={styles.pillarTop}><span>EVALUATE</span><span aria-hidden="true">↗</span></div>
+              <h3>See the risks.<br />Know the limits.</h3>
+              <p>Review evidence, limitations, and open questions before considering automation. Illustrations are not verified live performance.</p>
+              <span className={styles.pillarFooter}>Read risk &amp; performance <span aria-hidden="true">→</span></span>
+            </Link>
           </div>
         </div>
       </section>
 
-      {/* ============================================================== */}
-      {/* 3. FOUR SYSTEMATIC QUANTITATIVE MODELS                         */}
-      {/* ============================================================== */}
-      <section style={{ padding: '64px 24px', maxWidth: '1280px', margin: '0 auto' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: '16px', marginBottom: '36px' }}>
-          <div>
-            <span
-              style={{
-                fontSize: '11px',
-                fontFamily: 'var(--font-mono, monospace)',
-                color: 'var(--accent-gold)',
-                fontWeight: 700,
-                letterSpacing: '1px',
-                textTransform: 'uppercase',
-              }}
-            >
-              Quantitative Execution
-            </span>
-            <h2 style={{ fontSize: '26px', fontWeight: 800, color: 'var(--text-primary)', marginTop: '4px', letterSpacing: '-0.3px' }}>
-              Four Quantitative Execution Systems
-            </h2>
-            <p style={{ fontSize: '14px', color: 'var(--text-secondary)', maxWidth: '640px', marginTop: '6px' }}>
-              Each system addresses a distinct market regime in Spot Gold, eliminating guesswork with deterministic entry, stop loss, and take profit logic.
-            </p>
+      <section className={`${styles.section} ${styles.journey}`} aria-labelledby="journey-title">
+        <div className={styles.container}>
+          <div className={styles.sectionHeading}>
+            <div><p className={styles.eyebrow}>02 / A deliberate progression</p><h2 id="journey-title">Every step.<br />In the right order.</h2></div>
+            <div className={styles.journeyIntro}><p className={styles.intro}>Learning is mandatory. Linking an account and activating automation are separate steps—not the same consent.</p><Link className={styles.textLink} href="/how-it-works">View the full journey <span aria-hidden="true">↗</span></Link></div>
           </div>
-          <Link
-            href="/strategies"
-            style={{
-              fontSize: '13px',
-              fontWeight: 700,
-              color: 'var(--accent-gold)',
-              padding: '8px 16px',
-              borderRadius: '6px',
-              border: '1px solid var(--border-accent)',
-              backgroundColor: 'var(--accent-gold-subtle)',
-            }}
-          >
-            Review Strategy Rules &rarr;
-          </Link>
+          <ol className={styles.steps}>
+            {journey.map(step => <li key={step.number}><span className={styles.stepNumber} aria-hidden="true">{step.number}</span><h3>{step.title}</h3><p>{step.copy}</p></li>)}
+          </ol>
+          <div className={styles.partnerLine}><span>ACCESS THROUGH JUSTMARKETS <span className={styles.partnerCode}>/ {DEFAULT_PARTNER_CONFIG.primaryCode}</span></span><a className={styles.textLink} href={DEFAULT_PARTNER_CONFIG.primaryLink} target="_blank" rel="noopener noreferrer sponsored">View broker registration <span aria-hidden="true">↗</span></a></div>
+          <p className={styles.partnerNote}>Referral / IB relationship: Velarion receives referral compensation and volume-based rebates, creating a conflict of interest. Broker trading costs apply. <Link href="/legal/ib-disclosure">Read the full disclosure.</Link></p>
         </div>
+      </section>
 
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-            gap: '20px',
-          }}
-        >
-          {/* Model 01 */}
-          <div
-            style={{
-              background: 'var(--bg-card)',
-              border: '1px solid var(--border-default)',
-              borderRadius: '10px',
-              padding: '24px',
-            }}
-          >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-              <span className="mono-nums" style={{ fontSize: '12px', fontWeight: 800, color: 'var(--accent-gold)' }}>
-                MODEL 01
-              </span>
-              <span style={{ fontSize: '10px', fontWeight: 700, color: 'var(--accent-green)', background: 'var(--accent-green-subtle)', padding: '2px 8px', borderRadius: '4px' }}>
-                HIGH WIN-RATE
-              </span>
-            </div>
-            <h3 style={{ fontSize: '17px', fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 8px' }}>
-              SMC Liquidity Sweep
-            </h3>
-            <p style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.55, margin: '0 0 16px' }}>
-              Monitors Asian and London session highs/lows for false breakout liquidity grabs. Enters on rapid rejection with Fair Value Gap confirmation and 1:2.2 minimum Risk-to-Reward.
-            </p>
-            <div style={{ fontSize: '11px', fontFamily: 'var(--font-mono, monospace)', color: 'var(--text-muted)', borderTop: '1px solid var(--border-subtle)', paddingTop: '10px' }}>
-              Trigger: H1 Sweep | M5 FVG Mitigation
-            </div>
-          </div>
-
-          {/* Model 02 */}
-          <div
-            style={{
-              background: 'var(--bg-card)',
-              border: '1px solid var(--border-default)',
-              borderRadius: '10px',
-              padding: '24px',
-            }}
-          >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-              <span className="mono-nums" style={{ fontSize: '12px', fontWeight: 800, color: 'var(--accent-gold)' }}>
-                MODEL 02
-              </span>
-              <span style={{ fontSize: '10px', fontWeight: 700, color: 'var(--accent-gold)', background: 'var(--accent-gold-subtle)', padding: '2px 8px', borderRadius: '4px' }}>
-                TREND EXPANSION
-              </span>
-            </div>
-            <h3 style={{ fontSize: '17px', fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 8px' }}>
-              Dynamic Trend Pullback
-            </h3>
-            <p style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.55, margin: '0 0 16px' }}>
-              Identifies sustained institutional trends using multi-timeframe EMA alignment (20/50/200). Enters pullbacks to value zones with dynamic ATR trailing protection.
-            </p>
-            <div style={{ fontSize: '11px', fontFamily: 'var(--font-mono, monospace)', color: 'var(--text-muted)', borderTop: '1px solid var(--border-subtle)', paddingTop: '10px' }}>
-              Trigger: H4 EMA Confluence | M15 Structure
-            </div>
-          </div>
-
-          {/* Model 03 */}
-          <div
-            style={{
-              background: 'var(--bg-card)',
-              border: '1px solid var(--border-default)',
-              borderRadius: '10px',
-              padding: '24px',
-            }}
-          >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-              <span className="mono-nums" style={{ fontSize: '12px', fontWeight: 800, color: 'var(--accent-gold)' }}>
-                MODEL 03
-              </span>
-              <span style={{ fontSize: '10px', fontWeight: 700, color: 'var(--text-secondary)', background: 'var(--bg-surface-2)', padding: '2px 8px', borderRadius: '4px' }}>
-                VOLATILITY SURGE
-              </span>
-            </div>
-            <h3 style={{ fontSize: '17px', fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 8px' }}>
-              Session Range Breakout
-            </h3>
-            <p style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.55, margin: '0 0 16px' }}>
-              Captures explosive momentum during London and New York market openings. Uses pre-session consolidation ranges and volume surge filters to avoid low-liquidity whipsaws.
-            </p>
-            <div style={{ fontSize: '11px', fontFamily: 'var(--font-mono, monospace)', color: 'var(--text-muted)', borderTop: '1px solid var(--border-subtle)', paddingTop: '10px' }}>
-              Trigger: NY Open (13:30 UTC) | Volume Filter
-            </div>
-          </div>
-
-          {/* Model 04 */}
-          <div
-            style={{
-              background: 'var(--bg-card)',
-              border: '1px solid var(--border-default)',
-              borderRadius: '10px',
-              padding: '24px',
-            }}
-          >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-              <span className="mono-nums" style={{ fontSize: '12px', fontWeight: 800, color: 'var(--accent-gold)' }}>
-                MODEL 04
-              </span>
-              <span style={{ fontSize: '10px', fontWeight: 700, color: 'var(--accent-green)', background: 'var(--accent-green-subtle)', padding: '2px 8px', borderRadius: '4px' }}>
-                MEAN REVERSION
-              </span>
-            </div>
-            <h3 style={{ fontSize: '17px', fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 8px' }}>
-              Statistical Mean Reversion
-            </h3>
-            <p style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.55, margin: '0 0 16px' }}>
-              Monitors statistical price deviations from the 20-period VWAP and Bollinger envelope. Enters counter-trend reversions only when extreme RSI divergence aligns with institutional order flow.
-            </p>
-            <div style={{ fontSize: '11px', fontFamily: 'var(--font-mono, monospace)', color: 'var(--text-muted)', borderTop: '1px solid var(--border-subtle)', paddingTop: '10px' }}>
-              Trigger: 2.5 Sigma Bands | RSI Exhaustion
-            </div>
+      <section className={`${styles.section} ${styles.transparency}`} aria-labelledby="transparency-title">
+        <div className={`${styles.container} ${styles.transparencyGrid}`}>
+          <div><p className={styles.eyebrow}>03 / Transparency by design</p><h2 id="transparency-title">A polished interface.<br />An honest conversation.</h2><p className={styles.intro}>Professional presentation is not proof of regulatory approval, investment protection, or trading performance.</p><Link className={styles.textLink} href="/legal/risk-disclosure">Read the disclosures <span aria-hidden="true">↗</span></Link></div>
+          <div className={styles.disclosures}>
+            <article><span className={styles.pending}>PRE-LAUNCH REQUIREMENT</span><h3>Kenya regulatory review</h3><p>Velarion has not obtained algorithmic trading licensing or retail investment adviser approval from Kenya’s CMA. Legal and regulatory review remains required before commercial deployment of this model in Kenya.</p></article>
+            <article><span className={styles.pending}>SUBJECT TO VERIFICATION</span><h3>Eligibility &amp; execution readiness</h3><p>Partner attribution, broker entity and jurisdiction, account permissions, and execution readiness must be verified. Registration or a deposit does not confirm access or authorize live trading.</p></article>
+            <Link className={styles.textLink} href="/risk-and-performance">Review evidence &amp; unresolved items <span aria-hidden="true">↗</span></Link>
           </div>
         </div>
       </section>
 
-      {/* ============================================================== */}
-      {/* 4. 200-PIP GROWTH ENGINE CALCULATOR TEASER CARD                */}
-      {/* ============================================================== */}
-      <section style={{ backgroundColor: 'var(--bg-surface-1)', borderTop: '1px solid var(--border-default)', borderBottom: '1px solid var(--border-default)', padding: '56px 24px' }}>
-        <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
-              gap: '36px',
-              alignItems: 'center',
-            }}
-          >
-            <div>
-              <span
-                style={{
-                  fontSize: '11px',
-                  fontFamily: 'var(--font-mono, monospace)',
-                  color: 'var(--accent-gold)',
-                  fontWeight: 700,
-                  letterSpacing: '1px',
-                  textTransform: 'uppercase',
-                }}
-              >
-                Interactive Compounding Tool
-              </span>
-              <h2 style={{ fontSize: '24px', fontWeight: 800, color: 'var(--text-primary)', margin: '6px 0 12px', letterSpacing: '-0.3px' }}>
-                200-Pip Growth Engine Calculator
-              </h2>
-              <p style={{ fontSize: '14px', color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: '22px' }}>
-                Simulate mathematical account compounding with disciplined micro-lot sizing and predetermined risk ratios. Calculate your exact lot sizes ($10 to $1,000+ balance) while maintaining rigorous drawdown safety.
-              </p>
-              <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-                <Link
-                  href="/tools/growth-calculator"
-                  style={{
-                    padding: '11px 22px',
-                    fontSize: '13.5px',
-                    fontWeight: 700,
-                    backgroundColor: 'var(--accent-gold)',
-                    color: '#000000',
-                    borderRadius: '6px',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                  }}
-                >
-                  Launch Growth Calculator &rarr;
-                </Link>
-                <Link
-                  href="/academy"
-                  style={{
-                    padding: '11px 20px',
-                    fontSize: '13.5px',
-                    fontWeight: 600,
-                    border: '1px solid var(--border-default)',
-                    backgroundColor: 'var(--bg-card)',
-                    color: 'var(--text-primary)',
-                    borderRadius: '6px',
-                  }}
-                >
-                  Review Risk Math
-                </Link>
-              </div>
-            </div>
-
-            <div
-              style={{
-                background: 'var(--bg-card)',
-                border: '1px solid var(--border-default)',
-                borderRadius: '12px',
-                padding: '28px',
-                textAlign: 'center',
-                boxShadow: '0 4px 15px rgba(0, 0, 0, 0.05)',
-              }}
-            >
-              <div style={{ fontSize: '11px', fontFamily: 'var(--font-mono, monospace)', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '8px' }}>
-                10-Trade Compounding Projection
-              </div>
-              <div className="mono-nums" style={{ fontSize: '40px', fontWeight: 800, color: 'var(--accent-green)', marginBottom: '4px' }}>
-                +233.3%
-              </div>
-              <div style={{ fontSize: '13.5px', color: 'var(--text-secondary)', marginBottom: '16px' }}>
-                $100 Starting Balance &rarr; $333.32
-              </div>
-              <div style={{ fontSize: '11px', fontFamily: 'var(--font-mono, monospace)', color: 'var(--text-muted)', borderTop: '1px solid var(--border-subtle)', paddingTop: '12px' }}>
-                2.0% Risk per Trade | 30-Pip SL | 200-Pip Target
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ============================================================== */}
-      {/* 5. STRUCTURED FOREX SCHOOL (30 LESSONS) 3-TIER ROADMAP         */}
-      {/* ============================================================== */}
-      <section style={{ padding: '64px 24px', maxWidth: '1280px', margin: '0 auto' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: '16px', marginBottom: '32px' }}>
-          <div>
-            <span
-              style={{
-                fontSize: '11px',
-                fontFamily: 'var(--font-mono, monospace)',
-                color: 'var(--accent-gold)',
-                fontWeight: 700,
-                letterSpacing: '1px',
-                textTransform: 'uppercase',
-              }}
-            >
-              Structured Curriculum
-            </span>
-            <h2 style={{ fontSize: '26px', fontWeight: 800, color: 'var(--text-primary)', marginTop: '4px', letterSpacing: '-0.3px' }}>
-              Velarion Forex Academy (30 Lessons)
-            </h2>
-            <p style={{ fontSize: '14px', color: 'var(--text-secondary)', maxWidth: '640px', marginTop: '6px' }}>
-              A progressive education roadmap from currency market foundations to institutional risk modeling. Each lesson concludes with a mandatory comprehension quiz to verify mastery before advancing.
-            </p>
-          </div>
-          <Link
-            href="/academy"
-            style={{
-              fontSize: '13px',
-              fontWeight: 700,
-              color: 'var(--accent-gold)',
-              padding: '8px 16px',
-              borderRadius: '6px',
-              border: '1px solid var(--border-accent)',
-              backgroundColor: 'var(--accent-gold-subtle)',
-            }}
-          >
-            Explore All 30 Lessons &rarr;
-          </Link>
-        </div>
-
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-            gap: '20px',
-          }}
-        >
-          {/* Tier 1 */}
-          <div
-            style={{
-              background: 'var(--bg-card)',
-              border: '1px solid var(--border-default)',
-              borderRadius: '10px',
-              padding: '24px',
-            }}
-          >
-            <span
-              style={{
-                fontSize: '10px',
-                fontFamily: 'var(--font-mono, monospace)',
-                fontWeight: 700,
-                color: 'var(--accent-green)',
-                background: 'var(--accent-green-subtle)',
-                padding: '3px 8px',
-                borderRadius: '4px',
-                display: 'inline-block',
-                marginBottom: '14px',
-              }}
-            >
-              TIER 1 | LESSONS 1-12
-            </span>
-            <h3 style={{ fontSize: '17px', fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 8px' }}>
-              Forex Foundations
-            </h3>
-            <p style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.6, margin: 0 }}>
-              Currency pair mechanics, bid/ask spread calculations, pip valuations, contract sizing, margin requirements, leverage dynamics, and MT5 order execution types.
-            </p>
-          </div>
-
-          {/* Tier 2 */}
-          <div
-            style={{
-              background: 'var(--bg-card)',
-              border: '1px solid var(--border-default)',
-              borderRadius: '10px',
-              padding: '24px',
-            }}
-          >
-            <span
-              style={{
-                fontSize: '10px',
-                fontFamily: 'var(--font-mono, monospace)',
-                fontWeight: 700,
-                color: 'var(--accent-gold)',
-                background: 'var(--accent-gold-subtle)',
-                padding: '3px 8px',
-                borderRadius: '4px',
-                display: 'inline-block',
-                marginBottom: '14px',
-              }}
-            >
-              TIER 2 | LESSONS 13-22
-            </span>
-            <h3 style={{ fontSize: '17px', fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 8px' }}>
-              Technical Analysis &amp; Structure
-            </h3>
-            <p style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.6, margin: 0 }}>
-              Candlestick formation anatomy, dynamic support/resistance, market swing structure, ABCD harmonic patterns, multi-timeframe confirmation, and session liquidity windows.
-            </p>
-          </div>
-
-          {/* Tier 3 */}
-          <div
-            style={{
-              background: 'var(--bg-card)',
-              border: '1px solid var(--border-default)',
-              borderRadius: '10px',
-              padding: '24px',
-            }}
-          >
-            <span
-              style={{
-                fontSize: '10px',
-                fontFamily: 'var(--font-mono, monospace)',
-                fontWeight: 700,
-                color: 'var(--accent-red)',
-                background: 'var(--accent-red-subtle)',
-                padding: '3px 8px',
-                borderRadius: '4px',
-                display: 'inline-block',
-                marginBottom: '14px',
-              }}
-            >
-              TIER 3 | LESSONS 23-30
-            </span>
-            <h3 style={{ fontSize: '17px', fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 8px' }}>
-              Risk &amp; Institutional Strategy
-            </h3>
-            <p style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.6, margin: 0 }}>
-              Mathematical position sizing, asymmetric drawdown mechanics, execution psychology, quantitative backtesting verification, and disciplined XAUUSD execution.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* ============================================================== */}
-      {/* 6. REGULATED BROKER PARTNERSHIP & GATED TRANSPARENCY           */}
-      {/* ============================================================== */}
-      <section style={{ backgroundColor: 'var(--bg-surface-1)', borderTop: '1px solid var(--border-default)', borderBottom: '1px solid var(--border-default)', padding: '56px 24px' }}>
-        <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
-              gap: '36px',
-              alignItems: 'center',
-            }}
-          >
-            <div>
-              <span
-                style={{
-                  fontSize: '10px',
-                  fontFamily: 'var(--font-mono, monospace)',
-                  fontWeight: 700,
-                  color: 'var(--accent-green)',
-                  background: 'var(--accent-green-subtle)',
-                  padding: '3px 8px',
-                  borderRadius: '4px',
-                  display: 'inline-block',
-                  marginBottom: '12px',
-                }}
-              >
-                OFFICIAL BROKER PARTNERSHIP
-              </span>
-              <h2 style={{ fontSize: '24px', fontWeight: 800, color: 'var(--text-primary)', margin: '0 0 12px', letterSpacing: '-0.3px' }}>
-                100% Subsidized Access via JustMarkets
-              </h2>
-              <p style={{ fontSize: '13.5px', color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: '20px' }}>
-                All quantitative trading models, live telemetry feeds, and 30-lesson academy modules are completely free for traders registered under our verified partner code. Capital remains 100% inside your regulated JustMarkets MT5 account with non-custodial protection.
-              </p>
-              <div style={{ display: 'flex', gap: '14px', alignItems: 'center', flexWrap: 'wrap' }}>
-                <a
-                  href={DEFAULT_PARTNER_CONFIG.primaryLink}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{
-                    padding: '11px 22px',
-                    fontSize: '13.5px',
-                    fontWeight: 700,
-                    backgroundColor: 'var(--accent-gold)',
-                    color: '#000000',
-                    borderRadius: '6px',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                  }}
-                >
-                  Open JustMarkets Account &rarr;
-                </a>
-                <span className="mono-nums" style={{ fontSize: '13px', color: 'var(--accent-gold)', fontFamily: 'var(--font-mono, monospace)' }}>
-                  Partner Code: <strong>{DEFAULT_PARTNER_CONFIG.primaryCode}</strong>
-                </span>
-              </div>
-            </div>
-
-            <div
-              style={{
-                background: 'var(--bg-card)',
-                border: '1px solid var(--border-default)',
-                borderRadius: '12px',
-                padding: '24px',
-                boxShadow: '0 4px 15px rgba(0, 0, 0, 0.05)',
-              }}
-            >
-              <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '14px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                Onboarding Protocol
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '12.5px', color: 'var(--text-secondary)' }}>
-                <div>1. Register at JustMarkets with partner code <strong className="mono-nums" style={{ color: 'var(--accent-gold)' }}>{DEFAULT_PARTNER_CONFIG.primaryCode}</strong></div>
-                <div>2. Open an MT5 Standard Cent, Standard, or Pro account</div>
-                <div>3. Enter your JustMarkets MT5 Account ID in the verification gate</div>
-                <div>4. Instant Subsidized Access to the Terminal and 30-Lesson School</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ============================================================== */}
-      {/* 7. LIVE MARKET TELEMETRY FEED                                  */}
-      {/* ============================================================== */}
-      <section style={{ padding: '48px 24px', maxWidth: '840px', margin: '0 auto' }}>
-        <div style={{ marginBottom: '16px', textAlign: 'center' }}>
-          <span
-            style={{
-              fontSize: '11px',
-              fontFamily: 'var(--font-mono, monospace)',
-              fontWeight: 700,
-              color: 'var(--text-muted)',
-              letterSpacing: '1px',
-              textTransform: 'uppercase',
-            }}
-          >
-            Live Market Telemetry
-          </span>
-        </div>
-        <LiveSpotFeed initialQuote={initialQuote} />
-      </section>
-
-      {/* ============================================================== */}
-      {/* 8. RISK DISCLOSURE BAR                                         */}
-      {/* ============================================================== */}
-      <section style={{ backgroundColor: 'var(--bg-surface-2)', borderTop: '1px solid var(--border-default)', padding: '28px 24px' }}>
-        <div style={{ maxWidth: '1280px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px', fontSize: '12px', color: 'var(--text-muted)' }}>
-          <div style={{ maxWidth: '900px' }}>
-            <strong style={{ color: 'var(--text-primary)' }}>Trading Risk Notice: </strong>
-            Spot gold (XAUUSD) and leveraged derivative products carry a high level of risk and can result in the loss of some or all of your invested capital. Past performance is not indicative of future results. Only trade with money you can afford to lose.
-          </div>
-          <Link href="/why-gold" style={{ color: 'var(--accent-gold)', fontWeight: 600 }}>
-            Read XAUUSD Dossier &rarr;
-          </Link>
-        </div>
-      </section>
-
+      <section className={styles.closing} aria-labelledby="closing-title"><div className={styles.container}><div><p className={styles.eyebrow}>Start with understanding</p><h2 id="closing-title">Your next step is knowledge.</h2></div><Link className={styles.primaryButton} href="/school-preview">Preview the School <span aria-hidden="true">↗</span></Link></div></section>
     </div>
   );
 }

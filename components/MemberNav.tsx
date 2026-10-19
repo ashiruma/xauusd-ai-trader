@@ -74,7 +74,7 @@ export default function MemberNav({
   return (
     <header
       style={{
-        backgroundColor: 'var(--bg-card)',
+        backgroundColor: 'var(--bg-base)',
         borderBottom: '1px solid var(--border-default)',
         position: 'sticky',
         top: 0,
@@ -83,10 +83,10 @@ export default function MemberNav({
     >
       <div
         style={{
-          maxWidth: '1720px',
+          maxWidth: '1440px',
           margin: '0 auto',
-          padding: '0 20px',
-          height: '62px',
+          padding: '0 40px',
+          height: '78px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
@@ -94,24 +94,24 @@ export default function MemberNav({
         }}
       >
         {/* Brand & Left Navigation */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '28px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
           <Link href="/overview" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <img
               src={theme === 'dark' ? '/velarion_brand_dark.png' : '/velarion_brand_navy.png'}
               alt="Velarion Markets"
-              style={{ height: '24px', width: 'auto' }}
+              style={{ height: '28px', width: 'auto' }}
             />
             <span
               style={{
-                fontSize: '11px',
+                fontSize: '10px',
                 fontFamily: 'var(--font-mono, monospace)',
                 color: 'var(--accent-gold)',
-                fontWeight: 700,
-                letterSpacing: '0.5px',
-                padding: '2px 6px',
-                borderRadius: '4px',
+                fontWeight: 600,
+                letterSpacing: '0.12em',
+                padding: '2px 8px',
+                borderRadius: '2px',
                 background: 'var(--accent-gold-subtle)',
-                border: '1px solid var(--border-accent)',
+                border: '1px solid var(--border-default)',
               }}
             >
               MEMBER PORTAL
@@ -119,7 +119,7 @@ export default function MemberNav({
           </Link>
 
           {/* Desktop Nav Items */}
-          <nav style={{ display: 'flex', alignItems: 'center', gap: '4px' }} className="desktop-member-links">
+          <nav style={{ display: 'flex', alignItems: 'center', gap: '6px' }} className="desktop-member-links">
             {navItems.map((item) => {
               const isActive = pathname === item.href || (item.href !== '/overview' && pathname.startsWith(item.href));
               return (
@@ -127,13 +127,12 @@ export default function MemberNav({
                   key={item.href}
                   href={item.href}
                   style={{
-                    padding: '8px 14px',
-                    fontSize: '13px',
-                    fontWeight: isActive ? 700 : 500,
-                    color: isActive ? 'var(--accent-gold)' : 'var(--text-secondary)',
-                    borderRadius: '6px',
-                    backgroundColor: isActive ? 'var(--accent-gold-subtle)' : 'transparent',
-                    border: isActive ? '1px solid var(--border-accent)' : '1px solid transparent',
+                    padding: '8px 10px',
+                    fontSize: '11px',
+                    fontWeight: isActive ? 600 : 500,
+                    color: isActive ? 'var(--text-primary)' : 'var(--text-secondary)',
+                    borderRadius: '2px',
+                    borderBottom: isActive ? '1px solid var(--accent-gold)' : '1px solid transparent',
                     transition: 'all 0.15s ease',
                   }}
                 >
@@ -152,14 +151,14 @@ export default function MemberNav({
               display: 'flex',
               alignItems: 'center',
               gap: '6px',
-              fontSize: '11px',
+              fontSize: '10px',
               fontFamily: 'var(--font-mono, monospace)',
               fontWeight: 700,
               padding: '3px 8px',
-              borderRadius: '4px',
-              backgroundColor: environment === 'DEMO' ? 'rgba(3, 105, 161, 0.1)' : 'var(--accent-green-subtle)',
-              color: environment === 'DEMO' ? '#0369A1' : 'var(--accent-green)',
-              border: `1px solid ${environment === 'DEMO' ? 'rgba(3, 105, 161, 0.25)' : 'var(--accent-green-border)'}`,
+              borderRadius: '2px',
+              backgroundColor: environment === 'DEMO' ? 'rgba(20, 84, 55, 0.1)' : 'var(--accent-green-subtle)',
+              color: environment === 'DEMO' ? 'var(--accent-gold)' : 'var(--accent-green)',
+              border: '1px solid var(--border-default)',
             }}
             title="Current trading execution stage: DEMO-FIRST validation"
           >
@@ -172,11 +171,11 @@ export default function MemberNav({
               display: 'flex',
               alignItems: 'center',
               gap: '6px',
-              fontSize: '11px',
+              fontSize: '10px',
               fontFamily: 'var(--font-mono, monospace)',
               fontWeight: 700,
               padding: '3px 8px',
-              borderRadius: '4px',
+              borderRadius: '2px',
               backgroundColor:
                 automationStatus === 'ACTIVE_DEMO'
                   ? 'var(--accent-green-subtle)'
@@ -202,7 +201,7 @@ export default function MemberNav({
             style={{
               width: '32px',
               height: '32px',
-              borderRadius: '6px',
+              borderRadius: '2px',
               border: '1px solid var(--border-default)',
               backgroundColor: 'var(--bg-surface-1)',
               color: 'var(--text-secondary)',
@@ -215,11 +214,11 @@ export default function MemberNav({
             aria-label="Toggle visual theme"
           >
             {theme === 'light' ? (
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
               </svg>
             ) : (
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="12" cy="12" r="5" />
                 <line x1="12" y1="1" x2="12" y2="3" />
                 <line x1="12" y1="21" x2="12" y2="23" />
@@ -239,12 +238,12 @@ export default function MemberNav({
             onClick={handleLogout}
             style={{
               padding: '6px 12px',
-              fontSize: '12px',
+              fontSize: '11px',
               fontWeight: 600,
               backgroundColor: 'transparent',
               color: 'var(--text-muted)',
               border: '1px solid var(--border-default)',
-              borderRadius: '6px',
+              borderRadius: '2px',
               cursor: 'pointer',
             }}
           >

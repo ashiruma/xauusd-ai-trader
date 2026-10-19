@@ -1,5 +1,5 @@
 # XAUUSD Engine & Strategy Candidate v2 Validation Report
-**Date:** 2026-10-16 12:10:59 UTC
+**Date:** 2026-10-17 16:00:26 UTC
 **Data Source:** `data/historical/xauusd_broker_real.csv` (5000 real broker M15 candles)
 **Friction Assumptions:** Spread: 25.0 pts ($0.25), Commission: $6.00/lot, Slippage: 2.0 pts ($0.02)
 

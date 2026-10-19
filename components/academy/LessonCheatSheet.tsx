@@ -31,7 +31,7 @@ export default function LessonCheatSheet({
   const handleCopy = () => {
     const text = `VELARION MARKETS - XAUUSD CHEAT SHEET (LESSON ${lessonNum}: ${title})\n\n` +
       items.map((item, i) => `${i + 1}. ${item}`).join('\n') +
-      `\n\nPRO TIP: ${tip}\n\nStudy complete 30-lesson curriculum at: https://velarionmarkets.com/academy`;
+      `\n\nPRO TIP: ${tip}\n\nStudy complete 30-lesson curriculum at: https://velarion-one.vercel.app/academy`;
 
     if (navigator?.clipboard?.writeText) {
       navigator.clipboard.writeText(text).then(() => {
@@ -47,8 +47,8 @@ export default function LessonCheatSheet({
         marginTop: '36px',
         marginBottom: '36px',
         background: 'var(--bg-surface-1)',
-        border: '1.5px solid var(--border-accent)',
-        borderRadius: '12px',
+        border: '1px solid var(--border-accent)',
+        borderRadius: 'var(--radius-xs, 2px)',
         padding: '28px 24px 20px',
         position: 'relative',
         boxShadow: '0 4px 16px rgba(15, 23, 42, 0.05)'
@@ -86,7 +86,7 @@ export default function LessonCheatSheet({
           onClick={handleCopy}
           type="button"
           className="btn btn-secondary"
-          style={{ fontSize: '11.5px', padding: '6px 14px', borderRadius: '6px' }}
+          style={{ fontSize: '11.5px', padding: '6px 14px', borderRadius: 'var(--radius-xs, 2px)' }}
           aria-label="Copy key takeaways to clipboard"
         >
           {copied ? 'Summary Copied to Clipboard' : 'Copy Key Takeaways'}
@@ -119,7 +119,7 @@ export default function LessonCheatSheet({
         borderTop: '1px solid var(--border-default)',
         borderRight: '1px solid var(--border-default)',
         borderBottom: '1px solid var(--border-default)',
-        borderRadius: '0 6px 6px 0',
+        borderRadius: '0 var(--radius-xs, 2px) var(--radius-xs, 2px) 0',
         padding: '12px 16px',
         marginBottom: '20px'
       }}>
@@ -141,11 +141,11 @@ export default function LessonCheatSheet({
         flexWrap: 'wrap',
         gap: '8px',
         fontSize: '11px',
-        color: '#64748B',
+        color: 'var(--text-muted)',
         fontFamily: 'var(--font-mono, monospace)'
       }}>
         <span>Screenshot &amp; Share: Telegram &bull; Discord &bull; Reddit</span>
-        <span style={{ color: '#F59E0B', fontWeight: 700 }}>velarionmarkets.com/academy</span>
+        <span style={{ color: 'var(--accent-gold)', fontWeight: 700 }}>velarion-one.vercel.app/academy</span>
       </div>
     </div>
   );

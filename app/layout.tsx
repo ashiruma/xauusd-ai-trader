@@ -7,7 +7,7 @@ import FinancialProductSchema from '@/components/FinancialProductSchema';
 import AiAssistantWidget from '@/components/AiAssistantWidget';
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://velarionmarkets.com'),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://velarion-one.vercel.app'),
   title: {
     default: 'Velarion Markets | Institutional XAUUSD Quantitative Trading & Forex School',
     template: '%s | Velarion Markets'
@@ -37,7 +37,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     locale: 'en_US',
-    url: 'https://velarionmarkets.com',
+    url: process.env.NEXT_PUBLIC_SITE_URL || 'https://velarion-one.vercel.app',
     siteName: 'Velarion Markets',
     title: 'Velarion Markets | Institutional XAUUSD Quantitative Trading & Forex Academy',
     description: 'Autonomous Spot Gold quantitative execution, 200-pip compounding calculator, and 30-lesson gated Forex school. Non-custodial MT5 execution subsidized through JustMarkets.',

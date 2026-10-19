@@ -134,7 +134,7 @@ export default function Navbar() {
   return (
     <>
       <header
-        className={`header-wrapper ${isTerminalPage ? 'header-terminal' : ''}`}
+        className={`header-wrapper ${isTerminalPage ? 'header-terminal' : ''} header-home`}
         role="banner"
         style={{
           backgroundColor: 'var(--bg-base)',
@@ -186,7 +186,7 @@ export default function Navbar() {
                   background: 'var(--accent-gold-subtle)',
                   border: '1px solid var(--border-accent)',
                   padding: '2px 8px',
-                  borderRadius: '4px',
+                  borderRadius: '2px',
                   letterSpacing: '0.5px',
                   textTransform: 'uppercase',
                 }}
@@ -206,11 +206,6 @@ export default function Navbar() {
                   href={item.href}
                   className={`nav-link-item ${isActive ? 'active' : ''}`}
                   aria-current={isActive ? 'page' : undefined}
-                  style={{
-                    color: isActive ? 'var(--accent-gold)' : 'var(--text-secondary)',
-                    fontWeight: isActive ? 700 : 500,
-                    fontSize: '13.5px',
-                  }}
                 >
                   {item.label}
                 </Link>
@@ -229,10 +224,10 @@ export default function Navbar() {
                 gap: '6px',
                 padding: '6px 11px',
                 fontSize: '11px',
-                fontWeight: 700,
+                fontWeight: 600,
                 fontFamily: 'var(--font-mono, monospace)',
                 cursor: 'pointer',
-                borderRadius: '6px',
+                borderRadius: '2px',
                 backgroundColor: 'var(--bg-surface-2)',
                 color: 'var(--text-secondary)',
                 border: '1px solid var(--border-default)',

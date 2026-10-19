@@ -51,15 +51,15 @@ export default function ActiveTradesPanel({
 
   const totalLots = trades.reduce((sum, t) => sum + (Number(t.lots) || 0), 0);
   const totalFloatingPnl = trades.reduce((sum, t) => sum + (Number(t.floating_pnl) || 0), 0);
-  const pnlColor = totalFloatingPnl > 0 ? '#10B981' : totalFloatingPnl < 0 ? '#EF4444' : '#F8FAFC';
+  const pnlColor = totalFloatingPnl > 0 ? 'var(--accent-green)' : totalFloatingPnl < 0 ? 'var(--accent-red)' : 'var(--text-primary)';
 
   return (
     <section
       aria-label="Active Positions Companion Table"
       style={{
-        background: '#090D16',
-        borderRadius: '12px',
-        border: '1px solid #1E293B',
+        background: 'var(--bg-card)',
+        borderRadius: 'var(--radius-xs)',
+        border: '1px solid var(--border-default)',
         overflow: 'hidden',
         width: '100%',
       }}
@@ -71,14 +71,14 @@ export default function ActiveTradesPanel({
           justifyContent: 'space-between',
           alignItems: 'center',
           padding: '14px 20px',
-          background: '#0D1322',
-          borderBottom: '1px solid #1E293B',
+          background: 'var(--bg-surface-2)',
+          borderBottom: '1px solid var(--border-default)',
           flexWrap: 'wrap',
           gap: '12px',
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <h2 style={{ fontSize: '14px', fontWeight: 800, color: '#F8FAFC', margin: 0, letterSpacing: '0.3px', textTransform: 'uppercase' }}>
+          <h2 style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-primary)', margin: 0, letterSpacing: '0.3px', textTransform: 'uppercase' }}>
             Open Positions Companion
           </h2>
           <span

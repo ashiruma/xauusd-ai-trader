@@ -57,7 +57,7 @@ export default async function AccountsPage() {
           currentAccountId={accountId}
           isInitiallyLinked={isLinked}
           isOwner={isOwner}
-          userEmail={session?.email || (isOwner ? 'ashirumaabala@gmail.com' : '')}
+          userEmail={session?.email || (isOwner ? 'coordinator@velarion.internal' : '')}
         />
       </main>
     </div>

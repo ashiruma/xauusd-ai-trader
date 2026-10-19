@@ -59,7 +59,7 @@ export default async function AutomationPage() {
           isSchoolComplete={isSchoolComplete}
           isAccountLinked={isAccountLinked}
           isOwner={isOwner}
-          userEmail={session?.email || (isOwner ? 'ashirumaabala@gmail.com' : '')}
+          userEmail={session?.email || (isOwner ? 'coordinator@velarion.internal' : '')}
         />
       </main>
     </div>

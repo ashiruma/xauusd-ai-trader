@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 
 export default function SecretAdminPage() {
   const sampleRoster = [
-    { account: '1200533810', name: 'Chrispine Abala Ashiruma', email: 'ashirumaabala@gmail.com', date: '2026-10-12', partnerCode: 'tohstb0d83', status: 'Owner / ECN Pro', balance: '$145.21' },
+    { account: '1200533810', name: 'Platform Coordinator', email: 'coordinator@velarion.internal', date: '2026-10-12', partnerCode: 'tohstb0d83', status: 'Owner / ECN Pro', balance: '$145.21' },
     { account: '1200541192', name: 'John Miller', email: 'j.miller@firm.co', date: '2026-10-13', partnerCode: 'tohstb0d83', status: 'Active (Standard)', balance: '$1,120.00' },
     { account: '1200552084', name: 'Quant Systems AG', email: 'quant7@fund.ch', date: '2026-10-14', partnerCode: 'tohstb0d83', status: 'Active (ECN)', balance: '$12,450.00' },
     { account: '1200569831', name: 'Alex Gold', email: 'alex.gold@trader.io', date: '2026-10-14', partnerCode: 'tohstb0d83', status: 'Active (Pro)', balance: '$540.00' },

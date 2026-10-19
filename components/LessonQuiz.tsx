@@ -110,9 +110,9 @@ export default function LessonQuiz({
   return (
     <>
       <div className="lesson-quiz" style={{
-        background: 'linear-gradient(180deg, #0F172A 0%, #090D16 100%)',
-        border: '1px solid #1E293B',
-        borderRadius: '12px',
+        background: 'var(--bg-card)',
+        border: '1px solid var(--border-default)',
+        borderRadius: 'var(--radius-xs, 2px)',
         padding: '28px 24px',
         marginTop: '36px',
         boxShadow: '0 12px 30px rgba(0, 0, 0, 0.4)'
@@ -121,31 +121,31 @@ export default function LessonQuiz({
         {/* TOP CURRICULUM PROGRESS TRACKER BAR                            */}
         {/* ============================================================== */}
         <div className="lesson-quiz-progress" style={{
-          background: 'rgba(15, 23, 42, 0.8)',
-          border: '1px solid #1E293B',
-          borderRadius: '8px',
+          background: 'var(--bg-surface-2)',
+          border: '1px solid var(--border-subtle)',
+          borderRadius: 'var(--radius-xs, 2px)',
           padding: '12px 16px',
           marginBottom: '24px'
         }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', marginBottom: '8px' }}>
-            <span className="lesson-quiz-progress-primary" style={{ fontSize: '12px', fontWeight: 700, color: '#10B981' }}>
+            <span className="lesson-quiz-progress-primary" style={{ fontSize: '12px', fontWeight: 700, color: 'var(--accent-green)' }}>
               Foundation Track: {foundationCompletedCount} of 5 Lessons Completed
             </span>
-            <span className="lesson-quiz-progress-secondary" style={{ fontSize: '11px', fontFamily: 'var(--font-mono, monospace)', color: '#F59E0B', display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span style={{ display: 'inline-block', width: '6px', height: '6px', borderRadius: '50%', background: '#F59E0B' }} />
+            <span className="lesson-quiz-progress-secondary" style={{ fontSize: '11px', fontFamily: 'var(--font-mono, monospace)', color: 'var(--accent-gold)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span style={{ display: 'inline-block', width: '6px', height: '6px', borderRadius: '50%', background: 'var(--accent-gold)' }} />
               Institutional Track: Lessons 6&ndash;30 (Sponsored by JustMarkets)
             </span>
           </div>
 
           {/* Dual Segment Progress Bar */}
-          <div className="lesson-quiz-progress-track" style={{ width: '100%', height: '6px', background: '#1E293B', borderRadius: '3px', overflow: 'hidden', display: 'flex' }}>
+          <div className="lesson-quiz-progress-track" style={{ width: '100%', height: '6px', background: 'var(--bg-surface-3)', borderRadius: 'var(--radius-xs, 2px)', overflow: 'hidden', display: 'flex' }}>
             {/* Foundation segment (out of 5) */}
             <div
               className="lesson-quiz-progress-foundation"
               style={{
                 width: `${Math.min(100, (foundationCompletedCount / 5) * 100 * (5 / 30))}%`,
                 height: '100%',
-                background: '#10B981',
+                background: 'var(--accent-green)',
                 transition: 'width 0.4s ease'
               }}
             />
@@ -155,7 +155,7 @@ export default function LessonQuiz({
               style={{
                 width: `${(25 / 30) * 100}%`,
                 height: '100%',
-                background: 'rgba(245, 158, 11, 0.25)',
+                background: 'var(--accent-gold-subtle)',
                 marginLeft: '2px'
               }}
             />
@@ -165,16 +165,16 @@ export default function LessonQuiz({
         {/* Assessment Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', marginBottom: '16px' }}>
           <div>
-            <span className="lesson-quiz-kicker" style={{ fontSize: '11px', fontFamily: 'var(--font-mono, monospace)', fontWeight: 700, color: '#F59E0B', background: 'rgba(245, 158, 11, 0.12)', border: '1px solid rgba(245, 158, 11, 0.3)', padding: '2px 8px', borderRadius: '4px' }}>
+            <span className="lesson-quiz-kicker" style={{ fontSize: '11px', fontFamily: 'var(--font-mono, monospace)', fontWeight: 700, color: 'var(--accent-gold)', background: 'var(--accent-gold-subtle)', border: '1px solid var(--border-accent)', padding: '2px 8px', borderRadius: 'var(--radius-xs, 2px)' }}>
               MICRO-ASSESSMENT / 3 QUESTIONS
             </span>
-            <h3 className="lesson-quiz-title" style={{ fontSize: '19px', fontWeight: 800, color: '#F8FAFC', margin: '8px 0 0' }}>
+            <h3 className="lesson-quiz-title" style={{ fontSize: '19px', fontWeight: 800, color: 'var(--text-primary)', margin: '8px 0 0' }}>
               Lesson {globalNum} Comprehension Check
             </h3>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{ fontSize: '12px', fontFamily: 'var(--font-mono, monospace)', color: '#94A3B8' }}>
+            <span style={{ fontSize: '12px', fontFamily: 'var(--font-mono, monospace)', color: 'var(--text-muted)' }}>
               {assessmentFailed ? 'Course reset' : isPassed ? `Score: ${correctCount} / ${quizList.length}` : `Answered: ${answeredCount} / ${quizList.length}`}
             </span>
             {isPassed && (
@@ -185,7 +185,7 @@ export default function LessonQuiz({
           </div>
         </div>
 
-        <p className="lesson-quiz-intro" style={{ fontSize: '13px', color: '#94A3B8', marginBottom: '24px', lineHeight: 1.5 }}>
+        <p className="lesson-quiz-intro" style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '24px', lineHeight: 1.5 }}>
           Pass every question to unlock the next lesson. Any incorrect response clears all course progress and restarts the sequence at Lesson 1; this assessment becomes available again when you reach it in order.
         </p>
 
@@ -206,16 +206,16 @@ export default function LessonQuiz({
                 key={qIdx}
                 className="lesson-quiz-question"
                 style={{
-                  background: '#090D16',
-                  border: isPassed ? '1px solid rgba(16, 185, 129, 0.4)' : hasAnswered ? '1px solid rgba(197, 160, 89, 0.4)' : '1px solid #1E293B',
-                  borderRadius: '10px',
+                  background: 'var(--bg-surface-2)',
+                  border: isPassed ? '1px solid var(--accent-green-border)' : hasAnswered ? '1px solid var(--border-accent)' : '1px solid var(--border-default)',
+                  borderRadius: 'var(--radius-xs, 2px)',
                   padding: '18px 20px',
                   transition: 'border-color 0.2s ease'
                 }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '10px', marginBottom: '14px' }}>
-                  <div className="lesson-quiz-prompt" style={{ fontSize: '14px', fontWeight: 700, color: '#F8FAFC', lineHeight: 1.45 }}>
-                    <span className="lesson-quiz-question-number" style={{ color: '#F59E0B', fontFamily: 'var(--font-mono, monospace)', marginRight: '6px' }}>
+                  <div className="lesson-quiz-prompt" style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1.45 }}>
+                    <span className="lesson-quiz-question-number" style={{ color: 'var(--accent-gold)', fontFamily: 'var(--font-mono, monospace)', marginRight: '6px' }}>
                       0{qIdx + 1}.
                     </span>
                     {q.question}
@@ -228,11 +228,11 @@ export default function LessonQuiz({
                         fontFamily: 'var(--font-mono, monospace)',
                         fontWeight: 700,
                         padding: '2px 8px',
-                        borderRadius: '4px',
+                        borderRadius: 'var(--radius-xs, 2px)',
                         flexShrink: 0,
-                        background: 'rgba(16, 185, 129, 0.15)',
-                        color: '#10B981',
-                        border: '1px solid rgba(16, 185, 129, 0.3)'
+                        background: 'var(--accent-green-subtle)',
+                        color: 'var(--accent-green)',
+                        border: '1px solid var(--accent-green-border)'
                       }}
                     >
                       VERIFIED
@@ -245,24 +245,24 @@ export default function LessonQuiz({
                   {q.options.map((opt, optIdx) => {
                     const isSelected = selectedOpt === optIdx;
 
-                    let bg = '#0F172A';
-                    let border = '#1E293B';
-                    let color = '#CBD5E1';
-                    let markerBg = '#1E293B';
-                    let markerColor = '#94A3B8';
+                    let bg = 'var(--bg-surface-1)';
+                    let border = 'var(--border-default)';
+                    let color = 'var(--text-secondary)';
+                    let markerBg = 'var(--bg-surface-3)';
+                    let markerColor = 'var(--text-muted)';
 
                     if (isPassed && isSelected) {
-                      bg = 'rgba(16, 185, 129, 0.12)';
-                      border = '#10B981';
-                      color = '#F8FAFC';
-                      markerBg = '#10B981';
-                      markerColor = '#090D16';
+                      bg = 'var(--accent-green-subtle)';
+                      border = 'var(--accent-green)';
+                      color = 'var(--text-primary)';
+                      markerBg = 'var(--accent-green)';
+                      markerColor = '#ffffff';
                     } else if (hasAnswered && isSelected) {
-                      bg = 'rgba(197, 160, 89, 0.12)';
-                      border = '#C5A059';
-                      color = '#F8FAFC';
-                      markerBg = '#C5A059';
-                      markerColor = '#090D16';
+                      bg = 'var(--accent-gold-subtle)';
+                      border = 'var(--border-accent)';
+                      color = 'var(--text-primary)';
+                      markerBg = 'var(--accent-gold)';
+                      markerColor = '#0c241a';
                     }
 
                     return (
@@ -277,7 +277,7 @@ export default function LessonQuiz({
                           alignItems: 'center',
                           gap: '12px',
                           padding: '11px 14px',
-                          borderRadius: '6px',
+                          borderRadius: 'var(--radius-xs, 2px)',
                           background: bg,
                           border: `1px solid ${border}`,
                           color,
@@ -292,7 +292,7 @@ export default function LessonQuiz({
                           style={{
                             width: '22px',
                             height: '22px',
-                            borderRadius: '4px',
+                            borderRadius: 'var(--radius-xs, 2px)',
                             background: markerBg,
                             color: markerColor,
                             display: 'flex',
@@ -319,15 +319,15 @@ export default function LessonQuiz({
                     style={{
                       marginTop: '12px',
                       padding: '10px 14px',
-                      borderRadius: '6px',
+                      borderRadius: 'var(--radius-xs, 2px)',
                       fontSize: '12px',
                       lineHeight: 1.5,
-                      background: 'rgba(16, 185, 129, 0.08)',
-                      borderLeft: '3px solid #10B981',
-                      color: '#E2E8F0'
+                      background: 'var(--accent-green-subtle)',
+                      borderLeft: '3px solid var(--accent-green)',
+                      color: 'var(--text-primary)'
                     }}
                   >
-                    <strong style={{ color: '#10B981', marginRight: '6px' }}>
+                    <strong style={{ color: 'var(--accent-green)', marginRight: '6px' }}>
                       Institutional Context:
                     </strong>
                     {q.explanation}
@@ -340,18 +340,18 @@ export default function LessonQuiz({
         )}
 
         {/* Assessment Controls & Graduation Actions */}
-        <div className="lesson-quiz-controls" style={{ marginTop: '28px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px', borderTop: '1px solid #1E293B', paddingTop: '18px' }}>
+        <div className="lesson-quiz-controls" style={{ marginTop: '28px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px', borderTop: '1px solid var(--border-default)', paddingTop: '18px' }}>
           <div>
             {assessmentFailed ? (
-              <span style={{ fontSize: '12px', color: '#F59E0B' }}>
+              <span style={{ fontSize: '12px', color: 'var(--accent-gold)' }}>
                 Start again at Lesson 1. Progression unlocks only after each assessment is passed.
               </span>
             ) : !isComplete ? (
-              <span style={{ fontSize: '12px', color: '#94A3B8' }}>
+              <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
                 Select answers for all 3 questions to complete Lesson {globalNum}.
               </span>
             ) : isPassed ? (
-              <span style={{ fontSize: '13px', fontWeight: 700, color: '#10B981' }}>
+              <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--accent-green)' }}>
                 Comprehension verified. Lesson {globalNum} logged in curriculum tracker.
               </span>
             ) : null}
@@ -422,9 +422,9 @@ export default function LessonQuiz({
             style={{
               maxWidth: '580px',
               width: '100%',
-              background: 'linear-gradient(180deg, #0F172A 0%, #090D16 100%)',
-              border: '1.5px solid var(--border-gold, #C5A059)',
-              borderRadius: '16px',
+              background: 'var(--bg-card)',
+              border: '1px solid var(--border-accent, #e1c47c)',
+              borderRadius: 'var(--radius-xs, 2px)',
               padding: '36px 32px',
               textAlign: 'center',
               boxShadow: '0 24px 60px rgba(0, 0, 0, 0.7)',
@@ -440,7 +440,7 @@ export default function LessonQuiz({
                 right: '18px',
                 background: 'transparent',
                 border: 'none',
-                color: '#94A3B8',
+                color: 'var(--text-muted)',
                 fontSize: '22px',
                 cursor: 'pointer',
                 padding: '4px'
@@ -451,32 +451,32 @@ export default function LessonQuiz({
             </button>
 
             {/* Achievement Badge */}
-            <div className="lesson-quiz-graduation-badge" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '6px 14px', background: 'rgba(16, 185, 129, 0.12)', border: '1px solid rgba(16, 185, 129, 0.3)', borderRadius: '4px', marginBottom: '20px' }}>
-              <span style={{ fontSize: '11px', fontWeight: 800, color: '#10B981', fontFamily: 'var(--font-mono, monospace)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+            <div className="lesson-quiz-graduation-badge" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '6px 14px', background: 'var(--accent-green-subtle)', border: '1px solid var(--accent-green-border)', borderRadius: 'var(--radius-xs, 2px)', marginBottom: '20px' }}>
+              <span style={{ fontSize: '11px', fontWeight: 800, color: 'var(--accent-green)', fontFamily: 'var(--font-mono, monospace)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                 FOUNDATION TRACK COMPLETED / 5/5
               </span>
             </div>
 
-            <h2 id="foundation-complete-title" className="lesson-quiz-modal-title" style={{ fontSize: '26px', fontWeight: 800, color: '#F8FAFC', marginBottom: '14px', letterSpacing: '-0.4px', lineHeight: 1.25 }}>
+            <h2 id="foundation-complete-title" className="lesson-quiz-modal-title" style={{ fontSize: '26px', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '14px', letterSpacing: '-0.4px', lineHeight: 1.25 }}>
               Congratulations! You&apos;ve Completed the XAUUSD Foundations.
             </h2>
 
-            <p className="lesson-quiz-modal-copy" style={{ fontSize: '14.5px', color: '#CBD5E1', lineHeight: 1.65, marginBottom: '20px' }}>
-              Lessons 6 through 30 (covering Institutional SMC Execution, Multi-Agent AI Confluence, and the 200-Pip Growth Matrix) plus our Live XAUUSD AI Terminal carry <strong style={{ color: '#F59E0B' }}>no platform subscription fee</strong>&mdash;subsidized through our official Introducing Broker partnership with <strong>JustMarkets</strong>.
+            <p className="lesson-quiz-modal-copy" style={{ fontSize: '14.5px', color: 'var(--text-secondary)', lineHeight: 1.65, marginBottom: '20px' }}>
+              Lessons 6 through 30 (covering Institutional SMC Execution, Multi-Agent AI Confluence, and the 200-Pip Growth Matrix) plus our Live XAUUSD AI Terminal carry <strong style={{ color: 'var(--accent-gold)' }}>no platform subscription fee</strong>&mdash;subsidized through our official Introducing Broker partnership with <strong>JustMarkets</strong>.
             </p>
 
             <div className="lesson-quiz-graduation-note" style={{
-              background: '#090D16',
-              border: '1px solid #1E293B',
-              borderRadius: '8px',
+              background: 'var(--bg-surface-2)',
+              border: '1px solid var(--border-default)',
+              borderRadius: 'var(--radius-xs, 2px)',
               padding: '14px 18px',
               marginBottom: '24px',
               textAlign: 'left',
               fontSize: '12.5px',
-              color: '#94A3B8',
+              color: 'var(--text-muted)',
               lineHeight: 1.55
             }}>
-              <strong style={{ color: '#F8FAFC', display: 'block', marginBottom: '4px' }}>
+              <strong style={{ color: 'var(--text-primary)', display: 'block', marginBottom: '4px' }}>
                 How to Unlock Lessons 6&ndash;30 &amp; Live Terminal:
               </strong>
               To unlock the remaining 25 lessons and live signals, open your MT5 account via our official JustMarkets partner link, fund your trading account, and complete partner verification.
@@ -503,7 +503,7 @@ export default function LessonQuiz({
               </Link>
             </div>
 
-            <div style={{ marginTop: '16px', fontSize: '11px', color: '#64748B', fontFamily: 'var(--font-mono, monospace)' }}>
+            <div style={{ marginTop: '16px', fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono, monospace)' }}>
               Non-Custodial Direct Broker Custody / Funds remain securely in your own regulated JustMarkets MT5 account
             </div>
           </div>

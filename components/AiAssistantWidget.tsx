@@ -157,15 +157,15 @@ export default function AiAssistantWidget() {
               display: 'flex',
               alignItems: 'center',
               gap: '10px',
-              padding: '12px 18px',
-              backgroundColor: '#0F172A',
-              color: '#F8FAFC',
-              border: '1px solid rgba(180, 83, 9, 0.4)',
-              borderRadius: '9999px',
-              boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.2)',
+              padding: '10px 16px',
+              backgroundColor: '#082c21',
+              color: '#f8f8f0',
+              border: '1px solid #d8b86c',
+              borderRadius: '2px',
+              boxShadow: '0 8px 24px rgba(0, 0, 0, 0.25)',
               cursor: 'pointer',
               fontWeight: 600,
-              fontSize: '13px',
+              fontSize: '12px',
               letterSpacing: '0.02em',
               transition: 'all 0.2s ease'
             }}
@@ -177,12 +177,12 @@ export default function AiAssistantWidget() {
                 display: 'inline-flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                width: '26px',
-                height: '26px',
-                borderRadius: '50%',
-                backgroundColor: 'rgba(180, 83, 9, 0.2)',
-                border: '1px solid #B45309',
-                color: '#F5C451'
+                width: '24px',
+                height: '24px',
+                borderRadius: '2px',
+                backgroundColor: 'rgba(216, 184, 108, 0.15)',
+                border: '1px solid #d8b86c',
+                color: '#e1c47c'
               }}
             >
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -221,8 +221,8 @@ export default function AiAssistantWidget() {
               maxHeight: 'calc(100vh - 100px)',
               backgroundColor: 'var(--bg-card, #FFFFFF)',
               border: '1px solid var(--border-default, #CBD5E1)',
-              borderRadius: '16px',
-              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+              borderRadius: '2px',
+              boxShadow: '0 16px 36px rgba(0, 0, 0, 0.2)',
               display: 'flex',
               flexDirection: 'column',
               overflow: 'hidden',
@@ -248,10 +248,10 @@ export default function AiAssistantWidget() {
                     justifyContent: 'center',
                     width: '32px',
                     height: '32px',
-                    borderRadius: '8px',
-                    backgroundColor: 'rgba(180, 83, 9, 0.12)',
-                    border: '1px solid rgba(180, 83, 9, 0.35)',
-                    color: 'var(--accent-gold, #B45309)'
+                    borderRadius: '2px',
+                    backgroundColor: 'rgba(20, 84, 55, 0.12)',
+                    border: '1px solid var(--border-default)',
+                    color: 'var(--accent-gold)'
                   }}
                 >
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -354,19 +354,19 @@ export default function AiAssistantWidget() {
                     style={{
                       maxWidth: '92%',
                       padding: '12px 16px',
-                      borderRadius: m.role === 'user' ? '14px 14px 2px 14px' : '14px 14px 14px 2px',
+                      borderRadius: '2px',
                       backgroundColor:
                         m.role === 'user'
-                          ? '#0F172A'
-                          : 'var(--bg-surface-1, #F8FAFC)',
+                          ? '#145437'
+                          : 'var(--bg-surface-2)',
                       color:
                         m.role === 'user'
-                          ? '#F8FAFC'
-                          : 'var(--text-primary, #0F172A)',
+                          ? '#f7f7f0'
+                          : 'var(--text-primary)',
                       border:
                         m.role === 'user'
-                          ? '1px solid #1E293B'
-                          : '1px solid var(--border-subtle, #E2E8F0)',
+                          ? '1px solid #145437'
+                          : '1px solid var(--border-default)',
                       fontSize: '13px',
                       lineHeight: '1.55',
                       whiteSpace: 'pre-wrap',
@@ -500,7 +500,7 @@ export default function AiAssistantWidget() {
                   backgroundColor: 'var(--bg-base, #FFFFFF)',
                   color: 'var(--text-primary, #0F172A)',
                   border: '1px solid var(--border-default, #CBD5E1)',
-                  borderRadius: '8px',
+                  borderRadius: '2px',
                   fontSize: '13px',
                   outline: 'none'
                 }}
@@ -510,10 +510,10 @@ export default function AiAssistantWidget() {
                 disabled={loading || !inputValue.trim()}
                 style={{
                   padding: '10px 14px',
-                  backgroundColor: inputValue.trim() && !loading ? '#0F172A' : '#94A3B8',
-                  color: '#FFFFFF',
+                  backgroundColor: inputValue.trim() && !loading ? '#145437' : 'var(--bg-surface-3)',
+                  color: '#f7f7f0',
                   border: 'none',
-                  borderRadius: '8px',
+                  borderRadius: '2px',
                   cursor: inputValue.trim() && !loading ? 'pointer' : 'not-allowed',
                   display: 'flex',
                   alignItems: 'center',

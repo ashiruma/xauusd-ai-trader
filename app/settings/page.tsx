@@ -30,7 +30,7 @@ export default async function SettingsPage() {
   }
 
   const accountId = session?.mt5Account || session?.accountId || (isOwner ? '1200533810 (ADMIN)' : 'UNLINKED');
-  const userEmail = session?.email || (isOwner ? 'ashirumaabala@gmail.com' : 'trader@velarion.internal');
+  const userEmail = session?.email || (isOwner ? 'coordinator@velarion.internal' : 'trader@velarion.internal');
   const isVerified = isOwner || Boolean(session?.verified);
 
   return (

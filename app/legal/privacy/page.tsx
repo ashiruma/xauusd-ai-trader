@@ -74,7 +74,7 @@ export default function PrivacyPage() {
             4. Data Retention and Erasure
           </h2>
           <p>
-            You may request complete erasure of your contact details and account verification records at any time by contacting our data protection officer at <code className="mono-nums">privacy@velarionmarkets.com</code>. Requests are processed within 48 business hours.
+            You may request complete erasure of your contact details and account verification records at any time; our data protection contact channel is pending verification. Requests are processed within 48 business hours.
           </p>
         </section>
       </div>

@@ -38,7 +38,7 @@ export async function generateMetadata({ params }: LessonPageProps): Promise<Met
     openGraph: {
       title: `Lesson ${lesson.globalNum}: ${lesson.title} | Velarion Forex School`,
       description: lesson.summary,
-      url: `https://velarionmarkets.com/academy/lesson-${lesson.globalNum}`,
+      url: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://velarion-one.vercel.app'}/academy/lesson-${lesson.globalNum}`,
       type: 'article',
     },
     robots: { index: true, follow: true }
@@ -82,7 +82,7 @@ export default async function LessonPage({ params }: LessonPageProps) {
     provider: {
       '@type': 'Organization',
       name: 'Velarion Markets',
-      url: 'https://velarionmarkets.com'
+      url: process.env.NEXT_PUBLIC_SITE_URL || 'https://velarion-one.vercel.app'
     }
   };
 
@@ -105,9 +105,9 @@ export default async function LessonPage({ params }: LessonPageProps) {
     if (lesson.diagram && lesson.diagram.includes('<svg')) {
       return (
         <div style={{
-          background: '#090D16',
-          border: '1px solid #1E293B',
-          borderRadius: 'var(--radius-sm)',
+          background: 'var(--bg-surface-2)',
+          border: '1px solid var(--border-default)',
+          borderRadius: 'var(--radius-xs)',
           padding: '16px',
           overflowX: 'auto'
         }}>
@@ -158,7 +158,7 @@ export default async function LessonPage({ params }: LessonPageProps) {
                 FOUNDATION TRACK &bull; FREE
               </span>
             ) : (
-              <span className="status-badge" style={{ background: 'rgba(245, 158, 11, 0.1)', color: 'var(--accent-gold)', borderColor: 'rgba(245, 158, 11, 0.3)' }}>
+              <span className="status-badge" style={{ background: 'var(--accent-gold-subtle)', color: 'var(--accent-gold)', borderColor: 'var(--border-accent)' }}>
                 INSTITUTIONAL TRACK &bull; MT5 SPONSORED
               </span>
             )}
@@ -185,7 +185,7 @@ export default async function LessonPage({ params }: LessonPageProps) {
           <section aria-label="Core Learning Objectives" style={{
             background: 'var(--bg-surface-1)',
             border: '1px solid var(--border-accent)',
-            borderRadius: 'var(--radius-md)',
+            borderRadius: 'var(--radius-xs)',
             padding: '20px 24px',
             marginBottom: '32px'
           }}>
@@ -211,7 +211,7 @@ export default async function LessonPage({ params }: LessonPageProps) {
             <div style={{
               background: 'var(--bg-surface-1)',
               border: '1px solid var(--border-default)',
-              borderRadius: 'var(--radius-md)',
+              borderRadius: 'var(--radius-xs)',
               padding: '24px 28px',
               marginBottom: '24px'
             }}>
@@ -228,14 +228,14 @@ export default async function LessonPage({ params }: LessonPageProps) {
 
             {/* Unhackable Gate Overlay Card */}
             <div className="lesson-unlock-card" style={{
-              background: 'linear-gradient(180deg, rgba(14,22,37,0.96) 0%, rgba(9,13,22,0.98) 100%)',
-              border: '1.5px solid var(--border-gold, #C5A059)',
-              borderRadius: 'var(--radius-lg)',
+              background: 'var(--bg-card)',
+              border: '1px solid var(--border-accent, #e1c47c)',
+              borderRadius: 'var(--radius-xs)',
               padding: '36px 32px',
               textAlign: 'center',
               boxShadow: '0 20px 48px rgba(0, 0, 0, 0.5)'
             }}>
-              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '6px 14px', background: 'rgba(245, 158, 11, 0.1)', border: '1px solid rgba(245, 158, 11, 0.3)', borderRadius: '20px', marginBottom: '20px' }}>
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '6px 14px', background: 'var(--accent-gold-subtle)', border: '1px solid var(--border-accent)', borderRadius: 'var(--radius-xs)', marginBottom: '20px' }}>
                 <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--accent-gold)', letterSpacing: '0.5px', textTransform: 'uppercase' }}>
                   Sponsored by JustMarkets &bull; 100% Free
                 </span>
@@ -323,7 +323,7 @@ export default async function LessonPage({ params }: LessonPageProps) {
                 borderRight: '1px solid var(--border-default)',
                 borderBottom: '1px solid var(--border-default)',
                 padding: '20px 24px',
-                borderRadius: '0 var(--radius-md) var(--radius-md) 0',
+                borderRadius: '0 var(--radius-xs) var(--radius-xs) 0',
                 marginBottom: '32px'
               }}>
                 <div style={{ fontSize: '11px', fontWeight: 800, color: 'var(--accent-gold)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '8px' }}>
@@ -399,7 +399,7 @@ export default async function LessonPage({ params }: LessonPageProps) {
           marginTop: '36px',
           background: 'var(--bg-surface-1)',
           border: '1px solid var(--border-default)',
-          borderRadius: 'var(--radius-md)',
+          borderRadius: 'var(--radius-xs)',
           padding: '18px 22px',
           display: 'flex',
           justifyContent: 'space-between',

@@ -43,8 +43,8 @@ export default function ComplaintsPage() {
             gap: '8px',
             fontSize: '13.5px'
           }}>
-            <div><strong>General Inquiries:</strong> <code className="mono-nums" style={{ color: 'var(--accent-gold)' }}>support@velarionmarkets.com</code></div>
-            <div><strong>Compliance &amp; Disputes:</strong> <code className="mono-nums" style={{ color: 'var(--accent-gold)' }}>compliance@velarionmarkets.com</code></div>
+            <div><strong>General Inquiries:</strong> Contact channel pending verification.</div>
+            <div><strong>Compliance &amp; Disputes:</strong> Contact channel pending verification.</div>
             <div><strong>Operating Hours:</strong> Monday &ndash; Friday, 08:00 &ndash; 18:00 UTC+3 (Nairobi Time)</div>
           </div>
         </section>

@@ -32,7 +32,7 @@ function LoginForm() {
           return;
         }
         payload.adminSecret = adminSecret.trim();
-        payload.email = email.trim() || 'ashirumaabala@gmail.com';
+        payload.email = email.trim() || 'coordinator@velarion.internal';
       } else {
         if (!accountId.trim() || !/^\d{6,10}$/.test(accountId.trim())) {
           setErrorMsg('Please enter a valid 6-10 digit JustMarkets MT5 account ID.');
@@ -79,9 +79,9 @@ function LoginForm() {
   return (
     <div
       style={{
-        backgroundColor: '#0B0F19',
-        minHeight: 'calc(100vh - 65px)',
-        color: '#F8FAFC',
+        backgroundColor: 'var(--bg-base)',
+        minHeight: 'calc(100vh - 78px)',
+        color: 'var(--text-primary)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -90,29 +90,15 @@ function LoginForm() {
         overflow: 'hidden',
       }}
     >
-      {/* Background Starlight & Ambient Gold Glow */}
-      <div
-        style={{
-          position: 'absolute',
-          top: '-15%',
-          left: '50%',
-          transform: 'translateX(-50%)',
-          width: '600px',
-          height: '600px',
-          background: 'radial-gradient(circle, rgba(234, 177, 103, 0.08) 0%, rgba(11, 15, 25, 0) 70%)',
-          pointerEvents: 'none',
-        }}
-      />
-
       <div
         style={{
           width: '100%',
           maxWidth: '460px',
-          backgroundColor: '#111827',
-          border: '1px solid #1E293B',
-          borderRadius: '12px',
+          backgroundColor: 'var(--bg-card)',
+          border: '1px solid var(--border-default)',
+          borderRadius: 'var(--radius-xs)',
           padding: '36px 32px',
-          boxShadow: '0 20px 50px rgba(0, 0, 0, 0.5)',
+          boxShadow: '0 8px 30px rgba(0, 0, 0, 0.05)',
           position: 'relative',
           zIndex: 1,
         }}
@@ -130,16 +116,17 @@ function LoginForm() {
           </Link>
           <h1
             style={{
-              fontFamily: 'var(--font-display, "Fraunces", Georgia, serif)',
+              fontFamily: 'var(--font-sans, "Inter", sans-serif)',
               fontSize: '22px',
-              fontWeight: 500,
-              color: '#F8FAFC',
+              fontWeight: 600,
+              color: 'var(--text-primary)',
               margin: '0 0 6px',
+              letterSpacing: '-0.02em',
             }}
           >
             Sign In to Velarion
           </h1>
-          <p style={{ fontSize: '13px', color: '#94A3B8', margin: 0 }}>
+          <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: 0 }}>
             Enter your JustMarkets trading credentials to resume your session.
           </p>
         </div>
@@ -148,9 +135,9 @@ function LoginForm() {
         <div
           style={{
             display: 'flex',
-            background: '#0B0F19',
-            border: '1px solid #1E293B',
-            borderRadius: '6px',
+            background: 'var(--bg-surface-2)',
+            border: '1px solid var(--border-default)',
+            borderRadius: 'var(--radius-xs)',
             padding: '3px',
             marginBottom: '24px',
           }}
@@ -164,12 +151,12 @@ function LoginForm() {
             style={{
               flex: 1,
               padding: '8px',
-              fontSize: '12px',
-              fontWeight: mode === 'trader' ? 700 : 500,
-              background: mode === 'trader' ? '#1E293B' : 'transparent',
-              color: mode === 'trader' ? '#F8FAFC' : '#94A3B8',
-              border: 'none',
-              borderRadius: '4px',
+              fontSize: '11px',
+              fontWeight: mode === 'trader' ? 600 : 500,
+              background: mode === 'trader' ? 'var(--bg-card)' : 'transparent',
+              color: mode === 'trader' ? 'var(--text-primary)' : 'var(--text-muted)',
+              border: mode === 'trader' ? '1px solid var(--border-default)' : '1px solid transparent',
+              borderRadius: 'var(--radius-xs)',
               cursor: 'pointer',
               transition: 'all 0.15s ease',
             }}
@@ -185,12 +172,12 @@ function LoginForm() {
             style={{
               flex: 1,
               padding: '8px',
-              fontSize: '12px',
-              fontWeight: mode === 'admin' ? 700 : 500,
-              background: mode === 'admin' ? '#1E293B' : 'transparent',
-              color: mode === 'admin' ? 'var(--accent-gold, #eab167)' : '#94A3B8',
-              border: 'none',
-              borderRadius: '4px',
+              fontSize: '11px',
+              fontWeight: mode === 'admin' ? 600 : 500,
+              background: mode === 'admin' ? 'var(--bg-card)' : 'transparent',
+              color: mode === 'admin' ? 'var(--accent-gold)' : 'var(--text-muted)',
+              border: mode === 'admin' ? '1px solid var(--border-default)' : '1px solid transparent',
+              borderRadius: 'var(--radius-xs)',
               cursor: 'pointer',
               transition: 'all 0.15s ease',
             }}
@@ -260,16 +247,16 @@ function LoginForm() {
                     width: '100%',
                     padding: '11px 14px',
                     fontSize: '14px',
-                    background: '#0B0F19',
-                    border: '1px solid #1E293B',
-                    borderRadius: '6px',
-                    color: '#F8FAFC',
+                    background: 'var(--bg-input)',
+                    border: '1px solid var(--border-default)',
+                    borderRadius: 'var(--radius-xs)',
+                    color: 'var(--text-primary)',
                     outline: 'none',
                     boxSizing: 'border-box',
                   }}
                   required
                 />
-                <span style={{ fontSize: '11px', color: '#64748B', marginTop: '4px', display: 'block' }}>
+                <span style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px', display: 'block' }}>
                   6 to 10 digit number provided in your JustMarkets welcome email.
                 </span>
               </div>
@@ -281,7 +268,7 @@ function LoginForm() {
                     display: 'block',
                     fontSize: '12px',
                     fontWeight: 600,
-                    color: '#94A3B8',
+                    color: 'var(--text-secondary)',
                     marginBottom: '6px',
                   }}
                 >
@@ -297,16 +284,16 @@ function LoginForm() {
                     width: '100%',
                     padding: '11px 14px',
                     fontSize: '14px',
-                    background: '#0B0F19',
-                    border: '1px solid #1E293B',
-                    borderRadius: '6px',
-                    color: '#F8FAFC',
+                    background: 'var(--bg-input)',
+                    border: '1px solid var(--border-default)',
+                    borderRadius: 'var(--radius-xs)',
+                    color: 'var(--text-primary)',
                     outline: 'none',
                     boxSizing: 'border-box',
                   }}
                   required
                 />
-                <span style={{ fontSize: '11px', color: '#64748B', marginTop: '4px', display: 'block' }}>
+                <span style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px', display: 'block' }}>
                   Must match the email address registered with JustMarkets.
                 </span>
               </div>
@@ -320,7 +307,7 @@ function LoginForm() {
                     display: 'block',
                     fontSize: '12px',
                     fontWeight: 600,
-                    color: '#94A3B8',
+                    color: 'var(--text-secondary)',
                     marginBottom: '6px',
                   }}
                 >
@@ -337,10 +324,10 @@ function LoginForm() {
                     width: '100%',
                     padding: '11px 14px',
                     fontSize: '14px',
-                    background: '#0B0F19',
-                    border: '1px solid #1E293B',
-                    borderRadius: '6px',
-                    color: '#F8FAFC',
+                    background: 'var(--bg-input)',
+                    border: '1px solid var(--border-default)',
+                    borderRadius: 'var(--radius-xs)',
+                    color: 'var(--text-primary)',
                     outline: 'none',
                     boxSizing: 'border-box',
                   }}
@@ -355,7 +342,7 @@ function LoginForm() {
                     display: 'block',
                     fontSize: '12px',
                     fontWeight: 600,
-                    color: '#94A3B8',
+                    color: 'var(--text-secondary)',
                     marginBottom: '6px',
                   }}
                 >
@@ -364,17 +351,17 @@ function LoginForm() {
                 <input
                   id="admin-email-input"
                   type="email"
-                  placeholder="ashirumaabala@gmail.com"
+                  placeholder="coordinator@velarion.internal"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   style={{
                     width: '100%',
                     padding: '11px 14px',
                     fontSize: '14px',
-                    background: '#0B0F19',
-                    border: '1px solid #1E293B',
-                    borderRadius: '6px',
-                    color: '#F8FAFC',
+                    background: 'var(--bg-input)',
+                    border: '1px solid var(--border-default)',
+                    borderRadius: 'var(--radius-xs)',
+                    color: 'var(--text-primary)',
                     outline: 'none',
                     boxSizing: 'border-box',
                   }}
@@ -390,7 +377,7 @@ function LoginForm() {
             style={{
               marginTop: '8px',
               padding: '12px',
-              fontSize: '13.5px',
+              fontSize: '13px',
               fontWeight: 600,
               width: '100%',
               display: 'flex',
@@ -409,17 +396,17 @@ function LoginForm() {
           style={{
             marginTop: '24px',
             paddingTop: '20px',
-            borderTop: '1px solid #1E293B',
+            borderTop: '1px solid var(--border-default)',
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
             fontSize: '12px',
           }}
         >
-          <span style={{ color: '#64748B' }}>New to Velarion?</span>
+          <span style={{ color: 'var(--text-muted)' }}>New to Velarion?</span>
           <Link
             href="/onboarding"
-            style={{ color: 'var(--accent-gold, #eab167)', textDecoration: 'none', fontWeight: 600 }}
+            style={{ color: 'var(--accent-gold)', textDecoration: 'none', fontWeight: 600 }}
           >
             Start Free Onboarding &rarr;
           </Link>

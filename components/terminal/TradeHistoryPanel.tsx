@@ -57,15 +57,15 @@ export default function TradeHistoryPanel() {
   const winRate = totalClosed > 0 ? ((winCount / totalClosed) * 100).toFixed(1) : '0.0';
   const netPnl = trades.reduce((sum, t) => sum + (Number(t.pnl) || 0), 0);
   const netPips = trades.reduce((sum, t) => sum + (Number(t.pips) || 0), 0);
-  const pnlColor = netPnl > 0 ? '#10B981' : netPnl < 0 ? '#EF4444' : '#F8FAFC';
+  const pnlColor = netPnl > 0 ? 'var(--accent-green)' : netPnl < 0 ? 'var(--accent-red)' : 'var(--text-primary)';
 
   return (
     <section
       aria-label="Trade History and Closed Executions"
       style={{
-        background: '#090D16',
-        borderRadius: '12px',
-        border: '1px solid #1E293B',
+        background: 'var(--bg-card)',
+        borderRadius: 'var(--radius-xs)',
+        border: '1px solid var(--border-default)',
         overflow: 'hidden',
         width: '100%',
       }}
@@ -78,8 +78,8 @@ export default function TradeHistoryPanel() {
           justifyContent: 'space-between',
           alignItems: 'center',
           padding: '14px 20px',
-          background: '#0D1322',
-          borderBottom: isOpen ? '1px solid #1E293B' : 'none',
+          background: 'var(--bg-surface-2)',
+          borderBottom: isOpen ? '1px solid var(--border-default)' : 'none',
           cursor: 'pointer',
           userSelect: 'none',
           flexWrap: 'wrap',
@@ -87,10 +87,10 @@ export default function TradeHistoryPanel() {
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <span style={{ fontSize: '12px', color: '#64748B' }}>
+          <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
             {isOpen ? '▼' : '▶'}
           </span>
-          <h2 style={{ fontSize: '14px', fontWeight: 800, color: '#F8FAFC', margin: 0, letterSpacing: '0.3px', textTransform: 'uppercase' }}>
+          <h2 style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-primary)', margin: 0, letterSpacing: '0.3px', textTransform: 'uppercase' }}>
             Trade History &amp; Closed Executions
           </h2>
           <span

@@ -190,7 +190,7 @@ export default function SettingsClientPanel({
             marginBottom: '16px',
           }}
         >
-          <div><strong style={{ color: 'var(--text-primary)' }}>Support Email:</strong> ashirumaabala@gmail.com</div>
+          <div><strong style={{ color: 'var(--text-primary)' }}>Support Email:</strong> coordinator@velarion.internal</div>
           <div style={{ marginTop: '4px' }}><strong style={{ color: 'var(--text-primary)' }}>Required Details:</strong> Your 6-10 digit JustMarkets MT5 Account ID and registration timestamp.</div>
         </div>
       </div>

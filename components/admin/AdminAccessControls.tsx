@@ -148,14 +148,14 @@ export default function AdminAccessControls() {
       setMsg('Please enter an MT5 account number.');
       return;
     }
-    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://velarionmarkets.com';
+    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://velarion-one.vercel.app';
     const link = `${origin}/onboarding?ref=ADMIN_VIP&mt5=${encodeURIComponent(vipAccountInput.trim())}&auto_verify=true`;
     setGeneratedVipLink(link);
     setMsg(`VIP link generated for account #${vipAccountInput.trim()}`);
   };
 
   const handleGenerateSchoolVipLink = () => {
-    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://velarionmarkets.com';
+    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://velarion-one.vercel.app';
     const link = `${origin}/academy?vip_access=true&bypass=owner`;
     setSchoolVipLink(link);
     setMsg('Full School VIP access link generated.');
