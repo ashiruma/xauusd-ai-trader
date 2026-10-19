@@ -409,7 +409,7 @@ export default function GrowthCalculator() {
                 letterSpacing: '0.03em'
               }}
             >
-              Open JustMarkets MT5 Account &rarr;
+              Create an account &rarr;
             </a>
             <div style={{ fontSize: '11px', color: 'var(--text-muted)', textAlign: 'center' }}>
               Partner Code: <strong style={{ color: 'var(--accent-gold)' }}>{DEFAULT_PARTNER_CONFIG.primaryCode}</strong>

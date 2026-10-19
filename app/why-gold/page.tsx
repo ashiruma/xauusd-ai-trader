@@ -57,7 +57,7 @@ export default function WhyGoldPage() {
               rel="noopener noreferrer"
               className="herbaria-btn-citron"
             >
-              Open JustMarkets MT5 Account &rarr;
+              Create an account &rarr;
             </a>
             <Link href="/tools/growth-calculator" className="herbaria-btn-secondary">
               Launch 200-Pip Growth Engine
@@ -300,7 +300,7 @@ export default function WhyGoldPage() {
               rel="noopener noreferrer"
               className="herbaria-btn-citron"
             >
-              Open JustMarkets MT5 Account &rarr;
+              Create an account &rarr;
             </a>
             <Link href="/onboarding" className="herbaria-btn-secondary">
               Link Existing MT5 Account

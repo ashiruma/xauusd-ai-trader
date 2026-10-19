@@ -120,7 +120,7 @@ export default function Footer() {
               className="btn btn-primary"
               style={{ fontSize: '12px', padding: '8px 14px', display: 'inline-block' }}
             >
-              Open JustMarkets MT5 &rarr;
+              Create an account &rarr;
             </a>
           </div>
         </div>

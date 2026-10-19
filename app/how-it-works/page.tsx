@@ -99,7 +99,7 @@ export default function HowItWorksPage() {
                   gap: '6px',
                 }}
               >
-                Open JustMarkets Account &rarr;
+                Create an account &rarr;
               </a>
               <span style={{ fontSize: '12px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono, monospace)' }}>
                 Official Partner Code: {DEFAULT_PARTNER_CONFIG.primaryCode}

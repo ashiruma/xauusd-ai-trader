@@ -441,7 +441,7 @@ export default function AcademyPage() {
               rel="noopener noreferrer"
               className="herbaria-btn-secondary"
             >
-              Open JustMarkets Account &rarr;
+              Create an account &rarr;
             </a>
           </div>
         </section>

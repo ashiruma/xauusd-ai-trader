@@ -194,7 +194,7 @@ export default function SchoolPreviewPage() {
                 textDecoration: 'none',
               }}
             >
-              Open JustMarkets Account &rarr;
+              Create an account &rarr;
             </a>
             <Link
               href="/login"
