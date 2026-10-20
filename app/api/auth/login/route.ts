@@ -10,7 +10,7 @@ export async function POST(request: Request) {
     const accId = String(body.justmarkets_account_id || body.accountId || body.mt5AccountId || body.mt5Account || '').trim();
     const adminSecret = String(body.adminSecret || body.masterSecret || body.secret || '').trim();
 
-    const masterSecret = process.env.ADMIN_MASTER_SECRET || '0c6b7ba4ab5c2802c2dc21969a891f78de09fed04b6d5af7';
+    const masterSecret = process.env.ADMIN_MASTER_SECRET;
     const cookieStore = await cookies();
 
     // 1. Authoritative Admin Authentication (Strictly requires master secret)
@@ -44,18 +44,15 @@ export async function POST(request: Request) {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'strict',
-        maxAge: 60 * 60 * 24 * 365,
+        maxAge: 60 * 60 * 24 * 30,
         path: '/',
       });
 
+      // Retire the legacy bearer-secret cookie; signed session is authoritative.
       cookieStore.set({
-        name: 'velarion_admin_token',
-        value: masterSecret,
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
-        maxAge: 60 * 60 * 24 * 365,
-        path: '/',
+        name: 'velarion_admin_token', value: '', httpOnly: true,
+        secure: process.env.NODE_ENV === 'production', sameSite: 'strict',
+        maxAge: 0, path: '/',
       });
 
       return NextResponse.json({
