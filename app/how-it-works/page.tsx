@@ -5,7 +5,7 @@ import { DEFAULT_PARTNER_CONFIG } from '@/lib/partner';
 
 export const metadata: Metadata = {
   title: 'How It Works | Systematic 5-Step Member Funnel',
-  description: 'Understand the sequential path to Velarion membership: JustMarkets referral, non-custodial broker deposit, structured Forex School, least-privilege account linking, and demo-first automation.',
+  description: 'Explore the planned Velarion journey: JustMarkets referral and demo MT5 account, separate Velarion sign-in, a USD 50 live-account checkpoint after five lessons, all 30 lessons, and separate automation consent.',
 };
 
 export default function HowItWorksPage() {
@@ -38,7 +38,7 @@ export default function HowItWorksPage() {
             How Velarion Works
           </h1>
           <p style={{ fontSize: '15px', color: 'var(--text-secondary)', maxWidth: '720px', marginTop: '8px', lineHeight: 1.6 }}>
-            Velarion is an education-led, non-custodial trading platform subsidized through our regulated broker partnership with JustMarkets. Access follows a strict, sequential 5-step member funnel designed for capital preservation and disciplined execution.
+            Velarion access is 100% free on condition that you register through the JustMarkets link provided on this website and your referral attribution is verified. Spreads, commissions, swaps, other applicable broker fees, deposits and market losses remain your responsibility. This is the planned five-step journey, not active enrollment: staging access remains pending, and lessons, assessments, broker linking, automation and trading remain disabled.
           </p>
         </div>
       </section>
@@ -80,13 +80,13 @@ export default function HowItWorksPage() {
               Register on JustMarkets with Velarion Partner Code
             </h2>
             <p style={{ fontSize: '14px', color: 'var(--text-secondary)', lineHeight: 1.6, margin: '0 0 16px' }}>
-              Create an account with regulated broker JustMarkets using the official Velarion partner referral link. Broker sponsorship fully subsidizes your platform access, meaning zero subscription fees or management charges. A referral click alone does not complete verification; your account ID must be authoritatively attributed under partner code <strong className="mono-nums" style={{ color: 'var(--accent-gold)' }}>{DEFAULT_PARTNER_CONFIG.primaryCode}</strong>.
+              When School or member-backend access is restricted, use the existing JustMarkets partner link below. Register there and create a demo MT5 trading account to obtain its unique trading account ID. That ID is mandatory for the planned verification process. A referral click, account number or matching email alone does not prove registration, attribution or ownership; trustworthy broker-approved evidence is required under partner code <strong className="mono-nums" style={{ color: 'var(--accent-gold)' }}>{DEFAULT_PARTNER_CONFIG.primaryCode}</strong>.
             </p>
             <div style={{ display: 'flex', gap: '14px', alignItems: 'center', flexWrap: 'wrap' }}>
               <a
                 href={DEFAULT_PARTNER_CONFIG.primaryLink}
                 target="_blank"
-                rel="noopener noreferrer"
+                rel="noopener noreferrer sponsored"
                 style={{
                   padding: '10px 20px',
                   fontSize: '13px',
@@ -133,14 +133,14 @@ export default function HowItWorksPage() {
                 STEP 02
               </span>
               <span style={{ fontSize: '11px', fontFamily: 'var(--font-mono, monospace)', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
-                NON-CUSTODIAL CAPITAL FUNDING
+                RETURN WITH YOUR DEMO ACCOUNT ID
               </span>
             </div>
             <h2 style={{ fontSize: '20px', fontWeight: 800, color: 'var(--text-primary)', margin: '0 0 10px' }}>
-              Fund Your Regulated JustMarkets Account
+              Return to Velarion with a Separate Password
             </h2>
             <p style={{ fontSize: '14px', color: 'var(--text-secondary)', lineHeight: 1.6, margin: '0 0 16px' }}>
-              Deposit capital directly with JustMarkets. Velarion never holds, touches, or routes your funds. Your capital remains 100% inside your own broker account. Minimum deposit requirements depend strictly on your account tier:
+              Use the email associated with your JustMarkets account and create or use a separate Velarion password. The demo MT5 trading account ID is required for the intended verification step, not as a substitute for your Velarion password. No broker master, investor or trading password, PIN or one-time code should be entered into Velarion.
             </p>
             <div
               style={{
@@ -151,31 +151,31 @@ export default function HowItWorksPage() {
               }}
             >
               <div style={{ background: 'var(--bg-surface-1)', border: '1px solid var(--border-default)', borderRadius: '8px', padding: '16px' }}>
-                <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--accent-gold)', textTransform: 'uppercase' }}>STANDARD CENT (USC)</span>
-                <div style={{ fontSize: '18px', fontWeight: 800, color: 'var(--text-primary)', margin: '4px 0' }}>$10 Minimum</div>
+                <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--accent-gold)', textTransform: 'uppercase' }}>MATCHING EMAIL</span>
+                <div style={{ fontSize: '18px', fontWeight: 800, color: 'var(--text-primary)', margin: '4px 0' }}>Same email</div>
                 <p style={{ fontSize: '12.5px', color: 'var(--text-secondary)', margin: 0 }}>
-                  Contract size is 1 oz. 0.01 lot risks ~$0.03-$0.09 on typical stops. Strongly recommended for micro balances ($10-$100).
+                  Use the email associated with JustMarkets; matching email is not verification.
                 </p>
               </div>
 
               <div style={{ background: 'var(--bg-surface-1)', border: '1px solid var(--border-default)', borderRadius: '8px', padding: '16px' }}>
-                <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-primary)', textTransform: 'uppercase' }}>STANDARD ACCOUNT</span>
-                <div style={{ fontSize: '18px', fontWeight: 800, color: 'var(--text-primary)', margin: '4px 0' }}>$10 Min / $100+ Rec.</div>
+                <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-primary)', textTransform: 'uppercase' }}>VELARION PASSWORD</span>
+                <div style={{ fontSize: '18px', fontWeight: 800, color: 'var(--text-primary)', margin: '4px 0' }}>Separate password</div>
                 <p style={{ fontSize: '12.5px', color: 'var(--text-secondary)', margin: 0 }}>
-                  Contract size is 100 oz. 0.01 lot risks ~$2.80 on typical stops (28% of a $10 deposit). Requires $100-$500+ for disciplined risk.
+                  Authenticate only with your Velarion password, never a broker password.
                 </p>
               </div>
 
               <div style={{ background: 'var(--bg-surface-1)', border: '1px solid var(--border-default)', borderRadius: '8px', padding: '16px' }}>
-                <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-primary)', textTransform: 'uppercase' }}>PRO &amp; RAW SPREAD</span>
-                <div style={{ fontSize: '18px', fontWeight: 800, color: 'var(--text-primary)', margin: '4px 0' }}>$200 Minimum</div>
+                <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-primary)', textTransform: 'uppercase' }}>MT5 TRADING ACCOUNT ID</span>
+                <div style={{ fontSize: '18px', fontWeight: 800, color: 'var(--text-primary)', margin: '4px 0' }}>Required account ID</div>
                 <p style={{ fontSize: '12.5px', color: 'var(--text-secondary)', margin: 0 }}>
-                  Institutional spreads with raw execution pricing. Minimum initial deposit required by JustMarkets is $200.
+                  Keep the demo trading account ID and broker server details. The ID is required for verification but proves neither ownership nor referral attribution alone.
                 </p>
               </div>
             </div>
             <div style={{ fontSize: '12px', color: 'var(--text-muted)', borderTop: '1px solid var(--border-subtle)', paddingTop: '10px' }}>
-              Meeting the broker minimum deposit is a prerequisite, but does not guarantee automated execution eligibility on standard contracts.
+              The broker verification workflow is not provisioned here. No MT5 ID submission or automatic verification is enabled by this copy update. Unfunded or demo-only accounts cannot activate Velarion trading or testing.
             </div>
           </div>
 
@@ -205,14 +205,14 @@ export default function HowItWorksPage() {
                 STEP 03
               </span>
               <span style={{ fontSize: '11px', fontFamily: 'var(--font-mono, monospace)', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
-                EDUCATION PREREQUISITE
+                FUNDING CHECKPOINT AFTER LESSON 5
               </span>
             </div>
             <h2 style={{ fontSize: '20px', fontWeight: 800, color: 'var(--text-primary)', margin: '0 0 10px' }}>
-              Complete the Required Forex School &amp; Quizzes
+              Five Lessons, Then Verify a USD 50 Live Deposit
             </h2>
             <p style={{ fontSize: '14px', color: 'var(--text-secondary)', lineHeight: 1.6, margin: '0 0 16px' }}>
-              All 30 required core School lessons need authoritative assessment completion; the first five are not graduation. Protected lesson delivery and assessment submission are currently disabled. Only curriculum summaries are available, and no browser progress is accepted as evidence.
+              In the intended journey, learners complete the first five lessons before a checkpoint for lessons 6–30. At that checkpoint, sign in to your live account directly with JustMarkets; Velarion must receive the live MT5 trading account ID and trustworthy evidence of ownership, partner attribution and at least USD 50 deposited. USD 50 is a Velarion access condition, not a claim about broker minimums or safe capital. Deposit only with the broker. No automated broker verification is currently provided; this checkpoint is proposed policy, not active enforcement. Protected lesson delivery and assessment submission remain disabled.
             </p>
             <Link
               href="/school-preview"
@@ -256,14 +256,14 @@ export default function HowItWorksPage() {
                 STEP 04
               </span>
               <span style={{ fontSize: '11px', fontFamily: 'var(--font-mono, monospace)', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
-                LEAST-PRIVILEGE INTEGRATION
+                ALL 30 LESSONS REMAIN REQUIRED
               </span>
             </div>
             <h2 style={{ fontSize: '20px', fontWeight: 800, color: 'var(--text-primary)', margin: '0 0 10px' }}>
-              Securely Link Your MT5 Account
+              Finish the Course; Verify Ownership Separately
             </h2>
             <p style={{ fontSize: '14px', color: 'var(--text-secondary)', lineHeight: 1.6, margin: '0 0 16px' }}>
-              Independent broker ownership verification is a separate gate after all 30 School lessons. An account number, email, or read-only password alone is not ownership evidence. Broker linking is disabled while the approved verification workflow is provisioned. Linking never places orders or authorizes automation.
+              Passing the five-lesson funding checkpoint is not graduation. All 30 required core School lessons and authoritative assessments must be completed to graduate. A checkpoint review does not replace independent execution-account ownership verification and secure linking. No browser progress is accepted as evidence. Broker linking remains disabled; linking and graduation never place orders or authorize automation.
             </p>
             <div
               style={{
@@ -313,7 +313,7 @@ export default function HowItWorksPage() {
               Explicit Opt-In to Automated Trading (Demo-First)
             </h2>
             <p style={{ fontSize: '14px', color: 'var(--text-secondary)', lineHeight: 1.6, margin: '0 0 16px' }}>
-              Automation is strictly OFF by default. Our initial validation and release stage is DEMO-FIRST: members validate systematic strategies using virtual demo funds with strict risk ceilings (2.0% per-trade risk ceiling, 5.0% daily loss lockout). Any activation requires an affirmative confirmation naming your account, environment, strategy version, and permissions. Live order execution remains gated behind operational readiness and regulatory compliance.
+              Automation is OFF by default and unavailable in this release, including demo testing. A funded live account does not unlock it. Future testing or execution requires independent ownership verification, separate affirmative consent naming the account, environment, strategy version, permissions and risk settings, operational approval and exact authenticated worker acknowledgement. All 30 lessons remain required. Automation can lose money; neither earnings nor profitability while studying are promised. Deposits and withdrawals stay under your control directly with the broker.
             </p>
             <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
               <Link
@@ -353,7 +353,7 @@ export default function HowItWorksPage() {
       <section style={{ backgroundColor: 'var(--bg-surface-2)', borderTop: '1px solid var(--border-default)', padding: '28px 24px' }}>
         <div style={{ maxWidth: '1080px', margin: '0 auto', fontSize: '12px', color: 'var(--text-muted)' }}>
           <strong style={{ color: 'var(--text-primary)' }}>Risk Disclosure: </strong>
-          Trading spot gold (XAUUSD) on margin involves significant risk of loss and is not suitable for all investors. Never trade with capital you cannot afford to lose. Velarion does not guarantee trading profits or future performance.
+          Trading spot gold (XAUUSD) on margin involves significant risk of loss and is not suitable for all investors. Never trade with capital you cannot afford to lose. Velarion does not guarantee trading profits, any income while studying, or future performance. Referral compensation and volume-based IB rebates create a conflict of interest; <Link href="/legal/ib-disclosure">read the IB disclosure</Link>. Kenya legal and regulatory review remains a pre-launch requirement; broker registration does not establish local authorization.
         </div>
       </section>
     </div>

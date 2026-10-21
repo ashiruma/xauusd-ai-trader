@@ -12,7 +12,7 @@ export const metadata: Metadata = {
     default: 'Velarion Markets | Institutional XAUUSD Quantitative Trading & Forex School',
     template: '%s | Velarion Markets'
   },
-  description: 'AI-assisted XAUUSD spot gold market structure analysis, 4 quantitative execution models, 200-pip compounding calculator, and 30-lesson interactive Forex school subsidized by JustMarkets.',
+  description: 'Velarion curriculum preview and planned JustMarkets referral journey. Separate Velarion credentials, required MT5 account ID, five-lesson USD 50 checkpoint and all 30 lessons. Delivery and trading remain disabled.',
   keywords: [
     'XAUUSD',
     'Gold Trading',
@@ -40,7 +40,7 @@ export const metadata: Metadata = {
     url: process.env.NEXT_PUBLIC_SITE_URL || 'https://velarion-one.vercel.app',
     siteName: 'Velarion Markets',
     title: 'Velarion Markets | Institutional XAUUSD Quantitative Trading & Forex Academy',
-    description: 'Autonomous Spot Gold quantitative execution, 200-pip compounding calculator, and 30-lesson gated Forex school. Non-custodial MT5 execution subsidized through JustMarkets.',
+    description: 'Education-led gold research and a 30-lesson curriculum preview. Conditional free platform access through verified JustMarkets referral; broker costs and losses apply. Automation remains disabled.',
     images: [
       {
         url: '/og-preview.png',
@@ -53,7 +53,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'Velarion Markets | Spot Gold AI Quant & Forex Academy',
-    description: 'Systematic XAUUSD algorithmic trading, balance-tiered risk governor, and structured 30-lesson Forex school.',
+    description: 'Structured gold-market research and a 30-lesson curriculum preview. Trading remains disabled; no earnings are guaranteed. Kenya regulatory review remains required.',
     images: ['/og-preview.png']
   },
   robots: {

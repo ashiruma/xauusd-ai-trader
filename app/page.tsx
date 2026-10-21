@@ -22,11 +22,11 @@ export const metadata: Metadata = {
 };
 
 const journey = [
-  { number: '01', title: 'Verify JustMarkets eligibility', copy: 'Current referral attribution and deposit evidence must be verified together. Registration or an account number alone proves neither eligibility nor ownership.' },
-  { number: '02', title: 'Complete all 30 School lessons', copy: 'All 30 required core lessons must be completed through approved assessments. Delivery is disabled; only curriculum summaries are currently available.' },
-  { number: '03', title: 'Verify broker ownership separately', copy: 'Independent broker ownership evidence is required after School. Linking a number or read-only credentials is not proof of ownership.' },
-  { number: '04', title: 'Give explicit automation consent', copy: 'Consent must identify the account, environment, permissions and risk settings. School completion and account linking are not activation.' },
-  { number: '05', title: 'Require worker acknowledgement', copy: 'An authenticated worker must acknowledge the exact authorized configuration before any separately approved execution. No automation or live trading is enabled in this release.' },
+  { number: '01', title: 'Join through the JustMarkets link', copy: 'Intended member journey: register through the link on this website, then create a demo MT5 account at JustMarkets. Keep your trading account ID for verification; never share broker passwords.' },
+  { number: '02', title: 'Return to Velarion', copy: 'Use the email associated with JustMarkets and a separate Velarion password. Your MT5 trading account ID is required for the planned verification process, but neither it nor a matching email proves referral attribution or ownership.' },
+  { number: '03', title: 'Five lessons, then a funding checkpoint', copy: 'The planned checkpoint after lesson 5 requires a live trading account ID and trustworthy ownership, referral-attribution and deposit evidence of at least USD 50 deposited directly with the broker before lessons 6–30. Five lessons are not graduation.' },
+  { number: '04', title: 'Graduate only after all 30 lessons', copy: 'All 30 required core lessons and server-verified assessments remain mandatory. This review release offers summaries only: lesson delivery, completion and account linking remain disabled.' },
+  { number: '05', title: 'Authorize automation separately', copy: 'Funding does not unlock trading. Verified ownership, account-scoped consent, operational approval and exact worker acknowledgement remain separate gates. Automation may lose money; no demo testing or live execution is enabled here.' },
 ];
 
 export default function HomePage() {
@@ -97,13 +97,13 @@ export default function HomePage() {
         <div className={styles.container}>
           <div className={styles.sectionHeading}>
             <div><p className={styles.eyebrow}>02 / A deliberate progression</p><h2 id="journey-title">Every step.<br />In the right order.</h2></div>
-            <div className={styles.journeyIntro}><p className={styles.intro}>Learning is mandatory. Linking an account and activating automation are separate steps—not the same consent.</p><Link className={styles.textLink} href="/how-it-works">View the full journey <span aria-hidden="true">↗</span></Link></div>
+            <div className={styles.journeyIntro}><p className={styles.intro}>Planned journey, not active enrollment. Velarion access is 100% free on condition that you register through the JustMarkets link on this website and referral attribution is verified. Broker costs, deposits and market losses are yours.</p><Link className={styles.textLink} href="/how-it-works">View the full journey <span aria-hidden="true">↗</span></Link></div>
           </div>
           <ol className={styles.steps}>
             {journey.map(step => <li key={step.number}><span className={styles.stepNumber} aria-hidden="true">{step.number}</span><h3>{step.title}</h3><p>{step.copy}</p></li>)}
           </ol>
           <div className={styles.partnerLine}><span>ACCESS THROUGH JUSTMARKETS <span className={styles.partnerCode}>/ {DEFAULT_PARTNER_CONFIG.primaryCode}</span></span><a className={styles.textLink} href={DEFAULT_PARTNER_CONFIG.primaryLink} target="_blank" rel="noopener noreferrer sponsored">View broker registration <span aria-hidden="true">↗</span></a></div>
-          <p className={styles.partnerNote}>Referral / IB relationship: Velarion receives referral compensation and volume-based rebates, creating a conflict of interest. Broker trading costs apply. <Link href="/legal/ib-disclosure">Read the full disclosure.</Link></p>
+          <p className={styles.partnerNote}>Referral / IB relationship: Velarion receives referral compensation and volume-based rebates, creating a conflict of interest. Spreads, commissions, swaps and other applicable broker fees remain your responsibility; free platform access does not mean risk-free trading. <Link href="/legal/ib-disclosure">Read the full disclosure.</Link></p>
         </div>
       </section>
 

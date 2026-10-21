@@ -45,7 +45,7 @@ export default function Footer() {
               </div>
             </Link>
             <p style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.6, maxWidth: '340px' }}>
-              Quantitative Spot Gold (XAUUSD) execution technology and 30-lesson structured academy. No platform subscription fee; subsidized through an official Introducing Broker partnership with JustMarkets.
+              Quantitative Spot Gold (XAUUSD) execution technology and 30-lesson structured academy. Planned Velarion access is 100% free conditional on registration through this website’s JustMarkets link and verified referral attribution. Lessons, automation and trading remain disabled in this release.
             </p>
             <div style={{ marginTop: '16px' }}>
               <span className="status-badge status-neutral" style={{ fontSize: '10.5px' }}>
@@ -111,12 +111,12 @@ export default function Footer() {
               Broker Sponsorship
             </div>
             <p style={{ fontSize: '12.5px', color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: '14px' }}>
-              Partner-sponsored access via JustMarkets with code <code className="mono-nums" style={{ color: 'var(--accent-gold)' }}>{DEFAULT_PARTNER_CONFIG.primaryCode}</code>. No platform subscription fee; broker costs and eligibility requirements apply. Funds staying with your broker does not protect against trading losses.
+              Partner-sponsored access via JustMarkets with code <code className="mono-nums" style={{ color: 'var(--accent-gold)' }}>{DEFAULT_PARTNER_CONFIG.primaryCode}</code>. Velarion access is 100% free only on the partner-link and verified-attribution condition. Broker fees, deposits, market losses and eligibility requirements remain your responsibility; no earnings are guaranteed. Funds staying with your broker does not protect against trading losses.
             </p>
             <a
               href={partnerLink}
               target="_blank"
-              rel="noopener noreferrer"
+              rel="noopener noreferrer sponsored"
               className="btn btn-primary"
               style={{ fontSize: '12px', padding: '8px 14px', display: 'inline-block' }}
             >

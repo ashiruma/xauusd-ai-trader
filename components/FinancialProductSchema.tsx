@@ -8,11 +8,11 @@ export default function FinancialProductSchema() {
     url: process.env.NEXT_PUBLIC_SITE_URL || 'https://velarion-one.vercel.app',
     applicationCategory: 'FinanceApplication',
     operatingSystem: 'Web',
-    description: 'Education-led XAUUSD research and account workflow. Mandatory learning precedes account linking; automation requires separate explicit authorization. Kenyan regulatory review remains a pre-launch requirement. Trading involves risk of loss.',
+    description: 'Education-led XAUUSD research and curriculum preview. Planned access is free conditional on verified JustMarkets partner-link registration; broker fees, deposits and losses remain with the user. The planned five-lesson checkpoint requires a live MT5 ID and evidence of at least USD 50 deposited; all 30 lessons remain required. Delivery, linking and trading are disabled. Kenyan regulatory review remains a pre-launch requirement. No earnings are guaranteed.',
     featureList: [
-      '30-lesson Forex School with sequential foundation quizzes',
+      '30-lesson Forex School summary-only preview; lessons and quizzes disabled',
       'Rule-based XAUUSD strategy research',
-      'Separate account-linking and automation authorization workflows',
+      'Planned separate account-linking and automation authorization; unavailable in this release',
       'Trading risk and Introducing Broker conflict disclosures',
     ],
   };

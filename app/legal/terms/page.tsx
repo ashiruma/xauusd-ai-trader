@@ -21,7 +21,7 @@ export default function TermsPage() {
         Terms of Service
       </h1>
       <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '32px' }}>
-        Last updated: October 15, 2026 &bull; Version 2.4
+        Local review draft: October 21, 2026 &bull; Not published
       </p>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '28px', color: 'var(--text-secondary)', lineHeight: 1.7, fontSize: '14px' }}>
@@ -39,7 +39,7 @@ export default function TermsPage() {
             2. Mandatory Broker Referral &amp; Funded Deposit Requirements
           </h2>
           <p>
-            Access to automated trading features and advanced modules requires: (i) registering an account with our designated broker partner, JustMarkets, using partner referral code <code className="mono-nums" style={{ color: 'var(--accent-gold)' }}>tohstb0d83</code>; (ii) completing broker identity verification and funding a trading account; (iii) completing required educational modules and comprehension assessments; and (iv) reviewing disclosures and explicitly authorizing automated execution.
+            Planned Velarion access is 100% free on condition that you register through this website’s JustMarkets link and referral attribution is verified under partner code <code className="mono-nums" style={{ color: 'var(--accent-gold)' }}>tohstb0d83</code>. Create a demo MT5 account at the broker, then return using its associated email and a separate Velarion password. A trading account ID is mandatory for the planned verification step, but an ID or email alone does not prove registration, ownership or attribution. After the first five lessons, the intended checkpoint requires a live trading account ID and trustworthy evidence of at least USD 50 deposited before lessons 6–30. All 30 lessons and authoritative assessments remain required for graduation. Broker fees, deposits and market losses are your responsibility; USD 50 is not a guarantee of safe capital or a broker minimum. This local review does not implement the checkpoint or enable enrollment, course delivery, assessments, account linking or trading. <Link href="/legal/ib-disclosure">Referral and volume-based IB compensation create a conflict of interest.</Link>
           </p>
         </section>
 
@@ -57,7 +57,7 @@ export default function TermsPage() {
             4. Automated Trading Activation &amp; Risk Governance
           </h2>
           <p>
-            Linking an account does not initiate trading. Automated trading is activated only when you explicitly opt-in and confirm your risk settings (maximum lot sizing, stop loss parameters, maximum daily loss limit, and drawdown stop). You may pause, modify, or revoke automated trading authorization at any time using the one-click emergency kill switch in the terminal.
+            Linking, funding or completing School does not initiate trading. Future automation requires independent execution-account ownership verification, separate account-scoped explicit consent, confirmed risk settings, operational approval and exact authenticated worker acknowledgement. Demo testing, automation and live trading remain disabled here. No income while studying or future profitability is guaranteed; automation may lose the entire deposit. Financial control over deposits and withdrawals remains with you directly at the broker.
           </p>
         </section>
 
@@ -75,7 +75,7 @@ export default function TermsPage() {
             6. Regulatory Compliance &amp; Jurisdiction Notice
           </h2>
           <p>
-            Velarion Markets operates in compliance with international technological best practices. In jurisdictions such as Kenya, offering commercial automated trade execution or discretionary trading services may require licensing under the Capital Markets Authority (CMA) Act. A legal and compliance audit has been scheduled prior to retail commercial deployment. Users are responsible for ensuring compliance with laws applicable in their country of residence.
+            Velarion Markets operates in compliance with international technological best practices. In jurisdictions such as Kenya, offering commercial automated trade execution or discretionary trading services may require licensing under the Capital Markets Authority (CMA) Act. Kenya legal and regulatory review remains required before commercial deployment; this review is not evidence of CMA authorization or a scheduled audit. Users are responsible for ensuring compliance with laws applicable in their country of residence.
           </p>
         </section>
 

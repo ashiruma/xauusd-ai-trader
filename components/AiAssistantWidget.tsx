@@ -16,22 +16,20 @@ interface Message {
 const INITIAL_MESSAGE: Message = {
   id: 'welcome',
   role: 'assistant',
-  text: `Welcome to Velarion. I am your AI Assistant, here to guide and support you through benefiting from our platform.
-
-You can ask me anything about:
-1. The 5-Step Member Funnel: How to join through JustMarkets, pass verification, and unlock subsidized desks.
-2. Account Sizing: Choosing between the $10 Standard Cent account (1 lot = 1 oz gold) and the $200 Pro account.
-3. Forex School Guidance: Understanding core concepts without guessing on quizzes.
-4. Least-Privilege Account Linking: How to set and connect an MT5 Investor (read-only) password securely.
-5. Trading Truth & Risk: Why the historical 160-trade test lost money despite a 73.75% win rate, and how Candidate Strategy v2 safeguards capital.
-
-How can I assist your journey today?`,
+  text: `Welcome to Velarion. This release offers curriculum summaries and pending-access sign-in, not enabled lessons or trading.
+The intended journey is:
+1. Register through this website’s JustMarkets link and create a demo MT5 account there.
+2. Return using the same email and a separate Velarion password. The MT5 trading account ID is mandatory for planned verification; it does not prove ownership or referral attribution alone. Never share broker passwords here.
+3. Complete five lessons, then provide trustworthy live-account evidence of at least USD 50 deposited before lessons 6–30. This checkpoint is planned, not enabled.
+4. Complete all 30 lessons to graduate. Funding and graduation never activate trading.
+5. Automation requires separate account-scoped consent, verified ownership and operational approval. It can lose money; no income while studying is guaranteed.
+Velarion access is 100% free conditional on partner-link registration and verified attribution. Broker fees, deposits and losses remain yours. IB compensation creates a conflict, and Kenya regulatory review remains required before launch.`,
   suggestions: [
     'How do I start the 5-step funnel?',
-    'Explain $10 Cent vs Standard Account',
-    'What is an Investor Password?',
-    'Why did the 160-trade test lose money?',
-    'How do I pass School quizzes?'
+    'What is the five-lesson USD 50 checkpoint?',
+    'Why do I need a separate Velarion password and MT5 ID?',
+    'What are the trading risks and IB conflicts?',
+    'Why are all 30 lessons required?'
   ],
   timestamp: 'Just now'
 };
@@ -103,8 +101,8 @@ export default function AiAssistantWidget() {
           text: data.message || 'I encountered an issue retrieving that guidance. Please try again or select one of the suggested prompts below.',
           suggestions: [
             'How do I start the 5-step funnel?',
-            'Explain $10 Cent vs Standard Account',
-            'What is an Investor Password?'
+            'What is the five-lesson USD 50 checkpoint?',
+            'Why do I need a separate Velarion password and MT5 ID?'
           ],
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         };

@@ -1,0 +1,101 @@
+-- REVIEW ONLY: not executed. Exact-target catalog review and separate explicit migration/grant approval required.
+-- Caller is the BFF with verified existing auth context. No auth registration or enrollment is created here.
+\set ON_ERROR_STOP on
+BEGIN;
+SET LOCAL search_path=pg_catalog;
+SET LOCAL lock_timeout='5s'; SET LOCAL statement_timeout='60s'; SET LOCAL idle_in_transaction_session_timeout='60s';
+DO $guard$
+BEGIN
+ IF current_setting('velarion.manual_review_migration_approved',true) IS DISTINCT FROM 'yes' THEN RAISE EXCEPTION 'Explicit approval required'; END IF;
+ IF current_user<>'postgres' OR session_user<>'postgres' OR current_database()<>'postgres' THEN RAISE EXCEPTION 'Principal/database drift'; END IF;
+ IF to_regprocedure('velarion_api.check_auth_session(text,text,uuid,uuid,timestamptz,timestamptz)') IS NULL OR to_regrole('velarion_owner') IS NULL OR to_regrole('velarion_bff') IS NULL THEN RAISE EXCEPTION 'Required dependency unavailable'; END IF;
+ IF to_regnamespace('velarion_review') IS NOT NULL THEN RAISE EXCEPTION 'Review schema already exists; assess migration collision'; END IF;
+END $guard$;
+SELECT pg_advisory_xact_lock(741852963,20261022);
+-- No role membership is modified. SET ROLE may fail closed; custody/membership approval is separate.
+SET LOCAL ROLE velarion_owner;
+CREATE SCHEMA velarion_review AUTHORIZATION velarion_owner;
+REVOKE ALL ON SCHEMA velarion_review FROM PUBLIC,anon,authenticated,service_role,velarion_bff;
+GRANT USAGE ON SCHEMA velarion_review TO velarion_bff;
+CREATE TABLE velarion_review.admin_bindings(issuer text NOT NULL,subject uuid NOT NULL,enabled boolean NOT NULL DEFAULT false,scopes text[] NOT NULL DEFAULT ARRAY[]::text[] CHECK(scopes <@ ARRAY['admin_queue','admin_decide']::text[]),PRIMARY KEY(issuer,subject));
+CREATE TABLE velarion_review.submissions(
+ id uuid PRIMARY KEY DEFAULT gen_random_uuid(),issuer text NOT NULL,subject uuid NOT NULL,stage text NOT NULL CHECK(stage IN ('demo','live')),
+ broker_email text NOT NULL CHECK(broker_email=lower(btrim(broker_email)) AND length(broker_email) BETWEEN 3 AND 254),
+ mt5_id text NOT NULL CHECK(mt5_id ~ '^[0-9]{1,20}$'),server text NOT NULL CHECK(length(server) BETWEEN 1 AND 100),referral_code text NOT NULL CHECK(referral_code='tohstb0d83'),referral_link text NOT NULL CHECK(referral_link='https://one.justmarkets.link/a/tohstb0d83'),
+ status text NOT NULL DEFAULT 'submitted' CHECK(status IN ('submitted','verified','needs_evidence','rejected','revoked')),revision integer NOT NULL DEFAULT 1 CHECK(revision>0),submitted_at timestamptz NOT NULL DEFAULT clock_timestamp(),
+ evidence_reference text NOT NULL CHECK(evidence_reference ~ '^[A-Za-z0-9][A-Za-z0-9._:/-]{0,119}$' AND position('://' in evidence_reference)=0),latest_note text,
+ ownership_confirmed boolean NOT NULL DEFAULT false,attribution_confirmed boolean NOT NULL DEFAULT false,deposit_usd_cents bigint,deposit_evidence_reference text,
+ CHECK(deposit_usd_cents IS NULL OR deposit_usd_cents BETWEEN 0 AND 100000000000)
+);
+CREATE INDEX submissions_owner_latest ON velarion_review.submissions(issuer,subject,submitted_at DESC,id DESC);
+CREATE INDEX submissions_queue ON velarion_review.submissions(submitted_at,id) WHERE status='submitted';
+CREATE TABLE velarion_review.decisions(id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,review_id uuid NOT NULL REFERENCES velarion_review.submissions(id),revision integer NOT NULL CHECK(revision>0),decision text NOT NULL CHECK(decision IN ('verified','needs_evidence','rejected','revoked')),note text NOT NULL CHECK(length(note) BETWEEN 8 AND 1000),reviewer_issuer text NOT NULL,reviewer_subject uuid NOT NULL,decided_at timestamptz NOT NULL DEFAULT clock_timestamp(),evidence_reference text,ownership_confirmed boolean NOT NULL,attribution_confirmed boolean NOT NULL,deposit_usd_cents bigint,UNIQUE(review_id,revision),CHECK(deposit_usd_cents IS NULL OR deposit_usd_cents BETWEEN 0 AND 100000000000),CHECK(evidence_reference IS NULL OR (evidence_reference ~ '^[A-Za-z0-9][A-Za-z0-9._:/-]{0,119}$' AND position('://' in evidence_reference)=0)));
+REVOKE ALL ON ALL TABLES IN SCHEMA velarion_review FROM PUBLIC,anon,authenticated,service_role,velarion_bff;
+REVOKE ALL ON ALL SEQUENCES IN SCHEMA velarion_review FROM PUBLIC,anon,authenticated,service_role,velarion_bff;
+ALTER TABLE velarion_review.admin_bindings ENABLE ROW LEVEL SECURITY; ALTER TABLE velarion_review.submissions ENABLE ROW LEVEL SECURITY; ALTER TABLE velarion_review.decisions ENABLE ROW LEVEL SECURITY;
+CREATE FUNCTION velarion_review.reject_direct_change() RETURNS trigger LANGUAGE plpgsql SET search_path='' AS $$ BEGIN RAISE EXCEPTION 'Append-only/controlled review data'; END $$;
+CREATE TRIGGER decisions_immutable BEFORE UPDATE OR DELETE ON velarion_review.decisions FOR EACH ROW EXECUTE FUNCTION velarion_review.reject_direct_change();
+CREATE TRIGGER decisions_no_truncate BEFORE TRUNCATE ON velarion_review.decisions FOR EACH STATEMENT EXECUTE FUNCTION velarion_review.reject_direct_change();
+CREATE TRIGGER submissions_no_truncate BEFORE TRUNCATE ON velarion_review.submissions FOR EACH STATEMENT EXECUTE FUNCTION velarion_review.reject_direct_change();
+CREATE TRIGGER bindings_no_truncate BEFORE TRUNCATE ON velarion_review.admin_bindings FOR EACH STATEMENT EXECUTE FUNCTION velarion_review.reject_direct_change();
+CREATE TRIGGER bindings_no_delete BEFORE DELETE ON velarion_review.admin_bindings FOR EACH ROW EXECUTE FUNCTION velarion_review.reject_direct_change();
+CREATE TRIGGER submissions_no_delete BEFORE DELETE ON velarion_review.submissions FOR EACH ROW EXECUTE FUNCTION velarion_review.reject_direct_change();
+CREATE FUNCTION velarion_review.guard_binding_identity() RETURNS trigger LANGUAGE plpgsql SET search_path='' AS $$ BEGIN
+ IF (NEW.issuer,NEW.subject) IS DISTINCT FROM (OLD.issuer,OLD.subject) THEN RAISE EXCEPTION 'Immutable reviewer identity'; END IF; RETURN NEW; END $$;
+CREATE TRIGGER bindings_identity_immutable BEFORE UPDATE ON velarion_review.admin_bindings FOR EACH ROW EXECUTE FUNCTION velarion_review.guard_binding_identity();
+CREATE TABLE velarion_review.admin_binding_audit(id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,issuer text NOT NULL,subject uuid NOT NULL,action text NOT NULL CHECK(action IN ('INSERT','UPDATE','DELETE')),old_row jsonb,new_row jsonb,changed_by name NOT NULL DEFAULT session_user,changed_at timestamptz NOT NULL DEFAULT clock_timestamp());
+ALTER TABLE velarion_review.admin_binding_audit ENABLE ROW LEVEL SECURITY;
+CREATE FUNCTION velarion_review.audit_admin_binding() RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $$ BEGIN
+ INSERT INTO velarion_review.admin_binding_audit(issuer,subject,action,old_row,new_row) VALUES(COALESCE(NEW.issuer,OLD.issuer),COALESCE(NEW.subject,OLD.subject),TG_OP,CASE WHEN TG_OP='INSERT' THEN NULL ELSE to_jsonb(OLD) END,CASE WHEN TG_OP='DELETE' THEN NULL ELSE to_jsonb(NEW) END); RETURN COALESCE(NEW,OLD); END $$;
+CREATE TRIGGER bindings_audit AFTER INSERT OR UPDATE OR DELETE ON velarion_review.admin_bindings FOR EACH ROW EXECUTE FUNCTION velarion_review.audit_admin_binding();
+CREATE TRIGGER binding_audit_immutable BEFORE UPDATE OR DELETE ON velarion_review.admin_binding_audit FOR EACH ROW EXECUTE FUNCTION velarion_review.reject_direct_change();
+CREATE TRIGGER binding_audit_no_truncate BEFORE TRUNCATE ON velarion_review.admin_binding_audit FOR EACH STATEMENT EXECUTE FUNCTION velarion_review.reject_direct_change();
+CREATE FUNCTION velarion_review.guard_submission_identity() RETURNS trigger LANGUAGE plpgsql SET search_path='' AS $$ BEGIN
+ IF (NEW.id,NEW.issuer,NEW.subject,NEW.stage,NEW.broker_email,NEW.mt5_id,NEW.server,NEW.referral_code,NEW.referral_link,NEW.submitted_at,NEW.evidence_reference) IS DISTINCT FROM (OLD.id,OLD.issuer,OLD.subject,OLD.stage,OLD.broker_email,OLD.mt5_id,OLD.server,OLD.referral_code,OLD.referral_link,OLD.submitted_at,OLD.evidence_reference) THEN RAISE EXCEPTION 'Immutable submission identity/evidence'; END IF; RETURN NEW; END $$;
+CREATE TRIGGER submissions_identity_immutable BEFORE UPDATE ON velarion_review.submissions FOR EACH ROW EXECUTE FUNCTION velarion_review.guard_submission_identity();
+CREATE FUNCTION velarion_review.workflow(p_handle text,p_issuer text,p_subject uuid,p_session uuid,p_iat timestamptz,p_exp timestamptz,p_operation text,p_payload jsonb) RETURNS jsonb
+LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $fn$
+DECLARE is_admin boolean:=false; rid uuid; rev integer; rec velarion_review.submissions%ROWTYPE; st text; dec text; note_text text; ev text; own_ok boolean; attr_ok boolean; dep bigint; items jsonb; hist jsonb; dto jsonb; more boolean;
+BEGIN
+ IF p_handle IS NULL OR p_issuer IS NULL OR p_subject IS NULL OR p_session IS NULL OR p_iat IS NULL OR p_exp IS NULL OR p_payload IS NULL OR jsonb_typeof(p_payload)<>'object' THEN RAISE EXCEPTION 'Invalid authenticated request'; END IF;
+ IF velarion_api.check_auth_session(p_handle,p_issuer,p_subject,p_session,p_iat,p_exp) IS DISTINCT FROM true THEN RAISE EXCEPTION 'Authentication failed'; END IF;
+ SELECT enabled AND CASE p_operation WHEN 'admin_queue' THEN 'admin_queue'=ANY(scopes) WHEN 'admin_decide' THEN 'admin_decide'=ANY(scopes) ELSE false END INTO is_admin FROM velarion_review.admin_bindings WHERE issuer=p_issuer AND subject=p_subject FOR SHARE;
+ is_admin:=coalesce(is_admin,false);
+ IF p_operation IS NULL OR p_operation NOT IN ('self_read','self_submit','admin_queue','admin_decide') THEN RAISE EXCEPTION 'Unknown operation'; END IF;
+ IF p_operation IN ('admin_queue','admin_decide') AND NOT is_admin THEN RAISE EXCEPTION 'Not authorized'; END IF;
+ IF p_operation='self_read' THEN IF p_payload<>'{}'::jsonb THEN RAISE EXCEPTION 'Invalid payload'; END IF;
+ ELSIF p_operation='self_submit' THEN
+  IF (p_payload-ARRAY['stage','brokerEmail','mt5Id','server','evidenceReference'])<>'{}'::jsonb OR NOT(p_payload ?& ARRAY['stage','brokerEmail','mt5Id','server','evidenceReference']) THEN RAISE EXCEPTION 'Invalid payload'; END IF;
+  IF EXISTS (SELECT 1 FROM jsonb_each(p_payload) WHERE jsonb_typeof(value)<>'string') THEN RAISE EXCEPTION 'Invalid payload types'; END IF;
+  st:=p_payload->>'stage'; ev:=p_payload->>'evidenceReference';
+  IF st NOT IN ('demo','live') OR length(p_payload->>'server') NOT BETWEEN 1 AND 100 OR (p_payload->>'mt5Id') !~ '^[0-9]{1,20}$' OR p_payload->>'brokerEmail'<>lower(btrim(p_payload->>'brokerEmail')) OR length(p_payload->>'brokerEmail') NOT BETWEEN 3 AND 254 OR ev !~ '^[A-Za-z0-9][A-Za-z0-9._:/-]{0,119}$' OR position('://' in ev)>0 THEN RAISE EXCEPTION 'Invalid submission'; END IF;
+  PERFORM pg_advisory_xact_lock(hashtextextended(p_issuer||':'||p_subject::text,0));
+  IF (SELECT count(*) FROM velarion_review.submissions WHERE issuer=p_issuer AND subject=p_subject AND submitted_at>clock_timestamp()-interval '1 hour')>=10 OR (SELECT count(*) FROM velarion_review.submissions WHERE issuer=p_issuer AND subject=p_subject)>=100 THEN RAISE EXCEPTION 'Submission rate/cap exceeded'; END IF;
+  INSERT INTO velarion_review.submissions(issuer,subject,stage,broker_email,mt5_id,server,referral_code,referral_link,evidence_reference) VALUES(p_issuer,p_subject,st,p_payload->>'brokerEmail',p_payload->>'mt5Id',p_payload->>'server','tohstb0d83','https://one.justmarkets.link/a/tohstb0d83',ev);
+ ELSIF p_operation='admin_queue' THEN IF p_payload<>'{}'::jsonb THEN RAISE EXCEPTION 'Invalid payload'; END IF;
+ ELSIF p_operation='admin_decide' THEN
+  IF (p_payload-ARRAY['reviewId','expectedRevision','decision','note','evidenceReference','ownershipConfirmed','attributionConfirmed','depositUsdCents'])<>'{}'::jsonb OR NOT(p_payload ?& ARRAY['reviewId','expectedRevision','decision','note','evidenceReference','ownershipConfirmed','attributionConfirmed','depositUsdCents']) THEN RAISE EXCEPTION 'Invalid payload'; END IF;
+  IF jsonb_typeof(p_payload->'reviewId')<>'string' OR jsonb_typeof(p_payload->'expectedRevision')<>'number' OR jsonb_typeof(p_payload->'decision')<>'string' OR jsonb_typeof(p_payload->'note')<>'string' OR jsonb_typeof(p_payload->'evidenceReference') NOT IN ('string','null') OR jsonb_typeof(p_payload->'ownershipConfirmed')<>'boolean' OR jsonb_typeof(p_payload->'attributionConfirmed')<>'boolean' OR jsonb_typeof(p_payload->'depositUsdCents') NOT IN ('number','null') THEN RAISE EXCEPTION 'Invalid payload types'; END IF;
+  rid:=(p_payload->>'reviewId')::uuid; IF (p_payload->>'expectedRevision') !~ '^[0-9]{1,9}$' THEN RAISE EXCEPTION 'Invalid revision'; END IF; rev:=(p_payload->>'expectedRevision')::integer; dec:=p_payload->>'decision'; note_text:=btrim(p_payload->>'note'); ev:=nullif(p_payload->>'evidenceReference',''); own_ok:=(p_payload->>'ownershipConfirmed')::boolean; attr_ok:=(p_payload->>'attributionConfirmed')::boolean;
+  IF dec NOT IN ('verified','needs_evidence','rejected','revoked') OR rev<0 OR note_text IS NULL OR length(note_text) NOT BETWEEN 8 AND 1000 OR EXISTS(SELECT 1 FROM velarion_review.submissions WHERE id=rid AND issuer=p_issuer AND subject=p_subject) THEN RAISE EXCEPTION 'Invalid decision or self-review'; END IF;
+  IF p_payload->'depositUsdCents'='null'::jsonb THEN dep:=NULL; ELSE IF (p_payload->>'depositUsdCents') !~ '^(0|[1-9][0-9]{0,11})$' OR (p_payload->>'depositUsdCents')::numeric>100000000000 THEN RAISE EXCEPTION 'Invalid deposit'; END IF; dep:=(p_payload->>'depositUsdCents')::bigint; END IF;
+  SELECT * INTO rec FROM velarion_review.submissions WHERE id=rid FOR UPDATE;
+  IF NOT FOUND OR rec.revision<>rev THEN RAISE EXCEPTION 'Review missing or stale revision'; END IF;
+  IF (SELECT count(*) FROM velarion_review.decisions WHERE review_id=rid)>=100 OR (dec<>'revoked' AND (SELECT count(*) FROM velarion_review.decisions WHERE review_id=rid)>=99) THEN RAISE EXCEPTION 'Decision history cap exceeded; final slot reserved for revocation'; END IF;
+  IF dec='verified' AND (NOT own_ok OR NOT attr_ok OR ev IS NULL) THEN RAISE EXCEPTION 'Independent ownership, attribution and evidence required'; END IF;
+  IF dec='verified' AND rec.stage='live' AND (coalesce(dep,0)<5000 OR ev IS NULL) THEN RAISE EXCEPTION 'Live verification requires >=5000 USD cents and independent deposit evidence'; END IF;
+  UPDATE velarion_review.submissions SET status=dec,revision=revision+1,latest_note=note_text,ownership_confirmed=own_ok,attribution_confirmed=attr_ok,deposit_usd_cents=dep,deposit_evidence_reference=CASE WHEN rec.stage='live' AND dec='verified' THEN ev ELSE NULL END WHERE id=rid;
+  INSERT INTO velarion_review.decisions(review_id,revision,decision,note,reviewer_issuer,reviewer_subject,evidence_reference,ownership_confirmed,attribution_confirmed,deposit_usd_cents) VALUES(rid,rev+1,dec,note_text,p_issuer,p_subject,ev,own_ok,attr_ok,dep);
+ ELSE RAISE EXCEPTION 'Unknown operation'; END IF;
+ SELECT coalesce(jsonb_agg(jsonb_build_object('id',q.id,'stage',q.stage,'brokerEmail',q.broker_email,'mt5Id',q.mt5_id,'server',q.server,'referralCode',q.referral_code,'referralLink',q.referral_link,'status',q.status,'revision',q.revision,'submittedAt',q.submitted_at,'evidenceReference',q.evidence_reference,'ownerIssuer',CASE WHEN p_operation='admin_queue' THEN q.issuer ELSE NULL END,'ownerSubject',CASE WHEN p_operation='admin_queue' THEN q.subject ELSE NULL END,'latestNote',CASE WHEN p_operation='admin_queue' THEN q.latest_note ELSE NULL END,'history',CASE WHEN p_operation='admin_queue' THEN coalesce((SELECT jsonb_agg(jsonb_build_object('decision',d.decision,'note',d.note,'reviewerIssuer',d.reviewer_issuer,'reviewerSubject',d.reviewer_subject,'decidedAt',d.decided_at,'evidenceReference',d.evidence_reference) ORDER BY d.revision) FROM velarion_review.decisions d WHERE d.review_id=q.id),'[]'::jsonb) ELSE '[]'::jsonb END) ORDER BY q.submitted_at DESC,q.id),'[]'::jsonb) INTO items FROM (SELECT s.*,row_number() OVER(ORDER BY s.submitted_at DESC,s.id) rn FROM velarion_review.submissions s WHERE (p_operation='admin_queue' AND is_admin) OR (p_operation IN ('self_read','self_submit') AND s.issuer=p_issuer AND s.subject=p_subject)) q WHERE p_operation<>'admin_queue' OR q.rn<=100;
+ SELECT count(*)>100 INTO more FROM velarion_review.submissions WHERE p_operation='admin_queue';
+ SELECT jsonb_build_object('demoVerified',coalesce(bool_or(stage='demo' AND status='verified'),false),'liveVerified',coalesce(bool_or(stage='live' AND status='verified' AND deposit_usd_cents>=5000 AND deposit_evidence_reference IS NOT NULL),false),'checkpointSatisfied',(coalesce(bool_or(stage='demo' AND status='verified'),false) AND coalesce(bool_or(stage='live' AND status='verified' AND deposit_usd_cents>=5000 AND deposit_evidence_reference IS NOT NULL),false)),'connected',false,'courseDeliveryEnabled',false,'automationEligible',false,'tradingEnabled',false) INTO dto FROM (SELECT DISTINCT ON(stage) stage,status,deposit_usd_cents,deposit_evidence_reference FROM velarion_review.submissions WHERE issuer=p_issuer AND subject=p_subject ORDER BY stage,submitted_at DESC,id DESC) latest;
+ IF p_operation='admin_queue' THEN RETURN jsonb_build_object('success',true,'items',items,'hasMore',more,'eligibility',jsonb_build_object('demoVerified',false,'liveVerified',false,'checkpointSatisfied',false),'connected',false,'courseDeliveryEnabled',false,'automationEligible',false,'tradingEnabled',false); END IF;
+ IF p_operation='admin_decide' THEN RETURN jsonb_build_object('success',true); END IF;
+ RETURN jsonb_build_object('submissions',items,'eligibility',coalesce(dto,jsonb_build_object('demoVerified',false,'liveVerified',false,'checkpointSatisfied',false,'connected',false,'courseDeliveryEnabled',false,'automationEligible',false,'tradingEnabled',false)));
+END $fn$;
+REVOKE ALL ON ALL TABLES IN SCHEMA velarion_review FROM PUBLIC,anon,authenticated,service_role,velarion_bff;
+REVOKE ALL ON ALL SEQUENCES IN SCHEMA velarion_review FROM PUBLIC,anon,authenticated,service_role,velarion_bff;
+REVOKE ALL ON ALL FUNCTIONS IN SCHEMA velarion_review FROM PUBLIC,anon,authenticated,service_role,velarion_bff;
+GRANT EXECUTE ON FUNCTION velarion_review.workflow(text,text,uuid,uuid,timestamptz,timestamptz,text,jsonb) TO velarion_bff;
+COMMIT;

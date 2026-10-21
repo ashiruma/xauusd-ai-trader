@@ -34,7 +34,7 @@ export default function SchoolPreviewPage() {
     {
       num: '04',
       title: 'Position Risk: Standard Cent vs. Standard Accounts',
-      summary: 'Understand contract specifications in Spot Gold. 100 oz standard contracts require $100-$500+ balances to keep 0.01 lot within a 2% risk budget. 1 oz Cent accounts enable safe $10-$100 micro execution.',
+      summary: 'Understand contract specifications in Spot Gold. 100 oz standard contracts require $100-$500+ balances to keep 0.01 lot within a 2% risk budget. Smaller contract sizes still carry risk; no balance makes execution safe or guarantees access.',
       lessonRef: 'Lesson 7 & 23',
       focus: 'Lot Sizing Precision',
     },
@@ -83,7 +83,7 @@ export default function SchoolPreviewPage() {
             Velarion Forex School Preview
           </h1>
           <p style={{ fontSize: '15px', color: 'var(--text-secondary)', maxWidth: '720px', marginTop: '8px', lineHeight: 1.6 }}>
-            Explore the essential risk checkpoints required before unlocking automated strategy execution. Access to all 30 interactive lessons and quizzes is 100% subsidized for verified JustMarkets partner members.
+            Explore the essential risk checkpoints required before unlocking automated strategy execution. Planned Velarion access is 100% free on condition that you register through the JustMarkets link on this website and referral attribution is verified. Broker fees, deposits and trading losses remain yours. Only summaries are available here; lessons and quizzes are disabled.
           </p>
         </div>
       </section>
@@ -95,7 +95,7 @@ export default function SchoolPreviewPage() {
             Core Risk &amp; Strategy Checkpoints
           </h2>
           <p style={{ fontSize: '13.5px', color: 'var(--text-secondary)', marginTop: '4px' }}>
-            Each checkpoint corresponds to a mandatory quiz graded server-side. Skipping ahead is strictly blocked to ensure foundational mastery.
+            The intended journey starts with a demo MT5 account, then five lessons, followed by verified live-account evidence of at least USD 50 deposited before lessons 6–30. All 30 lessons and authoritative assessments remain required to graduate. The checkpoint is planned, not active; no enrollment or completion is enabled here.
           </p>
         </div>
 
@@ -177,13 +177,13 @@ export default function SchoolPreviewPage() {
             Ready to Begin the Interactive Curriculum?
           </h3>
           <p style={{ fontSize: '14px', color: 'var(--text-secondary)', maxWidth: '600px', margin: '0 auto 24px', lineHeight: 1.6 }}>
-            Register your JustMarkets trading account with partner code <strong className="mono-nums" style={{ color: 'var(--accent-gold)' }}>{DEFAULT_PARTNER_CONFIG.primaryCode}</strong> to unlock all 30 lessons, quizzes, and automated risk tools at zero platform cost.
+            Register through the link below using partner code <strong className="mono-nums" style={{ color: 'var(--accent-gold)' }}>{DEFAULT_PARTNER_CONFIG.primaryCode}</strong> and create a demo MT5 account. Return with the same email and a separate Velarion password; the trading account ID is mandatory for the planned verification step but does not prove eligibility alone. Registration does not currently unlock protected content or trading. <Link href="/how-it-works">Review the full planned journey</Link>, <Link href="/legal/ib-disclosure">IB conflict disclosure</Link> and <Link href="/legal/risk-disclosure">risks</Link>. Kenya regulatory review remains required before launch.
           </p>
           <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
             <a
               href={DEFAULT_PARTNER_CONFIG.primaryLink}
               target="_blank"
-              rel="noopener noreferrer"
+              rel="noopener noreferrer sponsored"
               style={{
                 padding: '11px 22px',
                 fontSize: '13.5px',

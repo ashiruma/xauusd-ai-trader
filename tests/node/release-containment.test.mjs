@@ -28,7 +28,7 @@ test('only summary fields may enter curriculum client imports and public asset',
   assert.doesNotMatch(page, /LessonQuiz|quizData|lesson\.content|dangerouslySetInnerHTML/);
   assert.match(page, /DELIVERY DISABLED/);
 });
-const custom = new Set(['auth/login', 'auth/signup', 'auth/session', 'auth/logout', 'auth/provision', 'auth/revoke-all', 'auth/begin', 'auth/recover', 'auth/refresh', 'onboarding/status', 'school/progress', 'access/status', 'newsletter']);
+const custom = new Set(['auth/login', 'auth/signup', 'auth/session', 'auth/logout', 'auth/provision', 'auth/revoke-all', 'auth/begin', 'auth/recover', 'auth/refresh', 'onboarding/status', 'onboarding/review', 'admin/reviews', 'admin/reviews/decision', 'school/progress', 'access/status', 'newsletter']);
 async function routes(dir = 'app/api') {
   const found = [];
   for (const entry of await readdir(new URL(dir, root), { withFileTypes: true })) {
