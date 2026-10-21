@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { QuizQuestion } from '@/lib/curriculum';
+import type { QuizQuestion } from '@/lib/curriculum-types';
 import {
   COURSE_PROGRESS_CHANGED_EVENT,
   COURSE_PROGRESS_STORAGE_KEY,

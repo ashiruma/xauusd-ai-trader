@@ -1,3 +1,5 @@
+raise SystemExit("RETIRED: browser curriculum generation is disabled pending secure server-side learning architecture.")
+
 import os
 
 # Script to build the updated index.html with the redesigned Velarion Forex Training Page

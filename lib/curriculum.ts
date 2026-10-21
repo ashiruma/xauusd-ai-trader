@@ -1,14 +1,8 @@
-import curriculumData from './curriculum-data.json';
+import publicLessons from './curriculum-public.json';
 
-export interface QuizQuestion {
-  question: string;
-  options: string[];
-  correct: number;
-  explanation: string;
-  hint?: string;
-}
-
-export interface Lesson {
+// This is the ONLY curriculum module intended for the client graph.
+// Explicit allowlist: no body, objectives, examples, diagrams, glossary or quiz data.
+export interface LessonSummary {
   id: string;
   level: 'beginner' | 'intermediate' | 'advanced';
   levelTitle: string;
@@ -16,37 +10,20 @@ export interface Lesson {
   globalNum: number;
   title: string;
   summary: string;
-  objectives: string[];
-  content: string;
-  example: string;
-  diagram: string;
-  quiz: QuizQuestion;
 }
 
-export interface GlossaryTerm {
-  term: string;
-  category: string;
-  definition: string;
-  example: string;
-  relatedLessonId?: string;
+export const FOREX_LESSONS: readonly LessonSummary[] = publicLessons as LessonSummary[];
+
+export function getLessonByGlobalNum(num: number): LessonSummary | undefined {
+  return FOREX_LESSONS.find(lesson => lesson.globalNum === num);
 }
 
-export const FOREX_LESSONS: Lesson[] = curriculumData.lessons as unknown as Lesson[];
-export const FOREX_GLOSSARY: GlossaryTerm[] = curriculumData.glossary as unknown as GlossaryTerm[];
-
-export function getLessonByGlobalNum(num: number): Lesson | undefined {
-  return FOREX_LESSONS.find(l => l.globalNum === num);
+export function getLessonById(id: string): LessonSummary | undefined {
+  const match = /^(?:lesson-)?([1-9]\d*)$/i.exec(id);
+  return match ? getLessonByGlobalNum(Number(match[1])) :
+    FOREX_LESSONS.find(lesson => lesson.id.toLowerCase() === id.toLowerCase());
 }
 
-export function getLessonById(id: string): Lesson | undefined {
-  const clean = id.toLowerCase().replace('lesson-', '');
-  const num = parseInt(clean, 10);
-  if (!isNaN(num)) {
-    return getLessonByGlobalNum(num);
-  }
-  return FOREX_LESSONS.find(l => l.id.toLowerCase() === id.toLowerCase() || l.id.toLowerCase() === clean);
-}
-
-export function getAllLessons(): Lesson[] {
+export function getAllLessons(): readonly LessonSummary[] {
   return FOREX_LESSONS;
 }

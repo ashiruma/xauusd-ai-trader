@@ -1,3 +1,5 @@
+raise SystemExit("RETIRED: browser curriculum generation is disabled pending secure server-side learning architecture.")
+
 import os
 
 html_content = """<!DOCTYPE html>

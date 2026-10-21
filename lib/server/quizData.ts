@@ -1,4 +1,5 @@
-import { QuizQuestion } from '@/lib/curriculum';
+import 'server-only';
+import type { QuizQuestion } from '../curriculum-types';
 
 export const LESSON_3_QUESTION_QUIZZES: Record<number, QuizQuestion[]> = {
   1: [

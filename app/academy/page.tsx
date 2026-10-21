@@ -72,7 +72,7 @@ export default function AcademyPage() {
           </div>
 
           <p style={{ fontSize: '16px', lineHeight: 1.7, color: 'var(--text-secondary)', maxWidth: '820px', marginBottom: '32px' }}>
-            Lessons 1 through 5 are open for instant public study. Lessons 6 through 30 carry no platform subscription fee when verified with our official Introducing Broker partner, JustMarkets. Non-custodial MT5 execution with disciplined risk sizing.
+            Public title and summary previews remain available. Full lessons and assessments are temporarily unavailable while verified server-side identity and sequential learning records are secured. Browser progress is a display cache, not verified completion or access authorization. Required learning remains a prerequisite, and automation still requires separate explicit consent.
           </p>
         </header>
 
@@ -90,7 +90,7 @@ export default function AcademyPage() {
                 &sect; 02 / CURRICULUM PROGRESS TRACKER
               </div>
               <h2 style={{ fontFamily: 'var(--font-herbaria-display)', fontSize: '26px', color: 'var(--text-primary)', margin: '0 0 6px', fontWeight: 400 }}>
-                {passedCount} of {totalLessons} Units Certified ({progressPercent}%)
+                {passedCount} of {totalLessons} Units in Browser Cache ({progressPercent}%)
               </h2>
               <div style={{ fontSize: '13.5px', color: 'var(--text-secondary)' }}>
                 Fully subsidized through JustMarkets IB partner code <strong style={{ color: 'var(--hb-accent-citron)', fontFamily: 'var(--font-herbaria-mono)' }}>tohstb0d83</strong>
@@ -287,8 +287,7 @@ export default function AcademyPage() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: '20px' }}>
             {filteredLessons.map((lesson) => {
               const isCompleted = completedLessons.includes(lesson.globalNum);
-              const wordCount = lesson.content ? lesson.content.split(/\s+/).length : 500;
-              const estReadingTime = `${Math.max(3, Math.ceil(wordCount / 180))} min read`;
+              const estReadingTime = 'Public summary';
               const isPublic = lesson.globalNum <= 5;
               const isSequenceLocked = lesson.globalNum > firstIncompleteLesson;
 
