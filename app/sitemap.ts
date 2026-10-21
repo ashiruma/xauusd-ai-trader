@@ -1,29 +1,7 @@
-// app/sitemap.ts
-import { MetadataRoute } from 'next';
+import type { MetadataRoute } from 'next';
+import { PUBLIC_ROUTES, SITE_ORIGIN } from '@/lib/site';
 
-export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://velarion-one.vercel.app';
-
-  const staticPages = [
-    '',
-    '/why-gold',
-    '/strategies',
-    '/academy',
-    '/tools/growth-calculator',
-    '/onboarding',
-  ].map((route) => ({
-    url: `${baseUrl}${route}`,
-    lastModified: new Date(),
-    changeFrequency: 'daily' as const,
-    priority: route === '' ? 1.0 : 0.8,
-  }));
-
-  const lessonPages = Array.from({ length: 30 }, (_, i) => ({
-    url: `${baseUrl}/academy/lesson-${i + 1}`,
-    lastModified: new Date(),
-    changeFrequency: 'weekly' as const,
-    priority: 0.7,
-  }));
-
-  return [...staticPages, ...lessonPages];
+export default function sitemap(): MetadataRoute.Sitemap {
+  // Do not invent lastModified dates or advertise sequential/gated lesson routes.
+  return PUBLIC_ROUTES.map((route) => ({ url: `${SITE_ORIGIN}${route === '/' ? '' : route}` }));
 }

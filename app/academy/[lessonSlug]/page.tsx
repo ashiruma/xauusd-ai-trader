@@ -35,13 +35,14 @@ export async function generateMetadata({ params }: LessonPageProps): Promise<Met
   return {
     title: `Lesson ${lesson.globalNum}: ${lesson.title} | Velarion Forex School`,
     description: lesson.summary,
+    alternates: { canonical: `https://velarion-one.vercel.app/academy/lesson-${lesson.globalNum}` },
     openGraph: {
       title: `Lesson ${lesson.globalNum}: ${lesson.title} | Velarion Forex School`,
       description: lesson.summary,
-      url: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://velarion-one.vercel.app'}/academy/lesson-${lesson.globalNum}`,
+      url: `https://velarion-one.vercel.app/academy/lesson-${lesson.globalNum}`,
       type: 'article',
     },
-    robots: { index: true, follow: true }
+    robots: { index: false, follow: true, googleBot: { index: false, follow: true } }
   };
 }
 
@@ -66,10 +67,8 @@ export default async function LessonPage({ params }: LessonPageProps) {
   const wordCount = lesson.content ? lesson.content.split(/\s+/).length : 500;
   const estReadingTime = `${Math.max(3, Math.ceil(wordCount / 180))} min read`;
 
-  // First introductory paragraph for SEO crawlers and preview
-  const firstParagraph = lesson.content
-    ? lesson.content.split('\n\n')[0]
-    : lesson.summary;
+  // Preview only the already-public summary, never an excerpt of protected material.
+  const firstParagraph = lesson.summary;
 
   const courseJsonLd = {
     '@context': 'https://schema.org',
@@ -78,11 +77,10 @@ export default async function LessonPage({ params }: LessonPageProps) {
     description: lesson.summary,
     educationalLevel: lesson.levelTitle,
     learningResourceType: 'Lesson',
-    isAccessibleForFree: true,
     provider: {
       '@type': 'Organization',
       name: 'Velarion Markets',
-      url: process.env.NEXT_PUBLIC_SITE_URL || 'https://velarion-one.vercel.app'
+      url: 'https://velarion-one.vercel.app'
     }
   };
 
@@ -129,7 +127,6 @@ export default async function LessonPage({ params }: LessonPageProps) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(courseJsonLd) }}
       />
 
-      <CourseProgressGate lessonNum={lesson.globalNum}>
       <article className="lesson-content" style={{ maxWidth: '820px', margin: '40px auto 80px', padding: '0 20px' }}>
         {/* Breadcrumb Navigation */}
         <nav aria-label="Breadcrumb" style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '20px' }}>
@@ -180,6 +177,8 @@ export default async function LessonPage({ params }: LessonPageProps) {
           </p>
         </header>
 
+        {/* Only the existing public title/summary are outside the progress gate. */}
+        <CourseProgressGate lessonNum={lesson.globalNum}>
         {/* Learning Objectives */}
         {lesson.objectives && lesson.objectives.length > 0 && (
           <section aria-label="Core Learning Objectives" style={{
@@ -237,7 +236,7 @@ export default async function LessonPage({ params }: LessonPageProps) {
             }}>
               <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '6px 14px', background: 'var(--accent-gold-subtle)', border: '1px solid var(--border-accent)', borderRadius: 'var(--radius-xs)', marginBottom: '20px' }}>
                 <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--accent-gold)', letterSpacing: '0.5px', textTransform: 'uppercase' }}>
-                  Sponsored by JustMarkets &bull; 100% Free
+                  Partner-sponsored access &bull; Broker costs apply
                 </span>
               </div>
 
@@ -246,7 +245,7 @@ export default async function LessonPage({ params }: LessonPageProps) {
               </h2>
 
               <p style={{ fontSize: '14.5px', color: 'var(--text-secondary)', lineHeight: 1.6, maxWidth: '580px', margin: '0 auto 24px' }}>
-                Lessons 6 through 30 (covering Institutional SMC Execution, Multi-Agent AI Confluence, and the 200-Pip Growth Matrix) plus our Live XAUUSD AI Terminal are <strong style={{ color: 'var(--accent-gold)' }}>100% Free</strong>&mdash;subsidized by our official broker partner, <strong>JustMarkets</strong>.
+                Lessons 6 through 30 (covering Institutional SMC Execution, Multi-Agent AI Confluence, and the 200-Pip Growth Matrix) plus our Live XAUUSD AI Terminal have <strong style={{ color: 'var(--accent-gold)' }}>no platform subscription fee</strong>&mdash;subject to partner eligibility with <strong>JustMarkets</strong>.
               </p>
 
               {/* Institutional Benefit Checkmarks */}
@@ -257,11 +256,11 @@ export default async function LessonPage({ params }: LessonPageProps) {
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                   <span style={{ color: 'var(--accent-gold)', fontWeight: 800 }}>&#10003;</span>
-                  <span>100% Capital Custody &bull; Deposits stay inside your own regulated MT5 account</span>
+                  <span>Broker custody &bull; Trading losses remain possible</span>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                   <span style={{ color: 'var(--accent-gold)', fontWeight: 800 }}>&#10003;</span>
-                  <span>Instant Full Unlock &bull; Complete 30 lessons + Autonomous AI Terminal</span>
+                  <span>Sequential learning &bull; Separate automation consent required</span>
                 </div>
               </div>
 
@@ -270,11 +269,11 @@ export default async function LessonPage({ params }: LessonPageProps) {
                 <a
                   href="https://one.justmarkets.link/a/tohstb0d83"
                   target="_blank"
-                  rel="noopener noreferrer"
+                  rel="noopener noreferrer sponsored"
                   className="btn btn-primary"
                   style={{ padding: '12px 24px', fontSize: '14px' }}
                 >
-                  Open JustMarkets Account &amp; Unlock Lessons 6&ndash;30 &rarr;
+                  Review JustMarkets registration &rarr;
                 </a>
                 <Link
                   href={`/onboarding?redirect=/academy/lesson-${lesson.globalNum}`}
@@ -286,7 +285,7 @@ export default async function LessonPage({ params }: LessonPageProps) {
               </div>
 
               <div style={{ marginTop: '20px', fontSize: '12px', color: 'var(--text-muted)' }}>
-                Already registered under partner code <code className="mono-nums" style={{ color: 'var(--accent-gold)' }}>tohstb0d83</code>? Enter your MT5 Account ID for instant activation.
+                Already registered under partner code <code className="mono-nums" style={{ color: 'var(--accent-gold)' }}>tohstb0d83</code>? Submit your MT5 Account ID for verification; this does not activate automation.
               </div>
             </div>
           </div>
@@ -408,20 +407,20 @@ export default async function LessonPage({ params }: LessonPageProps) {
           gap: '14px'
         }}>
           <div style={{ fontSize: '12.5px', color: 'var(--text-secondary)', maxWidth: '520px' }}>
-            Practice these strategies in live spot market conditions with an official JustMarkets MT5 account. 100% non-custodial capital protection.
+            Review broker eligibility and risks before registering. Funds held with a broker remain exposed to trading loss. Learning and account linking do not activate automation.
           </div>
           <a
             href="https://one.justmarkets.link/a/tohstb0d83"
             target="_blank"
-            rel="noopener noreferrer"
+            rel="noopener noreferrer sponsored"
             className="btn btn-outline-gold"
             style={{ fontSize: '12px', padding: '6px 14px' }}
           >
             Open MT5 Account &rarr;
           </a>
         </aside>
+        </CourseProgressGate>
       </article>
-      </CourseProgressGate>
     </>
   );
 }

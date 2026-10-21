@@ -3,8 +3,10 @@ import Link from 'next/link';
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
+  alternates: { canonical: 'https://velarion-one.vercel.app/risk-and-performance' },
+  openGraph: { url: 'https://velarion-one.vercel.app/risk-and-performance' },
   title: 'Risk & Performance | Truthful Analysis of Trading Expectancy',
-  description: 'Unvarnished audit and mathematical analysis of the 160 historical trades sample, loss asymmetry resolution, Candidate Strategy v2, and demo-first release boundary.',
+  description: 'Reported historical trading figures are unverified and pending reconciliation; candidate risk controls and hypothetical expectancy are not demonstrated performance.'
 };
 
 export default function RiskAndPerformancePage() {
@@ -37,7 +39,7 @@ export default function RiskAndPerformancePage() {
             Risk &amp; Performance Audit
           </h1>
           <p style={{ fontSize: '15px', color: 'var(--text-secondary)', maxWidth: '760px', marginTop: '8px', lineHeight: 1.6 }}>
-            At Velarion, we treat historical trading samples as risk warnings, not marketing assets. We do not present win rates in isolation or fabricate live track records. Here is the unvarnished analysis of historical testing data, why high win rates can produce net losses, and how our risk architecture corrects this.
+            At Velarion, we treat historical trading samples as risk warnings, not marketing assets. We do not present win rates in isolation or fabricate live track records. Here is the unvarnished analysis of historical testing data, why high win rates can produce net losses, and how candidate controls are intended to address these risks; this is not verified performance.
           </p>
         </div>
       </section>
@@ -71,7 +73,7 @@ export default function RiskAndPerformancePage() {
                   border: '1px solid var(--accent-red-border)',
                 }}
               >
-                NEGATIVE NET EXPECTANCY
+                REPORTED LOSS — RECONCILIATION PENDING
               </span>
             </div>
 
@@ -79,7 +81,7 @@ export default function RiskAndPerformancePage() {
               The Fallacy of Win Rate Alone: 160 VIDEO-Tagged Trades
             </h2>
             <p style={{ fontSize: '14px', color: 'var(--text-secondary)', lineHeight: 1.6, margin: '0 0 20px' }}>
-              In historical trading records, a sample of 160 VIDEO-tagged trades appeared superficially successful with a <strong>73.75% win rate</strong> (118 wins, 42 losses). However, the net result was a loss of <strong>-$163.57</strong>, compounded by a 10-position sell basket closed near <strong>-$202.17</strong>.
+              An unverified historical account describes 160 VIDEO-tagged trades, a reported <strong>73.75% win rate</strong> (118 wins, 42 losses), a reported net result of <strong>-$163.57</strong>, and a 10-position sell basket reported near <strong>-$202.17</strong>. These figures have not been independently verified.
             </p>
 
             {/* Metrics Breakdown Table */}
@@ -128,11 +130,11 @@ export default function RiskAndPerformancePage() {
                 color: 'var(--text-secondary)',
               }}
             >
-              <strong style={{ color: 'var(--text-primary)' }}>Mathematical Expectancy Calculation:</strong>
+              <strong style={{ color: 'var(--text-primary)' }}>Reported figures do not reconcile; expectancy calculation pending:</strong>
               <div style={{ fontFamily: 'var(--font-mono, monospace)', fontSize: '12.5px', color: 'var(--accent-red)', margin: '8px 0' }}>
-                Expectancy = (0.7375 x $0.38) - (0.2625 x $5.09) = $0.28 - $1.34 = -$1.06 per trade
+                118 x $0.38 - 42 x $5.09 = -$168.94, not the reported -$163.57. TODO: Owner to reconcile source ledger, costs, date range, and demo/live status before presenting as verified.
               </div>
-              Despite winning nearly 3 out of every 4 trades, the system lost an average of $1.06 on every single trade executed. A single loss wiped out more than 13 consecutive winning trades.
+              Reported averages imply a negative result but do not reconcile to the reported total. Root cause and per-trade interpretation remain unverified pending source-ledger and cost reconciliation.
             </div>
           </div>
 
@@ -147,7 +149,7 @@ export default function RiskAndPerformancePage() {
             }}
           >
             <h2 style={{ fontSize: '20px', fontWeight: 800, color: 'var(--text-primary)', margin: '0 0 16px' }}>
-              Why Did This Happen? Two Flaws in Legacy Execution
+              Unverified Root-Cause Hypotheses — Reconciliation Pending
             </h2>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px' }}>
               <div style={{ background: 'var(--bg-surface-1)', border: '1px solid var(--border-default)', borderRadius: '8px', padding: '20px' }}>
@@ -156,7 +158,7 @@ export default function RiskAndPerformancePage() {
                   Premature Trailing Stops
                 </h3>
                 <p style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.55, margin: 0 }}>
-                  The legacy logic locked trailing stops too aggressively (+25 to +80 points), cutting off the right tail of winning distributions before trends could materialize. Wins were capped at micro-fractions ($0.25-$0.80).
+                  Pending verification against the source records: the proposed explanation is that trailing stops may have limited winners. Do not treat this as an established cause.
                 </p>
               </div>
 
@@ -166,7 +168,7 @@ export default function RiskAndPerformancePage() {
                   Multi-Position Basket Stacking
                 </h3>
                 <p style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.55, margin: 0 }}>
-                  Losing trades were allowed to average down into multi-position baskets. When gold trended strongly against the position, a 10-position sell basket accumulated a catastrophic -$202.17 loss, severely damaging account equity.
+                  Pending verification against the source records: the reported basket loss and averaging-down explanation remain unverified until the ledger, costs, and trade dates are reconciled.
                 </p>
               </div>
             </div>
@@ -186,10 +188,10 @@ export default function RiskAndPerformancePage() {
               CORRECTIVE ARCHITECTURE
             </span>
             <h2 style={{ fontSize: '20px', fontWeight: 800, color: 'var(--text-primary)', margin: '6px 0 14px' }}>
-              How Candidate Strategy v2 Enforces Positive Expectancy
+              Candidate Strategy v2: Intended Controls, Not Demonstrated Results
             </h2>
             <p style={{ fontSize: '14px', color: 'var(--text-secondary)', lineHeight: 1.6, margin: '0 0 20px' }}>
-              Candidate Strategy v2 (`TrendContinuationV2Strategy`) eliminates both flaws with three non-negotiable mathematical rules:
+              Candidate Strategy v2 (`TrendContinuationV2Strategy`) is described as intending to address these risks with the following controls; implementation and outcomes require validation:
             </p>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginBottom: '24px' }}>
@@ -198,7 +200,7 @@ export default function RiskAndPerformancePage() {
                   RULE 1
                 </span>
                 <div>
-                  <strong style={{ color: 'var(--text-primary)' }}>Strictly Single-Ticket Execution:</strong> Averaging down, martingale lot multipliers, and grid basket stacking are completely prohibited. Maximum open positions is strictly bounded to 1.
+                  <strong style={{ color: 'var(--text-primary)' }}>Intended single-ticket control:</strong> The candidate design specifies one open position and no averaging down, martingale multipliers, or grid stacking; verify enforcement before relying on it.
                 </div>
               </div>
 
@@ -207,7 +209,7 @@ export default function RiskAndPerformancePage() {
                   RULE 2
                 </span>
                 <div>
-                  <strong style={{ color: 'var(--text-primary)' }}>1.8:1 Minimum Risk-to-Reward Ratio:</strong> Every order must target at least 1.8x the risk distance (typically 2.0:1 to 2.5:1). A $2.80 stop loss targets at least $5.04 to $7.00.
+                  <strong style={{ color: 'var(--text-primary)' }}>Intended risk/reward constraint:</strong> The design describes a target of at least 1.8x the risk distance; actual order behavior and realized ratios are not validated here.
                 </div>
               </div>
 
@@ -216,7 +218,7 @@ export default function RiskAndPerformancePage() {
                   RULE 3
                 </span>
                 <div>
-                  <strong style={{ color: 'var(--text-primary)' }}>ATR Dynamic Protective Stops:</strong> Pre-trade stop losses are calculated dynamically using 1.3 ATR + structural swing anchors. If worst-case loss exceeds the account risk ceiling (2.0%), the trade is rejected pre-flight.
+                  <strong style={{ color: 'var(--text-primary)' }}>Intended stop and risk checks:</strong> ATR-based stops and pre-trade risk checks are candidate controls subject to validation. Stops may not fill at the requested price, and losses can exceed estimates.
                 </div>
               </div>
             </div>
@@ -231,11 +233,11 @@ export default function RiskAndPerformancePage() {
                 color: 'var(--text-primary)',
               }}
             >
-              <strong>Expectancy With 2.0:1 R:R at 48% Win Rate:</strong>
+              <strong>Illustrative hypothetical only — assumes 48% wins, 2:1 reward/risk, before costs; no observed win rate or demonstrated edge:</strong>
               <div style={{ fontFamily: 'var(--font-mono, monospace)', color: 'var(--accent-green)', marginTop: '4px' }}>
-                Expectancy = (0.48 x $5.32) - (0.52 x $2.80) = $2.55 - $1.46 = +$1.09 per trade
+                Expectancy = (0.48 x $5.60) - (0.52 x $2.80) = $2.688 - $1.456 = $1.232 (~$1.23) per trade
               </div>
-              With disciplined risk-to-reward asymmetry, the system generates positive mathematical expectancy even when losing more trades than it wins.
+              This arithmetic is an assumption-based illustration before costs only; it does not establish strategy performance, an edge, or future results.
             </div>
           </div>
 
@@ -256,12 +258,12 @@ export default function RiskAndPerformancePage() {
               Release Boundary: Demo-First Stage
             </h2>
             <p style={{ fontSize: '14px', color: 'var(--text-secondary)', lineHeight: 1.6, margin: '0 0 16px' }}>
-              Because live algorithmic execution involves real capital risk, Velarion enforces a strict demo-first validation stage:
+              Because live algorithmic execution involves risk, the intended release approach is demo-first validation; actual gates and enforcement require verification:
             </p>
             <ul style={{ paddingLeft: '20px', fontSize: '13.5px', color: 'var(--text-secondary)', lineHeight: 1.7, margin: '0 0 20px' }}>
-              <li><strong>Automation is OFF by default:</strong> No automated orders can be submitted without explicit user confirmation.</li>
-              <li><strong>Demo-Only Execution in Initial Release:</strong> Live order execution is gated and locked behind operational readiness gates.</li>
-              <li><strong>Fail-Closed Gate Checks:</strong> If demo eligibility or school prerequisites cannot be confirmed, the system fails closed.</li>
+              <li><strong>Automation is intended to remain OFF until separately and explicitly activated by the user.</strong> Verify actual enforcement.</li>
+              <li><strong>Demo-first validation is intended.</strong> Live execution availability and readiness gates remain unverified.</li>
+              <li><strong>Eligibility and prerequisite checks are intended controls.</strong> Verify their operation before relying on them.</li>
               <li><strong>Truth in Advertising:</strong> We never fabricate track records, guarantee profits, or claim millionaire outcomes.</li>
             </ul>
 

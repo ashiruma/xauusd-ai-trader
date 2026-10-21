@@ -3,6 +3,8 @@ import Link from 'next/link';
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
+  alternates: { canonical: 'https://velarion-one.vercel.app/legal/terms' },
+  openGraph: { url: 'https://velarion-one.vercel.app/legal/terms', type: 'website' },
   title: 'Terms of Service | Velarion Markets',
   description: 'Terms and conditions governing access to Velarion Markets software, educational materials, and introducing broker services.',
 };

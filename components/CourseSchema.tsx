@@ -12,16 +12,13 @@ export default function CourseSchema() {
     provider: {
       '@type': 'Organization',
       name: 'Velarion Markets',
-      sameAs: 'https://one.justmarkets.link/a/tohstb0d83'
+      url: 'https://velarion-one.vercel.app'
     },
     educationalLevel: 'Beginner to Advanced',
-    isAccessibleForFree: true,
     hasCourseInstance: {
       '@type': 'CourseInstance',
-      courseMode: 'Online',
-      courseWorkload: 'PT20H'
+      courseMode: 'Online'
     },
-    numberOfCredits: 30,
     syllabusSections: [
       {
         '@type': 'Syllabus',
@@ -43,7 +40,7 @@ export default function CourseSchema() {
       '@type': 'Course',
       name: `Lesson ${lesson.globalNum}: ${lesson.title}`,
       description: lesson.summary,
-      url: `https://xauusd-ai-trader.vercel.app/academy/lesson-${lesson.globalNum}`
+      url: `https://velarion-one.vercel.app/academy/lesson-${lesson.globalNum}`
     }))
   };
 

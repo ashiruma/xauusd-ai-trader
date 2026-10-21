@@ -4,6 +4,8 @@ import { Metadata } from 'next';
 import { DEFAULT_PARTNER_CONFIG } from '@/lib/partner';
 
 export const metadata: Metadata = {
+  alternates: { canonical: 'https://velarion-one.vercel.app/school-preview' },
+  openGraph: { url: 'https://velarion-one.vercel.app/school-preview', type: 'website' },
   title: 'School Preview | Forex & Gold Risk Curriculum',
   description: 'Explore the Velarion Forex School curriculum preview: essential checkpoints covering leverage, margin, costs, losses, position risk, demo vs live, and automation consent.',
 };
@@ -15,7 +17,7 @@ export default function SchoolPreviewPage() {
       title: 'Leverage and Margin Mechanics',
       summary: 'Understand how leverage multiplies buying power and downside exposure. Learn how margin requirements are calculated in MT5 and how liquidation stop-out triggers occur.',
       lessonRef: 'Lesson 8',
-      focus: 'Capital Preservation',
+      focus: 'Loss Exposure',
     },
     {
       num: '02',
@@ -27,28 +29,28 @@ export default function SchoolPreviewPage() {
     {
       num: '03',
       title: 'Loss Asymmetry and Expectancy Math',
-      summary: 'Why high win rates fail without positive risk-to-reward. A 73% win rate with -$5 average losses and +$0.38 wins produces negative expectancy. Learn mathematical trade expectancy formulas.',
+      summary: 'Learn how win rate, average win, average loss and trading costs combine in expectancy calculations. Hypothetical arithmetic does not demonstrate a trading edge.',
       lessonRef: 'Lesson 21 & 25',
-      focus: 'Mathematical Edge',
+      focus: 'Expectancy Assumptions',
     },
     {
       num: '04',
       title: 'Position Risk: Standard Cent vs. Standard Accounts',
-      summary: 'Understand contract specifications in Spot Gold. 100 oz standard contracts require $100-$500+ balances to keep 0.01 lot within a 2% risk budget. 1 oz Cent accounts enable safe $10-$100 micro execution.',
+      summary: 'Compare contract size, tick value, minimum lot, stop distance and costs using the applicable broker specifications. A small deposit or a cent account does not make leveraged trading safe. TODO: broker-confirmed account and symbol specifications.',
       lessonRef: 'Lesson 7 & 23',
       focus: 'Lot Sizing Precision',
     },
     {
       num: '05',
       title: 'Demo vs. Live Execution Realities',
-      summary: 'Why demo results do not automatically guarantee live execution success. Contrast zero-slippage demo fills with live market depth, latency, and trader psychology.',
+      summary: 'Understand why demo results do not predict live results. Compare simulated fills with live liquidity, costs, latency and execution uncertainty; demo conditions also vary.',
       lessonRef: 'Lesson 12 & 26',
       focus: 'Execution Realism',
     },
     {
       num: '06',
       title: 'Algorithmic Automation Consent and Emergency Controls',
-      summary: 'Automated trading governance principles: why automation is off by default, how pre-trade ATR risk filters work, and how to operate instant pause and emergency stop controls.',
+      summary: 'Automated trading governance principles: why automation is off by default, how pre-trade ATR risk filters work, and the limits of pause and emergency stop controls; stopping new orders does not guarantee an immediate fill or removal of existing exposure.',
       lessonRef: 'Lesson 30',
       focus: 'System Governance',
     },
@@ -83,7 +85,7 @@ export default function SchoolPreviewPage() {
             Velarion Forex School Preview
           </h1>
           <p style={{ fontSize: '15px', color: 'var(--text-secondary)', maxWidth: '720px', marginTop: '8px', lineHeight: 1.6 }}>
-            Explore the essential risk checkpoints required before unlocking automated strategy execution. Access to all 30 interactive lessons and quizzes is 100% subsidized for verified JustMarkets partner members.
+            Explore the essential risk checkpoints required before unlocking automated strategy execution. This public preview contains topic summaries only, not protected lesson material or quiz answers. Member access remains subject to verification and sequential learning requirements.
           </p>
         </div>
       </section>
@@ -95,7 +97,7 @@ export default function SchoolPreviewPage() {
             Core Risk &amp; Strategy Checkpoints
           </h2>
           <p style={{ fontSize: '13.5px', color: 'var(--text-secondary)', marginTop: '4px' }}>
-            Each checkpoint corresponds to a mandatory quiz graded server-side. Skipping ahead is strictly blocked to ensure foundational mastery.
+            Mandatory sequential quizzes assess comprehension; passing is not evidence of trading competence or investment suitability. TODO: owner to confirm checkpoint-to-lesson mapping against the assessed syllabus.
           </p>
         </div>
 
@@ -177,13 +179,13 @@ export default function SchoolPreviewPage() {
             Ready to Begin the Interactive Curriculum?
           </h3>
           <p style={{ fontSize: '14px', color: 'var(--text-secondary)', maxWidth: '600px', margin: '0 auto 24px', lineHeight: 1.6 }}>
-            Register your JustMarkets trading account with partner code <strong className="mono-nums" style={{ color: 'var(--accent-gold)' }}>{DEFAULT_PARTNER_CONFIG.primaryCode}</strong> to unlock all 30 lessons, quizzes, and automated risk tools at zero platform cost.
+            Register your JustMarkets trading account with partner code <strong className="mono-nums" style={{ color: 'var(--accent-gold)' }}>{DEFAULT_PARTNER_CONFIG.primaryCode}</strong> and complete broker funding and partner verification requirements before mandatory learning. After learning, account linking and explicit automation activation remain separate steps. No platform subscription fee does not mean trading is free of costs or risk.
           </p>
           <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
             <a
               href={DEFAULT_PARTNER_CONFIG.primaryLink}
               target="_blank"
-              rel="noopener noreferrer"
+              rel="noopener noreferrer sponsored"
               style={{
                 padding: '11px 22px',
                 fontSize: '13.5px',

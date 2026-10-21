@@ -3,6 +3,8 @@ import Link from 'next/link';
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
+  alternates: { canonical: 'https://velarion-one.vercel.app/legal/privacy' },
+  openGraph: { url: 'https://velarion-one.vercel.app/legal/privacy', type: 'website' },
   title: 'Privacy Policy | Velarion Markets',
   description: 'Velarion Markets privacy policy explaining zero credential retention, minimal data telemetry, and user privacy protections.',
 };

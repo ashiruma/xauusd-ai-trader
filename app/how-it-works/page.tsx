@@ -4,8 +4,10 @@ import { Metadata } from 'next';
 import { DEFAULT_PARTNER_CONFIG } from '@/lib/partner';
 
 export const metadata: Metadata = {
-  title: 'How It Works | Systematic 5-Step Member Funnel',
-  description: 'Understand the sequential path to Velarion membership: JustMarkets referral, non-custodial broker deposit, structured Forex School, least-privilege account linking, and demo-first automation.',
+  alternates: { canonical: 'https://velarion-one.vercel.app/how-it-works' },
+  openGraph: { url: 'https://velarion-one.vercel.app/how-it-works' },
+  title: 'How It Works | Member Onboarding',
+  description: 'Review the onboarding sequence: broker registration, broker deposit, mandatory school and quizzes, account linking, and separate explicit demo-first automation activation.'
 };
 
 export default function HowItWorksPage() {
@@ -38,7 +40,10 @@ export default function HowItWorksPage() {
             How Velarion Works
           </h1>
           <p style={{ fontSize: '15px', color: 'var(--text-secondary)', maxWidth: '720px', marginTop: '8px', lineHeight: 1.6 }}>
-            Velarion is an education-led, non-custodial trading platform subsidized through our regulated broker partnership with JustMarkets. Access follows a strict, sequential 5-step member funnel designed for capital preservation and disciplined execution.
+            Velarion onboarding is presented in sequence: registration and broker deposit, mandatory school lessons and quizzes, account linking, then separate explicit automation activation. This process does not preserve capital or establish suitability.
+          </p>
+          <p style={{ fontSize: '13px', color: 'var(--accent-red)', maxWidth: '720px', marginTop: '12px', lineHeight: 1.6 }}>
+            REVIEW TODO: Confirm the operating entity, country eligibility (including Kenya), broker legal entity and authorization, and EA/automation terms. Kenya legal review remains a mandatory pre-launch requirement; no approval or credential is represented here.
           </p>
         </div>
       </section>
@@ -77,16 +82,16 @@ export default function HowItWorksPage() {
               </span>
             </div>
             <h2 style={{ fontSize: '20px', fontWeight: 800, color: 'var(--text-primary)', margin: '0 0 10px' }}>
-              Register on JustMarkets with Velarion Partner Code
+              Broker registration and partner referral
             </h2>
             <p style={{ fontSize: '14px', color: 'var(--text-secondary)', lineHeight: 1.6, margin: '0 0 16px' }}>
-              Create an account with regulated broker JustMarkets using the official Velarion partner referral link. Broker sponsorship fully subsidizes your platform access, meaning zero subscription fees or management charges. A referral click alone does not complete verification; your account ID must be authoritatively attributed under partner code <strong className="mono-nums" style={{ color: 'var(--accent-gold)' }}>{DEFAULT_PARTNER_CONFIG.primaryCode}</strong>.
+              Use the displayed partner referral link/code to begin registration. Broker entity, regulatory status, referral attribution, eligibility by location, and any fees or sponsorship terms must be verified with the broker and Velarion before relying on them. TODO: Confirm the actual broker entity and referral terms. Displayed code: <strong className="mono-nums" style={{ color: 'var(--accent-gold)' }}>{DEFAULT_PARTNER_CONFIG.primaryCode}</strong>.
             </p>
             <div style={{ display: 'flex', gap: '14px', alignItems: 'center', flexWrap: 'wrap' }}>
               <a
                 href={DEFAULT_PARTNER_CONFIG.primaryLink}
                 target="_blank"
-                rel="noopener noreferrer"
+                rel="noopener noreferrer sponsored"
                 style={{
                   padding: '10px 20px',
                   fontSize: '13px',
@@ -102,7 +107,7 @@ export default function HowItWorksPage() {
                 Create an account &rarr;
               </a>
               <span style={{ fontSize: '12px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono, monospace)' }}>
-                Official Partner Code: {DEFAULT_PARTNER_CONFIG.primaryCode}
+                Displayed Partner Code: {DEFAULT_PARTNER_CONFIG.primaryCode}
               </span>
             </div>
           </div>
@@ -133,14 +138,14 @@ export default function HowItWorksPage() {
                 STEP 02
               </span>
               <span style={{ fontSize: '11px', fontFamily: 'var(--font-mono, monospace)', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
-                NON-CUSTODIAL CAPITAL FUNDING
+                ACCOUNT FUNDING — VERIFY BROKER TERMS
               </span>
             </div>
             <h2 style={{ fontSize: '20px', fontWeight: 800, color: 'var(--text-primary)', margin: '0 0 10px' }}>
-              Fund Your Regulated JustMarkets Account
+              Account funding — verify current terms directly with broker
             </h2>
             <p style={{ fontSize: '14px', color: 'var(--text-secondary)', lineHeight: 1.6, margin: '0 0 16px' }}>
-              Deposit capital directly with JustMarkets. Velarion never holds, touches, or routes your funds. Your capital remains 100% inside your own broker account. Minimum deposit requirements depend strictly on your account tier:
+              If you choose to proceed, review the broker’s current account, funding, withdrawal, and custody terms directly before depositing. TODO: Verify relevant broker entity, eligibility, and current terms; no minimum or account-specification claims are confirmed here.
             </p>
             <div
               style={{
@@ -152,30 +157,30 @@ export default function HowItWorksPage() {
             >
               <div style={{ background: 'var(--bg-surface-1)', border: '1px solid var(--border-default)', borderRadius: '8px', padding: '16px' }}>
                 <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--accent-gold)', textTransform: 'uppercase' }}>STANDARD CENT (USC)</span>
-                <div style={{ fontSize: '18px', fontWeight: 800, color: 'var(--text-primary)', margin: '4px 0' }}>$10 Minimum</div>
+                <div style={{ fontSize: '18px', fontWeight: 800, color: 'var(--text-primary)', margin: '4px 0' }}>Deposit terms: TODO</div>
                 <p style={{ fontSize: '12.5px', color: 'var(--text-secondary)', margin: 0 }}>
-                  Contract size is 1 oz. 0.01 lot risks ~$0.03-$0.09 on typical stops. Strongly recommended for micro balances ($10-$100).
+                  Confirm account availability, contract specifications, margin, and trading costs with the broker. No suitability or account-size recommendation is made here.
                 </p>
               </div>
 
               <div style={{ background: 'var(--bg-surface-1)', border: '1px solid var(--border-default)', borderRadius: '8px', padding: '16px' }}>
                 <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-primary)', textTransform: 'uppercase' }}>STANDARD ACCOUNT</span>
-                <div style={{ fontSize: '18px', fontWeight: 800, color: 'var(--text-primary)', margin: '4px 0' }}>$10 Min / $100+ Rec.</div>
+                <div style={{ fontSize: '18px', fontWeight: 800, color: 'var(--text-primary)', margin: '4px 0' }}>Deposit terms: TODO</div>
                 <p style={{ fontSize: '12.5px', color: 'var(--text-secondary)', margin: 0 }}>
-                  Contract size is 100 oz. 0.01 lot risks ~$2.80 on typical stops (28% of a $10 deposit). Requires $100-$500+ for disciplined risk.
+                  Confirm contract specifications, margin, and trading costs with the broker. No suitability or account-size recommendation is made here.
                 </p>
               </div>
 
               <div style={{ background: 'var(--bg-surface-1)', border: '1px solid var(--border-default)', borderRadius: '8px', padding: '16px' }}>
                 <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-primary)', textTransform: 'uppercase' }}>PRO &amp; RAW SPREAD</span>
-                <div style={{ fontSize: '18px', fontWeight: 800, color: 'var(--text-primary)', margin: '4px 0' }}>$200 Minimum</div>
+                <div style={{ fontSize: '18px', fontWeight: 800, color: 'var(--text-primary)', margin: '4px 0' }}>Deposit terms: TODO</div>
                 <p style={{ fontSize: '12.5px', color: 'var(--text-secondary)', margin: 0 }}>
-                  Institutional spreads with raw execution pricing. Minimum initial deposit required by JustMarkets is $200.
+                  Confirm available account types, spreads, fees, and deposit terms directly with the broker.
                 </p>
               </div>
             </div>
             <div style={{ fontSize: '12px', color: 'var(--text-muted)', borderTop: '1px solid var(--border-subtle)', paddingTop: '10px' }}>
-              Meeting the broker minimum deposit is a prerequisite, but does not guarantee automated execution eligibility on standard contracts.
+              TODO: Verify entity, country eligibility, account terms, and EA/automated-trading terms directly with the broker before stating requirements or availability.
             </div>
           </div>
 
@@ -212,7 +217,7 @@ export default function HowItWorksPage() {
               Complete the Required Forex School &amp; Quizzes
             </h2>
             <p style={{ fontSize: '14px', color: 'var(--text-secondary)', lineHeight: 1.6, margin: '0 0 16px' }}>
-              Before any automated risk controls can be unlocked, members must complete Foundation Lessons 1 through 5 sequentially. Each lesson ends with a comprehension quiz. To guarantee true mastery, quizzes are graded strictly on the server: answering incorrectly resets your course progress back to Lesson 1 without leaking the correct answer.
+              Before any automated risk controls can be unlocked, members must complete Foundation Lessons 1 through 5 sequentially. Each lesson ends with a comprehension quiz. Quizzes are shown as a required step before account linking and any separate automation activation. TODO: Verify actual grading and progress behavior before describing it as enforced.
             </p>
             <Link
               href="/school-preview"
@@ -276,7 +281,7 @@ export default function HowItWorksPage() {
               }}
             >
               <strong style={{ color: 'var(--text-primary)' }}>Security Commitment: </strong>
-              Zero storage of master trading credentials. You retain full cryptographic control and can disconnect or revoke linked accounts instantly at any time.
+              Zero storage of master trading credentials. Account permissions, revocation behavior and operational readiness require validation; no security or instantaneous revocation guarantee is made.
             </div>
           </div>
 
@@ -310,10 +315,10 @@ export default function HowItWorksPage() {
               </span>
             </div>
             <h2 style={{ fontSize: '20px', fontWeight: 800, color: 'var(--text-primary)', margin: '0 0 10px' }}>
-              Explicit Opt-In to Automated Trading (Demo-First)
+              Separate Explicit Automation Activation (Demo-First)
             </h2>
             <p style={{ fontSize: '14px', color: 'var(--text-secondary)', lineHeight: 1.6, margin: '0 0 16px' }}>
-              Automation is strictly OFF by default. Our initial validation and release stage is DEMO-FIRST: members validate systematic strategies using virtual demo funds with strict risk ceilings (2.0% per-trade risk ceiling, 5.0% daily loss lockout). Any activation requires an affirmative confirmation naming your account, environment, strategy version, and permissions. Live order execution remains gated behind operational readiness and regulatory compliance.
+              Account linking does not activate automation. Any automation activation is a separate, explicit user action after demo-first evaluation. TODO: Verify activation behavior, EA terms, eligibility, and actual entity before making availability claims. Demo use does not assure results; risk controls and stops do not guarantee fills or cap losses.
             </p>
             <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
               <Link

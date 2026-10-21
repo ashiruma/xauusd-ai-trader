@@ -4,12 +4,13 @@ import { Metadata } from 'next';
 import { DEFAULT_PARTNER_CONFIG } from '@/lib/partner';
 
 export const metadata: Metadata = {
+  alternates: { canonical: 'https://velarion-one.vercel.app/why-gold' },
   title: 'Why Spot Gold (XAUUSD) Only | Institutional Macro Advantage',
   description: 'Discover why Velarion Markets trades Spot Gold exclusively: $130B+ daily liquidity, central bank sovereign accumulation, clean session expansions, and clear macro drivers.',
   openGraph: {
     title: 'Why Spot Gold (XAUUSD) Only | Velarion Markets',
     description: 'Detailed breakdown of the macroeconomic and mathematical advantages of trading Spot Gold over retail currency pairs.',
-    url: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://velarion-one.vercel.app'}/why-gold`
+    url: 'https://velarion-one.vercel.app/why-gold'
   }
 };
 

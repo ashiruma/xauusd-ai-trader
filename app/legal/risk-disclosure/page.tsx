@@ -3,6 +3,8 @@ import Link from 'next/link';
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
+  alternates: { canonical: 'https://velarion-one.vercel.app/legal/risk-disclosure' },
+  openGraph: { url: 'https://velarion-one.vercel.app/legal/risk-disclosure', type: 'website' },
   title: 'Risk Disclosure | Velarion Markets',
   description: 'Detailed risk disclosure covering leveraged Spot Gold (XAUUSD) trading, algorithmic execution risks, market volatility, and slippage.',
 };

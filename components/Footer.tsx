@@ -15,6 +15,9 @@ export default function Footer() {
         marginTop: 'auto',
       }}
     >
+      <aside aria-label="Unresolved legal and broker review" style={{ maxWidth: '1200px', margin: '0 auto 28px', padding: '18px', border: '2px solid var(--accent-gold)', lineHeight: 1.6 }}>
+        <strong>TODO — Owner, legal and broker review required:</strong> Confirm the contracting broker entity for Kenya residents, eligibility, account and symbol specifications, automated-trading permissions, and the IB compensation agreement. Kenyan legal review remains a pre-launch requirement; no CMA approval is claimed. Existing broker, custody and performance statements must not be treated as verified approval or protection. <Link href="/legal/ib-disclosure">Read the IB conflict disclosure</Link> and <Link href="/legal/risk-disclosure">trading risks</Link> before considering a deposit. Registration, funding, learning and account linking do not authorize automation.
+      </aside>
       <div className="footer-container" style={{ maxWidth: '1200px', margin: '0 auto' }}>
         <div style={{
           display: 'grid',
@@ -45,7 +48,7 @@ export default function Footer() {
               </div>
             </Link>
             <p style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.6, maxWidth: '340px' }}>
-              Quantitative Spot Gold (XAUUSD) execution technology and 30-lesson structured academy. No platform subscription fee; subsidized through an official Introducing Broker partnership with JustMarkets.
+              Quantitative Spot Gold (XAUUSD) execution technology and 30-lesson structured academy. No platform subscription fee; partner-sponsored through the stated JustMarkets Introducing Broker relationship. Broker terms and eligibility require confirmation.
             </p>
             <div style={{ marginTop: '16px' }}>
               <span className="status-badge status-neutral" style={{ fontSize: '10.5px' }}>

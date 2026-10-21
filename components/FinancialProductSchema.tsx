@@ -5,7 +5,7 @@ export default function FinancialProductSchema() {
     '@context': 'https://schema.org',
     '@type': 'SoftwareApplication',
     name: 'Velarion Markets',
-    url: process.env.NEXT_PUBLIC_SITE_URL || 'https://velarion-one.vercel.app',
+    url: 'https://velarion-one.vercel.app',
     applicationCategory: 'FinanceApplication',
     operatingSystem: 'Web',
     description: 'Education-led XAUUSD research and account workflow. Mandatory learning precedes account linking; automation requires separate explicit authorization. Kenyan regulatory review remains a pre-launch requirement. Trading involves risk of loss.',

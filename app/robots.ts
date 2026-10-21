@@ -1,7 +1,9 @@
 import { MetadataRoute } from 'next';
+import { SITE_ORIGIN } from '@/lib/site';
 
 export default function robots(): MetadataRoute.Robots {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://velarion-one.vercel.app';
+  // Crawl preferences only; authentication and authorization remain server responsibilities.
+  const baseUrl = SITE_ORIGIN;
 
   return {
     rules: {

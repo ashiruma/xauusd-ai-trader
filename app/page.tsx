@@ -4,6 +4,7 @@ import { DEFAULT_PARTNER_CONFIG } from '@/lib/partner';
 import styles from './home.module.css';
 
 export const metadata: Metadata = {
+  alternates: { canonical: 'https://velarion-one.vercel.app' },
   title: 'Velarion Markets | A More Considered Approach to Gold',
   description: 'An education-led approach to XAUUSD. Explore structured learning, rule-based research, and a transparent path from broker registration to separately authorized automation.',
   openGraph: {

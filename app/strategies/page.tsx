@@ -4,12 +4,13 @@ import { Metadata } from 'next';
 import { DEFAULT_PARTNER_CONFIG } from '@/lib/partner';
 
 export const metadata: Metadata = {
+  alternates: { canonical: 'https://velarion-one.vercel.app/strategies' },
   title: 'Quantitative XAUUSD Trading Models | Velarion Markets',
   description: 'Detailed specifications for the 4 quantitative algorithmic models executed by Velarion Markets on Spot Gold (XAUUSD): SMC Liquidity Sweep, Dynamic Trend, Session Breakout, and Mean Reversion.',
   openGraph: {
     title: 'Quantitative XAUUSD Trading Models | Velarion Markets',
     description: 'Systematic algorithmic trading strategies calibrated exclusively for Spot Gold on MT5.',
-    url: 'https://xauusd-ai-trader.vercel.app/strategies'
+    url: 'https://velarion-one.vercel.app/strategies'
   }
 };
 

@@ -3,6 +3,8 @@ import Link from 'next/link';
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
+  alternates: { canonical: 'https://velarion-one.vercel.app/legal/complaints' },
+  openGraph: { url: 'https://velarion-one.vercel.app/legal/complaints', type: 'website' },
   title: 'Complaints & Support Procedure | Velarion Markets',
   description: 'Velarion Markets dispute escalation procedure, complaint submission guidelines, and regulatory support routing.',
 };

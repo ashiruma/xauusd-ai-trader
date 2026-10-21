@@ -4,6 +4,8 @@ import { Metadata } from 'next';
 import { DEFAULT_PARTNER_CONFIG } from '@/lib/partner';
 
 export const metadata: Metadata = {
+  alternates: { canonical: 'https://velarion-one.vercel.app/legal/ib-disclosure' },
+  openGraph: { url: 'https://velarion-one.vercel.app/legal/ib-disclosure', type: 'website' },
   title: 'Introducing Broker (IB) & Conflict Disclosure | Velarion Markets',
   description: 'Full transparency regarding our Introducing Broker relationship with JustMarkets, compensation triggers, conflicts of interest, and regulatory status.',
 };

@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { SITE_ORIGIN } from '@/lib/site';
 import './globals.css';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
@@ -7,12 +8,12 @@ import FinancialProductSchema from '@/components/FinancialProductSchema';
 import AiAssistantWidget from '@/components/AiAssistantWidget';
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://velarion-one.vercel.app'),
+  metadataBase: new URL(SITE_ORIGIN),
   title: {
-    default: 'Velarion Markets | Institutional XAUUSD Quantitative Trading & Forex School',
+    default: 'Velarion Markets | XAUUSD Research & Forex School',
     template: '%s | Velarion Markets'
   },
-  description: 'AI-assisted XAUUSD spot gold market structure analysis, 4 quantitative execution models, 200-pip compounding calculator, and 30-lesson interactive Forex school subsidized by JustMarkets.',
+  description: 'Education-led XAUUSD research, risk illustrations, and structured Forex learning. Automation requires separate authorization; trading can result in loss.',
   keywords: [
     'XAUUSD',
     'Gold Trading',
@@ -26,7 +27,6 @@ export const metadata: Metadata = {
     'Position Sizing Calculator',
     '200 Pip Growth Engine'
   ],
-  authors: [{ name: 'Velarion Markets Quantitative Group' }],
   creator: 'Velarion Markets',
   publisher: 'Velarion Markets',
   formatDetection: {
@@ -37,10 +37,10 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     locale: 'en_US',
-    url: process.env.NEXT_PUBLIC_SITE_URL || 'https://velarion-one.vercel.app',
+    url: SITE_ORIGIN,
     siteName: 'Velarion Markets',
-    title: 'Velarion Markets | Institutional XAUUSD Quantitative Trading & Forex Academy',
-    description: 'Autonomous Spot Gold quantitative execution, 200-pip compounding calculator, and 30-lesson gated Forex school. Non-custodial MT5 execution subsidized through JustMarkets.',
+    title: 'Velarion Markets | XAUUSD Research & Forex School',
+    description: 'XAUUSD research and structured learning. Broker eligibility, execution readiness, and Kenya legal review remain subject to verification. Trading involves risk of loss.',
     images: [
       {
         url: '/og-preview.png',
@@ -53,7 +53,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'Velarion Markets | Spot Gold AI Quant & Forex Academy',
-    description: 'Systematic XAUUSD algorithmic trading, balance-tiered risk governor, and structured 30-lesson Forex school.',
+    description: 'Education-led XAUUSD research and structured Forex learning. Trading involves risk of loss.',
     images: ['/og-preview.png']
   },
   robots: {
