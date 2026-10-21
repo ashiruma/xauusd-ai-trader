@@ -53,7 +53,7 @@ export default function HomeHero({ initialSignedIn, initialQuote }: HomeHeroProp
                 </h1>
 
                 <p className="hero-description">
-                  Welcome back{accountId ? `, Trader #${accountId}` : ''}. Your quantitative trading terminal, live trade execution telemetry, and 30-lesson structured curriculum are fully active and unlocked under our official JustMarkets partnership.
+                  Welcome back{accountId ? `, Trader #${accountId}` : ''}. Your quantitative trading terminal, live trade execution telemetry, and structured curriculum remain subject to verification and release readiness. Full lessons and assessments are temporarily unavailable.
                 </p>
 
                 {/* Direct Command Actions */}
@@ -115,11 +115,11 @@ export default function HomeHero({ initialSignedIn, initialQuote }: HomeHeroProp
                 </div>
 
                 <h1 className="hero-heading" style={{ fontSize: '38px', lineHeight: 1.2 }}>
-                  Institutional Spot Gold (XAUUSD) AI Analysis &amp; 30-Lesson Forex Academy
+                  Institutional Spot Gold (XAUUSD) AI Analysis &amp; Structured Forex Academy
                 </h1>
 
                 <p className="hero-description">
-                  No platform subscription fee. Access to our 4 quantitative XAUUSD models, live terminal telemetry, and 30-lesson curriculum is subsidized by our Introducing Broker partnership with JustMarkets when you register with partner code <code className="mono-nums" style={{ color: 'var(--accent-gold)' }}>{DEFAULT_PARTNER_CONFIG.primaryCode}</code> and maintain a verified funded account. Broker spreads and trading capital risk apply.
+                  No platform subscription fee. Access to our 4 quantitative XAUUSD models, live terminal telemetry, and structured curriculum is subsidized by our Introducing Broker partnership with JustMarkets when you register with partner code <code className="mono-nums" style={{ color: 'var(--accent-gold)' }}>{DEFAULT_PARTNER_CONFIG.primaryCode}</code> and maintain a verified funded account. Broker spreads and trading capital risk apply.
                 </p>
 
                 {/* CTAs & IB Relationship Transparency */}

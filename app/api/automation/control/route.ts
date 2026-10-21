@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from '@/lib/auth';
 import fs from 'fs/promises';
 import path from 'path';
+import { readVerifiedCoreGraduation } from '@/lib/learning-authority';
 
 export async function POST(request: Request) {
   try {
@@ -20,6 +21,12 @@ export async function POST(request: Request) {
     const action = String(body.action || '').toUpperCase().trim();
     const targetEnvironment = String(body.environment || 'DEMO').toUpperCase().trim();
 
+    if (action === 'ACTIVATE_DEMO' || action === 'RESUME') {
+      const graduation = await readVerifiedCoreGraduation();
+      if (!graduation.available || !graduation.complete) {
+        return NextResponse.json({ success: false, error: 'CORE_GRADUATION_UNAVAILABLE' }, { status: 503, headers: { 'Cache-Control': 'private, no-store' } });
+      }
+    }
     // 1. STRICT RELEASE BOUNDARY: Gated Live Execution
     if (targetEnvironment === 'LIVE' || body.enableLiveExecution) {
       return NextResponse.json(
@@ -71,10 +78,10 @@ export async function POST(request: Request) {
     // 3. Process Actions
     if (action === 'ACTIVATE_DEMO') {
       // Must verify school completion and account linking before demo activation
-      const isSchoolComplete = isOwner || Boolean(session?.schoolCompleted);
+      const isSchoolComplete = false;
       const isAccountLinked = isOwner || Boolean(session?.accountLinked);
 
-      if (!isSchoolComplete && !isOwner) {
+      if (!isSchoolComplete) {
         return NextResponse.json(
           {
             success: false,

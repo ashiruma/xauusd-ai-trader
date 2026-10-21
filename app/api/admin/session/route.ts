@@ -53,7 +53,7 @@ export async function POST(request: Request) {
 
       return NextResponse.json({
         success: true,
-        message: 'Master Admin Session active. Full unrestricted access granted to AI Terminal and all 30 Forex School lessons.'
+        message: 'Admin session active. Full lessons, assessments and verified graduation remain unavailable during containment.'
       });
     }
 

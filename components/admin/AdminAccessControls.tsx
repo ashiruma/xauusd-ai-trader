@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
+import { COURSE_MANIFEST, trackLabel } from '@/lib/course-manifest';
 
 interface AdminUser {
   id: number;
@@ -196,7 +197,7 @@ export default function AdminAccessControls() {
               One-Click Master Admin Authorization
             </h2>
             <p style={{ fontSize: '12.5px', color: 'var(--text-secondary)', margin: '4px 0 0', maxWidth: '650px' }}>
-              Activating your admin session writes the secure owner session cookie (`velarion_admin_token`), granting instant unrestricted access to the AI Trading Terminal and all 30 Forex School lessons without login prompts.
+              An admin session is not evidence of learner completion. Full lessons, assessments and verified progress remain unavailable during containment; admin status does not bypass the core learning requirement.
             </p>
           </div>
 
@@ -563,7 +564,7 @@ export default function AdminAccessControls() {
         <div className="panel-card" style={{ padding: '24px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
             <h3 style={{ fontSize: '16px', fontWeight: 800, color: 'var(--text-primary)', margin: 0 }}>
-              30-Lesson Forex School Gatekeeper
+              Core Forex School Learning Requirement
             </h3>
             <span className="status-badge status-warning">FREEMIUM + GATED</span>
           </div>
@@ -571,9 +572,9 @@ export default function AdminAccessControls() {
           <p style={{ fontSize: '12.5px', color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: '16px' }}>
             <strong>How it works:</strong>
             <br />
-            - <strong>Lessons 1 to 5:</strong> 100% Free public preview (builds organic SEO traffic and user trust).
+            - <strong>Public summaries:</strong> Preview only. No full lesson, assessment or completion is released.
             <br />
-            - <strong>Lessons 6 to 30:</strong> Gated behind verified JustMarkets MT5 account. Requires sequential quiz comprehension completion.
+            - <strong>All core lessons:</strong> Required for graduation. Full lessons and assessments remain temporarily unavailable; the early milestone is not graduation.
           </p>
 
           <div style={{ background: 'var(--bg-surface-2)', padding: '16px', borderRadius: '6px', border: '1px solid var(--border-default)', marginBottom: '16px' }}>
@@ -622,9 +623,7 @@ export default function AdminAccessControls() {
           <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
             <strong>Curriculum Structure:</strong>
             <ul style={{ margin: '6px 0 0 16px', padding: 0, lineHeight: 1.6 }}>
-              <li>Beginner (Lessons 1–10): Market Mechanics &amp; Execution.</li>
-              <li>Intermediate (Lessons 11–20): SMC Liquidity &amp; Order Blocks.</li>
-              <li>Advanced (Lessons 21–30): Algorithmic Fusion &amp; Risk Compounding.</li>
+              {COURSE_MANIFEST.tracks.map(track => <li key={track.id}>{trackLabel(track.id)} · {track.kind} · {track.publication}</li>)}
             </ul>
           </div>
         </div>

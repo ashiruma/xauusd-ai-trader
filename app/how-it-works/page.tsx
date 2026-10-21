@@ -217,7 +217,7 @@ export default function HowItWorksPage() {
               Complete the Required Forex School &amp; Quizzes
             </h2>
             <p style={{ fontSize: '14px', color: 'var(--text-secondary)', lineHeight: 1.6, margin: '0 0 16px' }}>
-              Before any automated risk controls can be unlocked, members must complete Foundation Lessons 1 through 5 sequentially. Each lesson ends with a comprehension quiz. Quizzes are shown as a required step before account linking and any separate automation activation. TODO: Verify actual grading and progress behavior before describing it as enforced.
+              All required core lessons must be completed sequentially; the early milestone is not graduation or automation eligibility. Each lesson ends with a comprehension quiz. Quizzes are shown as a required step before account linking and any separate automation activation. TODO: Verify actual grading and progress behavior before describing it as enforced.
             </p>
             <Link
               href="/school-preview"

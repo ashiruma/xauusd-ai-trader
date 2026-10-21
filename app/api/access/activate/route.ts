@@ -2,6 +2,7 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { evaluateAccessJourney } from '@/lib/access-control';
+import { readVerifiedCoreGraduation } from '@/lib/learning-authority';
 import path from 'path';
 import fs from 'fs/promises';
 
@@ -33,11 +34,15 @@ export async function POST(request: Request) {
       );
     }
 
+    const graduation = await readVerifiedCoreGraduation();
+    if (!graduation.available || !graduation.complete) {
+      return NextResponse.json({ success: false, error: 'CORE_GRADUATION_UNAVAILABLE' }, { status: 503, headers: { 'Cache-Control': 'private, no-store' } });
+    }
     // Verify steps 1-5 before allowing activation
     const journey = await evaluateAccessJourney();
     const prereqPending = journey.requirements.slice(0, 5).some(r => r.status !== 'complete');
 
-    if (prereqPending && !journey.isOwner) {
+    if (prereqPending) {
       return NextResponse.json(
         {
           success: false,

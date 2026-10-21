@@ -10,7 +10,7 @@ export default function FinancialProductSchema() {
     operatingSystem: 'Web',
     description: 'Education-led XAUUSD research and account workflow. Mandatory learning precedes account linking; automation requires separate explicit authorization. Kenyan regulatory review remains a pre-launch requirement. Trading involves risk of loss.',
     featureList: [
-      '30-lesson Forex School with sequential foundation quizzes',
+      'structured Forex School with sequential foundation quizzes',
       'Rule-based XAUUSD strategy research',
       'Separate account-linking and automation authorization workflows',
       'Trading risk and Introducing Broker conflict disclosures',

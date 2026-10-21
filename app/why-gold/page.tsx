@@ -64,7 +64,7 @@ export default function WhyGoldPage() {
               Launch 200-Pip Growth Engine
             </Link>
             <Link href="/academy" className="herbaria-btn-underline" style={{ marginLeft: '8px' }}>
-              Read 30-Lesson Curriculum Folio &rarr;
+              Read Structured Curriculum Folio &rarr;
             </Link>
           </div>
         </header>

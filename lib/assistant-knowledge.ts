@@ -1,3 +1,5 @@
+import { COURSE_MANIFEST, CORE_LESSON_COUNT, trackLabel } from './course-manifest';
+
 // lib/assistant-knowledge.ts
 /**
  * Velarion AI Assistant Knowledge Base and Response Generator
@@ -47,7 +49,7 @@ export const KNOWLEDGE_TOPICS = [
 
 1. Step 1: Register with JustMarkets using the official Velarion partner referral link (partner code: tohstb0d83). This establishes your broker account and subsidizes full platform access so you pay no platform subscription fees.
 2. Step 2: Open your trading account and fund the initial deposit directly with JustMarkets. We recommend the $10 Standard Cent account for new traders (1 lot = 1 oz gold) or the Pro account ($200) for institutional spreads.
-3. Step 3: Complete the Velarion Forex School sequentially. You must pass all 30 lessons and 6 essential risk checkpoints (leverage, margin, spread costs, loss asymmetry, stop loss sizing, and automation consent) to graduate.
+3. Step 3: Complete the Velarion Forex School sequentially. All ${CORE_LESSON_COUNT} original core lessons are mandatory for graduation. Early milestones and optional extensions are separate; full lessons, assessments and verified progress are temporarily unavailable.
 4. Step 4: Securely link your trading account using least-privilege investor (read-only) credentials. Velarion never asks for or accepts master trading passwords; funds cannot be withdrawn or traded arbitrarily by external software.
 5. Step 5: Separately and explicitly opt into automated trading. For this release, automation is restricted to verified DEMO trading using Candidate Strategy v2 rules, equipped with instant Pause and Emergency Stop controls.
 
@@ -163,26 +165,14 @@ Because only read-only access is established, neither Velarion nor any third par
     ],
     suggestions: [
       'Why did my quiz reset?',
-      'What are the 6 essential checkpoints?',
+      'What are the required core lessons?',
       'How to get started?'
     ],
-    generateAnswer: () => `The Velarion Forex School contains 30 sequential lessons structured across 6 core pillars:
+    generateAnswer: () => `The Velarion Forex School requires all ${CORE_LESSON_COUNT} original core lessons for graduation. Its tracks are ${COURSE_MANIFEST.tracks.map(track => trackLabel(track.id)).join('; ')}.
 
-1. Structure and Checkpoints:
-- Checkpoint 1: Leverage and Notional Exposure (calculating contract size and true exposure).
-- Checkpoint 2: Margin Requirements and Liquidation Thresholds (calculating margin levels and stop-out triggers).
-- Checkpoint 3: Transaction Costs and Spread Drag (accounting for bid/ask spread, commission, and overnight swaps).
-- Checkpoint 4: Loss Asymmetry and Expectancy (understanding why equal percentage wins cannot offset equal percentage losses).
-- Checkpoint 5: Position Sizing and Capital Preservation (strict single-ticket 1% risk limit).
-- Checkpoint 6: Demo Validation and Automation Consent (understanding candidate strategy rules and fail-safe stop controls).
+The early checkpoint is a milestone only, never core graduation or automation eligibility. Optional SMC / ICT extensions do not change the original core certificate or denominator.
 
-2. Quiz Grading and Anti-Guessing Rules:
-To graduate and unlock subsequent modules, every question in a checkpoint quiz must be answered correctly. If an incorrect answer is selected:
-- The server records a failed attempt.
-- The system wipes progress back to the beginning of that module for re-study.
-- Correct answers are not leaked or highlighted in order to prevent mechanical guessing.
-
-Take time to read each lesson thoroughly before taking the assessment.`
+Full lessons, assessments, awards and verified progress are temporarily unavailable. Old browser records and legacy completion flags are not verified passes. Sequential prerequisites, study eligibility, account linking and separate explicit automation consent are distinct requirements. No learning milestone activates trading.`
   },
   {
     id: 'loss_asymmetry_160_trades',

@@ -31,7 +31,7 @@ export default function LessonCheatSheet({
   const handleCopy = () => {
     const text = `VELARION MARKETS - XAUUSD CHEAT SHEET (LESSON ${lessonNum}: ${title})\n\n` +
       items.map((item, i) => `${i + 1}. ${item}`).join('\n') +
-      `\n\nPRO TIP: ${tip}\n\nStudy complete 30-lesson curriculum at: https://velarion-one.vercel.app/academy`;
+      `\n\nPRO TIP: ${tip}\n\nStudy complete structured curriculum at: https://velarion-one.vercel.app/academy`;
 
     if (navigator?.clipboard?.writeText) {
       navigator.clipboard.writeText(text).then(() => {

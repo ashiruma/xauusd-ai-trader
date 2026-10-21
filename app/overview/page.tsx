@@ -6,6 +6,7 @@ import { AUTH_COOKIE_NAME, verifySession } from '@/lib/auth';
 import MemberNav from '@/components/MemberNav';
 import TradingViewTerminal from '@/components/terminal/TradingViewTerminal';
 import Link from 'next/link';
+import { readVerifiedCoreGraduation } from '@/lib/learning-authority';
 
 export const metadata: Metadata = {
   title: 'Member Overview | Velarion Trading Desk',
@@ -31,7 +32,8 @@ export default async function OverviewPage() {
   }
 
   const accountId = session?.mt5Account || session?.accountId || (isOwner ? '1200533810 (ADMIN)' : 'UNLINKED');
-  const isSchoolComplete = isOwner || Boolean(session?.schoolCompleted);
+  const graduation = await readVerifiedCoreGraduation();
+  const isSchoolComplete = graduation.available && graduation.complete;
   const isAccountLinked = isOwner || Boolean(session?.accountLinked && session?.mt5Account);
   const isTradingActivated = isOwner || Boolean(session?.tradingActivated);
 
@@ -48,8 +50,8 @@ export default async function OverviewPage() {
     nextAction = {
       step: '03',
       title: 'Complete Required School Checkpoints',
-      description: 'You must pass Foundation Lessons 1 through 5 sequentially before automation can be activated.',
-      buttonText: 'Resume School Lessons',
+      description: 'All original core lessons are required. Verified progress and full lessons are temporarily unavailable; early milestones are not graduation or automation eligibility.',
+      buttonText: 'Browse School Summaries',
       buttonHref: '/school',
     };
   } else if (!isAccountLinked) {

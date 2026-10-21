@@ -125,7 +125,7 @@ function OnboardingNovaContent() {
           Trade the market from a position of <span>clarity</span>.
         </h2>
         <p style={{ fontSize: '14.5px', color: '#CBD5E1', lineHeight: 1.65, maxWidth: '520px' }}>
-          Autonomous spot gold quantitative intelligence, 4 rule-based execution models, and 30-lesson structured education. Access is fully subsidized through our official Introducing Broker partnership.
+          Autonomous spot gold quantitative intelligence, 4 rule-based execution models, and structured structured education. Access is fully subsidized through our official Introducing Broker partnership.
         </p>
 
         <div className="nova-story-badges">

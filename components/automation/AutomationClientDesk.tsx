@@ -319,7 +319,7 @@ export default function AutomationClientDesk({
             <ul style={{ margin: '6px 0 0', paddingLeft: '20px' }}>
               {!isSchoolComplete && (
                 <li>
-                  Complete Foundation School Checkpoints 1-5 (<Link href="/school" style={{ color: 'var(--accent-gold)' }}>Go to School</Link>)
+                  Complete all required core lessons; verified graduation is temporarily unavailable. Early milestones are not graduation. (<Link href="/school" style={{ color: 'var(--accent-gold)' }}>Go to School</Link>)
                 </li>
               )}
               {!isAccountLinked && (

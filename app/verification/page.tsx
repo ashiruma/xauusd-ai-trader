@@ -625,7 +625,7 @@ function VerificationContent() {
               <div style={{ fontFamily: 'monospace', fontSize: '12px', fontWeight: 700, color: '#C5A059', marginBottom: '6px' }}>03</div>
               <h3 style={{ fontSize: '14px', fontWeight: 700, color: '#FFFFFF', margin: '0 0 6px' }}>Foundation Certified</h3>
               <p style={{ fontSize: '12px', color: '#94A3B8', margin: 0, lineHeight: 1.45 }}>
-                Sequential completion of Lessons 1–5 in the Velarion School ensures mandatory comprehension of gold risk mechanics before live exposure.
+                All required core lessons must be completed in sequence. The early milestone is not graduation; full lessons and verified progress remain temporarily unavailable, and learning never authorizes live exposure.
               </p>
             </div>
 

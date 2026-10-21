@@ -7,11 +7,15 @@
  * endpoint and has no runtime imports, adapters, network, or persistence.
  */
 
+import { COURSE_MANIFEST } from '../../lib/course-manifest.ts';
+
+// Core-only proposed reward scope; optional extensions require their own policy.
+const CORE_NUMBERS = new Set(COURSE_MANIFEST.lessons.filter(lesson => COURSE_MANIFEST.requiredCoreLessonIds.includes(lesson.id)).map(lesson => lesson.globalNum));
 export const POINTS_PER_LESSON = 20;
-export const MAX_LESSONS = 30;
+export const MAX_LESSONS = COURSE_MANIFEST.requiredCoreLessonIds.length;
 export const MAX_POINTS = POINTS_PER_LESSON * MAX_LESSONS;
 
-const LESSON_BADGES = new Set([1, 5, 15, 30]);
+const LESSON_BADGES = new Set(COURSE_MANIFEST.checkpoints.map(checkpoint => checkpoint.lessonIds.length));
 const STREAK_BADGES = new Set([3, 7]);
 
 function fail(message) {
@@ -55,7 +59,7 @@ function validateState(state) {
       !Number.isSafeInteger(state.bestStreak) || state.bestStreak < state.currentStreak) fail('state streaks are invalid');
   const completionLessons = new Set();
   for (const c of state.completions) {
-    if (!isRecord(c) || !Number.isInteger(c.lessonId) || c.lessonId < 1 || c.lessonId > MAX_LESSONS) fail('state contains an invalid completion');
+    if (!isRecord(c) || !CORE_NUMBERS.has(c.lessonId)) fail('state contains an invalid completion');
     requireString(c.version, 'completion.version');
     requireString(c.eventId, 'completion.eventId');
     utcInstant(c.completedAt, 'completion.completedAt');
@@ -94,7 +98,7 @@ export function proposeRewardTransition(existing, event) {
   requireString(event.principalId, 'event.principalId');
   requireString(event.eventId, 'event.eventId');
   requireString(event.version, 'event.version');
-  if (!Number.isInteger(event.lessonId) || event.lessonId < 1 || event.lessonId > MAX_LESSONS) fail('lessonId must be an integer from 1 to 30');
+  if (!CORE_NUMBERS.has(event.lessonId)) fail('lessonId must identify a required core lesson');
   const { epoch, day } = utcInstant(event.completedAt, 'event.completedAt');
   if (event.principalId !== existing.principalId) fail('event principal does not match state principal');
 

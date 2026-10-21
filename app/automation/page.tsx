@@ -1,4 +1,5 @@
 import React from 'react';
+import { readVerifiedCoreGraduation } from '@/lib/learning-authority';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { Metadata } from 'next';
@@ -29,7 +30,8 @@ export default async function AutomationPage() {
   }
 
   const accountId = session?.mt5Account || session?.accountId || (isOwner ? '1200533810 (ADMIN)' : 'UNLINKED');
-  const isSchoolComplete = isOwner || Boolean(session?.schoolCompleted);
+  const graduation = await readVerifiedCoreGraduation();
+  const isSchoolComplete = graduation.available && graduation.complete;
   const isAccountLinked = isOwner || Boolean(session?.accountLinked && session?.mt5Account);
 
   return (

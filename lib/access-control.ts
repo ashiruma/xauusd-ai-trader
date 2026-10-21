@@ -2,6 +2,8 @@
 import { cookies } from 'next/headers';
 import { getServerSession } from '@/lib/auth';
 import { DEFAULT_PARTNER_CONFIG } from '@/lib/partner';
+import { readVerifiedCoreGraduation } from '@/lib/learning-authority';
+import { CORE_LESSON_COUNT } from '@/lib/course-manifest';
 
 export type StepStatus = 'not_started' | 'pending' | 'complete' | 'action_needed';
 
@@ -130,44 +132,18 @@ export async function evaluateAccessJourney(): Promise<AccessStatusResponse> {
     }
   }
 
-  // Step 4: Complete required School lessons sequentially (Foundation Lessons 1 to 5)
-  let completedLessons: number[] = [];
-  if (accountId) {
-    try {
-      const res = await fetch(`http://127.0.0.1:8000/api/school/progress?account_id=${encodeURIComponent(accountId)}`, {
-        cache: 'no-store',
-        signal: AbortSignal.timeout(2000),
-      });
-      if (res.ok) {
-        const data = await res.json();
-        completedLessons = Array.isArray(data.completed_lessons) ? data.completed_lessons : [];
-      }
-    } catch {
-      completedLessons = [];
-    }
-  }
-
-  // Verify sequential progress: 1, 2, 3, 4, 5
-  const sequentialCount = getSequentialProgress(completedLessons, 5);
-  const isSchoolComplete = isOwner || Boolean(session && session.schoolCompleted) || sequentialCount >= 5;
-
-  let step4Status: StepStatus = 'not_started';
-  let step4Reason = 'Complete Foundation Lessons 1 through 5 sequentially in the Velarion School to unlock automated risk governance.';
-  let step4Action = 'Begin Lesson 1';
+  // Step 4: Core graduation requires independently verified authority.
+  const graduation = await readVerifiedCoreGraduation();
+  const requiredLessonCount = CORE_LESSON_COUNT;
+  const sequentialCount = 0;
+  const isSchoolComplete = false;
+  let step4Status = ('not_started' as StepStatus);
+  let step4Reason = `Complete the ${requiredLessonCount} required core lessons; graduation verification is currently unavailable.`;
+  let step4Action = 'Begin Core Lessons';
   let step4Url = '/#school';
-
-  if (isSchoolComplete) {
-    step4Status = 'complete';
-    step4Reason = 'Foundation Lessons 1 through 5 verified. Sequential curriculum completed with passing comprehension quiz validation.';
-    step4Action = 'Completed';
-    step4Url = '/#school';
-  } else if (sequentialCount > 0) {
-    step4Status = 'action_needed';
-    step4Reason = `Sequential progress: ${sequentialCount} of 5 required lessons finished. Next required: Lesson ${sequentialCount + 1}. Skipping ahead is disabled.`;
-    step4Action = `Continue Lesson ${sequentialCount + 1}`;
-    step4Url = `/#school-lesson-${sequentialCount + 1}`;
-  }
-
+  void graduation;
+  void sequentialCount;
+  void isSchoolComplete;
   // Step 5: Securely link the trading account (least privilege, never auto-submits)
   const isAccountLinked = isOwner || Boolean(session && session.accountLinked && (session.mt5Account || session.accountId));
 
@@ -241,14 +217,14 @@ export async function evaluateAccessJourney(): Promise<AccessStatusResponse> {
     {
       id: 'school_curriculum',
       stepNumber: 4,
-      title: 'Sequential Risk & Strategy Curriculum (Lessons 1-5)',
+      title: `Sequential Core Curriculum (${CORE_LESSON_COUNT} required lessons)`,
       status: step4Status,
       statusBadge: getBadgeLabel(step4Status),
       reason: step4Reason,
       actionLabel: step4Action,
       actionUrl: step4Url,
       actionType: step4Status === 'complete' ? 'check' : 'link',
-      details: 'Mandatory completion of Lessons 1 to 5 with passing quiz scores. Skipping ahead is strictly blocked.'
+      details: `All ${CORE_LESSON_COUNT} original core lessons are mandatory. The early milestone is not graduation. Verified progress is unavailable.`
     },
     {
       id: 'account_linking',
@@ -277,7 +253,7 @@ export async function evaluateAccessJourney(): Promise<AccessStatusResponse> {
   ];
 
   const canAccessTerminal = requirements.every(r => r.status === 'complete');
-  const canActivateTrading = requirements.slice(0, 5).every(r => r.status === 'complete');
+  const canActivateTrading = false;
 
   return {
     canAccessTerminal,
@@ -322,18 +298,6 @@ export async function evaluateAccessJourney(): Promise<AccessStatusResponse> {
     },
     serverTimestamp: new Date().toISOString()
   };
-}
-
-function getSequentialProgress(completed: number[], totalRequired: number): number {
-  let count = 0;
-  for (let i = 1; i <= totalRequired; i++) {
-    if (completed.includes(i)) {
-      count++;
-    } else {
-      break; // Sequential requirement: stop at first incomplete lesson
-    }
-  }
-  return count;
 }
 
 function getBadgeLabel(status: StepStatus): string {

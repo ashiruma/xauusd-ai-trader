@@ -89,7 +89,7 @@ export default function RiskDisclosurePage() {
             5. Education Does Not Guarantee Profitability
           </h2>
           <p>
-            Completing Velarion 30-lesson Forex School curriculum and passing comprehension checks demonstrates theoretical understanding of market mechanics and risk frameworks. Educational completion does not eliminate market risk, ensure trade profitability, or protect against psychological execution error.
+            Completing the required Velarion Forex School core curriculum and passing comprehension checks demonstrates theoretical understanding of market mechanics and risk frameworks. Educational completion does not eliminate market risk, ensure trade profitability, or protect against psychological execution error.
           </p>
         </section>
       </div>

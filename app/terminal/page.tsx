@@ -3,6 +3,7 @@ import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { Metadata } from 'next';
 import { AUTH_COOKIE_NAME, verifySession } from '@/lib/auth';
+import { readVerifiedCoreGraduation } from '@/lib/learning-authority';
 import TradingViewTerminal from '@/components/terminal/TradingViewTerminal';
 
 export const metadata: Metadata = {
@@ -23,12 +24,14 @@ export default async function TerminalPage() {
     session?.role === 'admin'
   );
 
+  const graduation = await readVerifiedCoreGraduation();
   const isFullyGated = Boolean(
     session &&
     session.verified &&
     session.partnerAttributed &&
     session.depositVerified &&
-    session.schoolCompleted &&
+    graduation.available &&
+    graduation.complete &&
     session.accountLinked &&
     session.tradingActivated
   );

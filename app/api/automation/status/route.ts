@@ -1,4 +1,5 @@
 // app/api/automation/status/route.ts
+import { readVerifiedCoreGraduation } from '@/lib/learning-authority';
 import { NextResponse } from 'next/server';
 import { getServerSession } from '@/lib/auth';
 import fs from 'fs/promises';
@@ -9,6 +10,7 @@ export const revalidate = 0;
 
 export async function GET() {
   try {
+    const graduation = await readVerifiedCoreGraduation();
     const session = await getServerSession();
     const filePath = path.join(process.cwd(), 'data', 'automation_state.json');
     let state = {
@@ -49,7 +51,7 @@ export async function GET() {
       userSession: session ? {
         accountId: session.mt5Account || session.accountId,
         role: session.role,
-        schoolCompleted: Boolean(session.schoolCompleted),
+        schoolCompleted: graduation.available && graduation.complete,
         tradingActivated: Boolean(session.tradingActivated),
       } : null,
       serverTime: new Date().toISOString(),

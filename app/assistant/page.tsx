@@ -221,7 +221,7 @@ export default function AssistantPage() {
                 </div>
                 <div style={{ display: 'flex', gap: '8px' }}>
                   <span style={{ fontWeight: 700, color: 'var(--accent-gold, #B45309)' }}>3.</span>
-                  <span><strong>Forex School:</strong> Pass 30 sequential lessons and 6 required checkpoints.</span>
+                  <span><strong>Forex School:</strong> Complete all required core lessons sequentially. Early checkpoints and optional extensions are separate; verified progress is currently unavailable.</span>
                 </div>
                 <div style={{ display: 'flex', gap: '8px' }}>
                   <span style={{ fontWeight: 700, color: 'var(--accent-gold, #B45309)' }}>4.</span>

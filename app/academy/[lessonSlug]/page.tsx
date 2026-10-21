@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import { getLessonById } from '@/lib/curriculum';
+import { COURSE_MANIFEST, CORE_LESSON_COUNT, lessonNeighbors, visibleLessons } from '@/lib/course-manifest';
 
 interface LessonPageProps {
   params: Promise<{ lessonSlug: string }>;
@@ -30,6 +31,8 @@ export default async function LessonPage({ params }: LessonPageProps) {
   const { lessonSlug } = await params;
   const lesson = getLessonById(lessonSlug);
   if (!lesson) notFound();
+  const { previous, next } = lessonNeighbors(lesson.id);
+  const required = COURSE_MANIFEST.requiredCoreLessonIds.includes(lesson.id);
 
   // Deliberately summary-only for EVERY caller, including existing signed/admin
   // sessions. Existing identity/progress writers are not trustworthy enough to
@@ -41,7 +44,7 @@ export default async function LessonPage({ params }: LessonPageProps) {
         <Link href="/">Home</Link> / <Link href="/academy">Forex School</Link> / Lesson {lesson.globalNum}
       </nav>
       <header style={{ marginBottom: '32px' }}>
-        <span className="status-badge">{lesson.levelTitle} · Lesson {lesson.globalNum} of 30</span>
+        <span className="status-badge">{lesson.levelTitle} · Lesson {lesson.globalNum} · {required ? `Required core (${CORE_LESSON_COUNT} total)` : 'Optional extension'} · {visibleLessons().length} summaries</span>
         <h1>{lesson.title}</h1>
         <p>{lesson.summary}</p>
       </header>
@@ -53,8 +56,8 @@ export default async function LessonPage({ params }: LessonPageProps) {
         {' '}<Link href="/how-it-works">Review the learning and activation journey</Link>
       </section>
       <nav aria-label="Lesson summaries" style={{ marginTop: '32px', display: 'flex', justifyContent: 'space-between' }}>
-        {lesson.globalNum > 1 ? <Link href={`/academy/lesson-${lesson.globalNum - 1}`}>Previous summary</Link> : <span />}
-        {lesson.globalNum < 30 ? <Link href={`/academy/lesson-${lesson.globalNum + 1}`}>Next summary</Link> : <Link href="/academy">Return to catalog</Link>}
+        {previous ? <Link href={previous.route}>Previous summary</Link> : <span />}
+        {next ? <Link href={next.route}>Next summary</Link> : <Link href="/academy">Return to catalog</Link>}
       </nav>
     </article>
   );

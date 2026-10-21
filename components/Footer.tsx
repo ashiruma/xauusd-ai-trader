@@ -48,7 +48,7 @@ export default function Footer() {
               </div>
             </Link>
             <p style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.6, maxWidth: '340px' }}>
-              Quantitative Spot Gold (XAUUSD) execution technology and 30-lesson structured academy. No platform subscription fee; partner-sponsored through the stated JustMarkets Introducing Broker relationship. Broker terms and eligibility require confirmation.
+              Quantitative Spot Gold (XAUUSD) execution technology and structured academy. No platform subscription fee; partner-sponsored through the stated JustMarkets Introducing Broker relationship. Broker terms and eligibility require confirmation.
             </p>
             <div style={{ marginTop: '16px' }}>
               <span className="status-badge status-neutral" style={{ fontSize: '10.5px' }}>
@@ -70,7 +70,7 @@ export default function Footer() {
                 <Link href="/strategies" style={{ color: 'var(--text-secondary)' }}>Quantitative Models</Link>
               </li>
               <li>
-                <Link href="/academy" style={{ color: 'var(--text-secondary)' }}>30-Lesson Forex School</Link>
+                <Link href="/academy" style={{ color: 'var(--text-secondary)' }}>Structured Forex School</Link>
               </li>
               <li>
                 <Link href="/tools/growth-calculator" style={{ color: 'var(--text-secondary)' }}>200-Pip Growth Calculator</Link>

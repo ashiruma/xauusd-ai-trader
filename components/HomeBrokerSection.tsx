@@ -43,7 +43,7 @@ export default function HomeBrokerSection({ initialSignedIn }: HomeBrokerSection
               Subsidized Platform Access via JustMarkets IB Partnership
             </h2>
             <p style={{ fontSize: '13.5px', color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: '20px' }}>
-              No software subscription fee. Platform analytics, telemetry feeds, and 30-lesson academy modules are subsidized through our Introducing Broker relationship with JustMarkets. Velarion receives volume-based rebates from broker spreads when trades execute. Trading capital remains strictly in your regulated MT5 account. Broker spreads and trading risks apply.
+              No software subscription fee. Platform analytics, telemetry feeds, and structured academy modules are subsidized through our Introducing Broker relationship with JustMarkets. Velarion receives volume-based rebates from broker spreads when trades execute. Trading capital remains strictly in your regulated MT5 account. Broker spreads and trading risks apply.
             </p>
             <div style={{ display: 'flex', gap: '16px', alignItems: 'center', flexWrap: 'wrap' }}>
               <a

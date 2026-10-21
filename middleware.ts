@@ -73,13 +73,15 @@ export async function middleware(request: NextRequest) {
     const sessionToken = request.cookies.get(AUTH_COOKIE_NAME)?.value;
     const session = sessionToken ? await verifySession(sessionToken) : null;
 
-    const isAuthorized =
-      hasAdmin ||
-      (session &&
-        session.verified === true &&
-        (path.startsWith('/academy/advanced')
-          ? Boolean(session.schoolCompleted)
-          : Boolean(session.accountLinked && session.tradingActivated)));
+    const isAdvancedLearning = path.startsWith('/academy/advanced');
+    const isAuthorized = isAdvancedLearning
+      ? false
+      : hasAdmin || Boolean(
+          session &&
+          session.verified === true &&
+          session.accountLinked &&
+          session.tradingActivated
+        );
 
     if (!isAuthorized) {
       return NextResponse.redirect(new URL('/verification?redirect=' + encodeURIComponent(path), request.url));

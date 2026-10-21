@@ -8,7 +8,8 @@
     "build": "next build",
     "start": "next start",
     "server": "python -m uvicorn api.app:app --host 127.0.0.1 --port 8000",
-    "backend": "python -m uvicorn api.app:app --host 127.0.0.1 --port 8000"
+    "backend": "python -m uvicorn api.app:app --host 127.0.0.1 --port 8000",
+    "test:curriculum": "node --test tests/test_course_manifest.mjs tests/test_learning_reward_policy.mjs"
   },
   "dependencies": {
     "next": "^16.4.1",

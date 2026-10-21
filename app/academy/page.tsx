@@ -4,6 +4,7 @@ import React, { useMemo, useState } from 'react';
 import Link from 'next/link';
 import CourseSchema from '@/components/CourseSchema';
 import { getAllLessons } from '@/lib/curriculum';
+import { COURSE_MANIFEST, CORE_LESSON_COUNT, EARLY_CHECKPOINT_ID, trackLabel } from '@/lib/course-manifest';
 
 const panel: React.CSSProperties = {
   border: '1px solid var(--hb-hairline-amber)',
@@ -17,6 +18,7 @@ export default function AcademyPage() {
   const allLessons = useMemo(() => getAllLessons(), []);
   const filteredLessons = useMemo(() => selectedLevel === 'all' ? allLessons : allLessons.filter((lesson) => lesson.level === selectedLevel), [allLessons, selectedLevel]);
 
+  const early = COURSE_MANIFEST.checkpoints.find(checkpoint => checkpoint.id === EARLY_CHECKPOINT_ID)!;
   // No browser completion cache, simulated totals or fabricated learner state.
   // Public catalogue metadata is the only curriculum data imported by this page.
   return (
@@ -28,10 +30,12 @@ export default function AcademyPage() {
         </nav>
         <header style={{ marginBottom: '32px' }}>
           <div className="herbaria-plate-kicker">LEARN AT YOUR OWN PACE</div>
-          <h1 className="herbaria-title">Forex School: The 30-Lesson Quantitative Curriculum</h1>
+          <h1 className="herbaria-title">{COURSE_MANIFEST.title}: {allLessons.length} lesson summaries</h1>
           <p style={{ maxWidth: '820px', lineHeight: 1.7 }}>
             Explore public lesson titles and summaries. Full lessons, assessments and verified learning progress are temporarily unavailable while server-verified identity and private learning records are secured.
           </p>
+          <p>All {CORE_LESSON_COUNT} original core lessons are mandatory. The early {early.lessonIds.length}-lesson checkpoint is not graduation or automation eligibility. Optional extensions do not change the core certificate.</p>
+          <ul>{COURSE_MANIFEST.tracks.map(track => <li key={track.id}>{trackLabel(track.id)} · {track.kind === 'core' ? 'Required core' : 'Optional extension'} · {track.publication}</li>)}</ul>
           <p style={{ lineHeight: 1.7 }}>
             Required journey: JustMarkets referral and verified deposit → mandatory learning → account linking → separate, explicit automation activation. Completing lessons must never activate trading.
           </p>
@@ -59,7 +63,7 @@ export default function AcademyPage() {
             </article>
             <article>
               <h3>Personal milestones</h3>
-              <p style={{ lineHeight: 1.7 }}>Celebrate your first check and 5, 15 and 30 completed lessons with private badges. A badge records a learning milestone, not trading expertise, safety or a profit guarantee.</p>
+              <p style={{ lineHeight: 1.7 }}>Celebrate learning milestones with private badges. The early checkpoint and all-{CORE_LESSON_COUNT} core graduation are separate. A badge records a learning milestone, not trading expertise, safety or a profit guarantee.</p>
             </article>
             <article>
               <h3>Gentle streaks</h3>
@@ -90,8 +94,8 @@ export default function AcademyPage() {
                 <span className="herbaria-plate-kicker">Lesson {String(lesson.globalNum).padStart(2, '0')} / {lesson.level}</span>
                 <h3 style={{ lineHeight: 1.4 }}>{lesson.title}</h3>
                 <p style={{ lineHeight: 1.7, flex: 1 }}>{lesson.summary}</p>
-                <p style={{ fontSize: '13px' }}>Public summary only · full lesson unavailable</p>
-                <Link href={`/academy/lesson-${lesson.globalNum}`} className="herbaria-btn-secondary">Read summary →</Link>
+                <p style={{ fontSize: '13px' }}>{COURSE_MANIFEST.requiredCoreLessonIds.includes(lesson.id) ? 'Required core' : 'Optional extension'} · Public summary only · full lesson unavailable</p>
+                <Link href={COURSE_MANIFEST.lessons.find(entry => entry.id === lesson.id)!.route} className="herbaria-btn-secondary">Read summary →</Link>
               </article>
             ))}
           </div>

@@ -1,48 +1,34 @@
+import { COURSE_MANIFEST, visibleLessons, type CourseManifest } from './course-manifest.ts';
+
+// Legacy cache compatibility only; NEVER use these numbers for eligibility or completion.
 export const COURSE_PROGRESS_STORAGE_KEY = 'velarion_completed_lessons';
 export const COURSE_PROGRESS_CHANGED_EVENT = 'velarion:course-progress-changed';
-export const COURSE_LESSON_COUNT = 30;
-
+export const COURSE_LESSON_COUNT = visibleLessons().length;
 function toLessonNumber(value: unknown): number | null {
   if (typeof value === 'number' && Number.isInteger(value)) return value;
   if (typeof value !== 'string') return null;
   const match = value.trim().match(/^(?:lesson[-_ ]?)?(\d+)$/i);
   return match ? Number(match[1]) : null;
 }
-
-export function normalizeCourseProgress(values: unknown[], lessonCount = COURSE_LESSON_COUNT): number[] {
-  return [...new Set(values.map(toLessonNumber).filter((value): value is number => value !== null && value >= 1 && value <= lessonCount))]
-    .sort((a, b) => a - b);
+export function normalizeCourseProgress(values: unknown[], manifest: CourseManifest = COURSE_MANIFEST): number[] {
+  const numbers = new Set(values.map(toLessonNumber));
+  return visibleLessons(manifest).filter(lesson => numbers.has(lesson.globalNum)).map(lesson => lesson.globalNum);
 }
-
-export function parseCourseProgress(raw: string | null, lessonCount = COURSE_LESSON_COUNT): number[] {
-  if (!raw) return [];
+export function parseCourseProgress(raw: string | null, manifest: CourseManifest = COURSE_MANIFEST): number[] {
   try {
-    const value: unknown = JSON.parse(raw);
-    return Array.isArray(value) ? normalizeCourseProgress(value, lessonCount) : [];
-  } catch {
-    return [];
-  }
+    const value: unknown = raw ? JSON.parse(raw) : [];
+    return Array.isArray(value) ? normalizeCourseProgress(value, manifest) : [];
+  } catch { return []; }
 }
-
-export function nextCourseLesson(completed: readonly number[], lessonCount = COURSE_LESSON_COUNT): number {
-  const completedSet = new Set(completed);
-  for (let lesson = 1; lesson <= lessonCount; lesson += 1) {
-    if (!completedSet.has(lesson)) return lesson;
-  }
-  return lessonCount + 1;
+/** Untrusted navigation hint only; no sentinel count+1 and no implicit optional credit. */
+export function nextCourseLesson(completed: readonly number[], manifest: CourseManifest = COURSE_MANIFEST): number | null {
+  return visibleLessons(manifest).find(lesson => !completed.includes(lesson.globalNum))?.globalNum ?? null;
 }
-
-export function saveCourseProgress(completed: readonly number[], lessonCount = COURSE_LESSON_COUNT): number[] {
-  const normalized = normalizeCourseProgress([...completed], lessonCount);
+export function saveCourseProgress(completed: readonly number[], manifest: CourseManifest = COURSE_MANIFEST): number[] {
+  const normalized = normalizeCourseProgress([...completed], manifest);
   if (typeof window !== 'undefined') {
-    try {
-      window.localStorage.setItem(COURSE_PROGRESS_STORAGE_KEY, JSON.stringify(normalized));
-    } catch {
-      // Keep the in-memory UI usable if browser storage is unavailable.
-    }
-    window.dispatchEvent(new CustomEvent(COURSE_PROGRESS_CHANGED_EVENT, {
-      detail: { reset: normalized.length === 0 },
-    }));
+    try { window.localStorage.setItem(COURSE_PROGRESS_STORAGE_KEY, JSON.stringify(normalized)); } catch { /* Untrusted hint only. */ }
+    window.dispatchEvent(new CustomEvent(COURSE_PROGRESS_CHANGED_EVENT, { detail: { reset: normalized.length === 0 } }));
   }
   return normalized;
 }
