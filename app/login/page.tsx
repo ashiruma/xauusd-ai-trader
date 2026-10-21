@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { DEFAULT_PARTNER_CONFIG } from '@/lib/partner';
+import styles from './login.module.css';
 export default function Page() {
   const [mode, setMode] = useState<'login' | 'signup'>('login');
   const [message, setMessage] = useState('');
@@ -22,18 +23,37 @@ export default function Page() {
     } catch { setMessage('Authentication is unavailable.'); }
     finally { setBusy(false); }
   }
-  return <main style={{ maxWidth: 420, margin: '4rem auto', padding: 24 }}>
-    <h1>{mode === 'login' ? 'Sign in' : 'Create account'}</h1>
-    <p>Staging sign-in. Use the email associated with JustMarkets and a separate Velarion password. Your identity is checked online; access remains pending until independently approved. A matching email does not prove broker registration or ownership.</p>
-    <form onSubmit={submit}>
-      <label>Email<input name="email" type="email" required maxLength={254} autoComplete="email" /></label>
-      <label>Velarion password<input name="password" type="password" required minLength={mode === 'signup' ? 12 : 1} maxLength={1024} autoComplete={mode === 'login' ? 'current-password' : 'new-password'} /></label>
-      <button type="submit" disabled={busy}>{busy ? 'Please wait' : mode === 'login' ? 'Sign in' : 'Sign up'}</button>
-    </form>
-    <button type="button" disabled={busy} onClick={() => { setMode(mode === 'login' ? 'signup' : 'login'); setMessage(''); }}>{mode === 'login' ? 'Create account' : 'Return to sign in'}</button>
-    <p role="status">{message}</p>
-    <p>The demo MT5 trading account ID is mandatory for the planned broker-verification step. This sign-in form authenticates Velarion only; ID submission and broker verification are not enabled here. Never enter a JustMarkets or MT5 password into Velarion.</p>
-    <p>Not registered with the broker? <a href={DEFAULT_PARTNER_CONFIG.primaryLink} target="_blank" rel="noopener noreferrer sponsored">Register through the JustMarkets partner link</a>, create a demo MT5 account there, then return. Velarion access is 100% free conditional on that registration and verified referral attribution; broker fees, deposits and losses remain yours.</p>
-    <p>Course delivery, automation, and trading remain disabled. <Link href="/how-it-works">Planned five-lesson / USD 50 checkpoint</Link> · <Link href="/legal/ib-disclosure">IB conflicts</Link> · <Link href="/legal/risk-disclosure">Risks</Link>. Kenya regulatory review remains a pre-launch requirement.</p>
+  return <main className={styles.page} aria-labelledby="login-title">
+    <div className={styles.card}>
+      <span className={styles.eyebrow}>Velarion · Staging Preview</span>
+      <h1 id="login-title" className={styles.title}>{mode === 'login' ? 'Sign in' : 'Create account'}</h1>
+      <p className={styles.intro}>Your JustMarkets email. Your own Velarion password.</p>
+      <form onSubmit={submit} className={styles.form} aria-busy={busy} aria-describedby="credential-help">
+        <label className={styles.field} htmlFor="velarion-email">Email
+          <input name="email" id="velarion-email" className={styles.input} type="email" required maxLength={254} autoComplete="email" aria-describedby="email-help" />
+        </label>
+        <p id="email-help" className={styles.hint}>Use the email associated with JustMarkets.</p>
+        <label className={styles.field} htmlFor="velarion-password">Velarion password
+          <input name="password" id="velarion-password" className={styles.input} type="password" required minLength={mode === 'signup' ? 12 : 1} maxLength={1024} autoComplete={mode === 'login' ? 'current-password' : 'new-password'} aria-describedby="credential-help" />
+        </label>
+        <p id="credential-help" className={styles.hint}>{mode === 'signup' && 'Use at least 12 characters. '}Never enter a JustMarkets or MT5 password.</p>
+        <button className={`btn btn-primary ${styles.action}`} type="submit" disabled={busy}>{busy ? 'Please wait' : mode === 'login' ? 'Sign in' : 'Create account'}</button>
+      </form>
+      <button className={`btn btn-secondary ${styles.action} ${styles.switchMode}`} type="button" disabled={busy} onClick={() => { setMode(mode === 'login' ? 'signup' : 'login'); setMessage(''); }}>{mode === 'login' ? 'Create account' : 'Return to sign in'}</button>
+      <p role="status" aria-live="polite" aria-atomic="true" className={styles.message}>{message}</p>
+      <div className={styles.referral}>
+        <a className={styles.partnerLink} href={DEFAULT_PARTNER_CONFIG.primaryLink} target="_blank" rel="noopener noreferrer sponsored">New here? Join JustMarkets <span aria-hidden="true">↗</span><span className={styles.srOnly}> (opens in a new tab)</span></a>
+        <p>Create a demo MT5 account, then return. Free Velarion access requires verified partner registration; broker costs, deposits and losses are separate.</p>
+        <Link className={styles.detailLink} href="/how-it-works">A demo MT5 trading account ID is mandatory — see steps</Link>
+      </div>
+      <div className={styles.preview}>
+        <p>Account review and the lesson 5 checkpoint await setup. ID submission and broker verification are not enabled. Lessons, automation and trading remain disabled.</p>
+      </div>
+      <nav className={styles.details} aria-label="Registration details and disclosures">
+        <Link href="/how-it-works">How it works</Link>
+        <Link href="/legal/ib-disclosure">Partner disclosure</Link>
+        <Link href="/legal/risk-disclosure">Trading risks</Link>
+      </nav>
+    </div>
   </main>;
 }
