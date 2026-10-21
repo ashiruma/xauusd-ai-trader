@@ -1,451 +1,112 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import Link from 'next/link';
 import CourseSchema from '@/components/CourseSchema';
 import { getAllLessons } from '@/lib/curriculum';
-import { COURSE_PROGRESS_CHANGED_EVENT, COURSE_PROGRESS_STORAGE_KEY, nextCourseLesson, parseCourseProgress } from '@/lib/courseProgress';
-import { DEFAULT_PARTNER_CONFIG } from '@/lib/partner';
+
+const panel: React.CSSProperties = {
+  border: '1px solid var(--hb-hairline-amber)',
+  background: 'var(--hb-bg-primary)',
+  padding: '24px',
+  marginBottom: '28px',
+};
 
 export default function AcademyPage() {
   const [selectedLevel, setSelectedLevel] = useState<'all' | 'beginner' | 'intermediate' | 'advanced'>('all');
-  const [completedLessons, setCompletedLessons] = useState<number[]>([]);
   const allLessons = useMemo(() => getAllLessons(), []);
+  const filteredLessons = useMemo(() => selectedLevel === 'all' ? allLessons : allLessons.filter((lesson) => lesson.level === selectedLevel), [allLessons, selectedLevel]);
 
-  useEffect(() => {
-    try {
-      setCompletedLessons(parseCourseProgress(localStorage.getItem(COURSE_PROGRESS_STORAGE_KEY)));
-    } catch {
-      // ignore
-    }
-    const refreshProgress = () => setCompletedLessons(parseCourseProgress(localStorage.getItem(COURSE_PROGRESS_STORAGE_KEY)));
-    window.addEventListener(COURSE_PROGRESS_CHANGED_EVENT, refreshProgress);
-    return () => window.removeEventListener(COURSE_PROGRESS_CHANGED_EVENT, refreshProgress);
-  }, []);
-
-  const filteredLessons = useMemo(() => {
-    if (selectedLevel === 'all') return allLessons;
-    return allLessons.filter((l) => l.level === selectedLevel);
-  }, [allLessons, selectedLevel]);
-
-  const beginnerCount = allLessons.filter((l) => l.level === 'beginner').length;
-  const intermediateCount = allLessons.filter((l) => l.level === 'intermediate').length;
-  const advancedCount = allLessons.filter((l) => l.level === 'advanced').length;
-
-  const totalLessons = allLessons.length;
-  const passedCount = completedLessons.length;
-  const progressPercent = totalLessons > 0 ? Math.round((passedCount / totalLessons) * 100) : 0;
-  const firstIncompleteLesson = useMemo(() => nextCourseLesson(completedLessons, totalLessons), [completedLessons, totalLessons]);
-  const courseComplete = firstIncompleteLesson > totalLessons;
-
+  // No browser completion cache, simulated totals or fabricated learner state.
+  // Public catalogue metadata is the only curriculum data imported by this page.
   return (
-    <div className="herbaria-page" style={{ minHeight: '100vh', padding: '48px 24px 96px', borderTop: '1px solid var(--hb-hairline-amber)' }}>
+    <div className="herbaria-page" style={{ minHeight: '100vh', padding: '40px 20px 80px' }}>
       <CourseSchema />
-
-      <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
-        {/* Navigation / Breadcrumb */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px', borderBottom: '1px solid var(--hb-hairline-amber)', paddingBottom: '16px' }}>
-          <div style={{ fontFamily: 'var(--font-herbaria-mono)', fontSize: '11px', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--hb-accent-amber)' }}>
-            <Link href="/" style={{ color: 'var(--hb-text-cream)', textDecoration: 'none' }}>VELARION</Link>
-            <span style={{ margin: '0 8px', color: 'var(--hb-hairline-amber)' }}>/</span>
-            <span style={{ color: 'var(--hb-accent-citron)' }}>FOREX SCHOOL CURRICULUM</span>
-          </div>
-          <div style={{ fontFamily: 'var(--font-herbaria-mono)', fontSize: '10px', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--hb-accent-vermillion)' }}>
-            CURRICULUM SPECIMEN FOLIO
-          </div>
-        </div>
-
-        {/* Section 01: Hero Header */}
-        <header style={{ marginBottom: '56px' }}>
-          <div className="herbaria-plate-kicker">
-            <span>&sect; 01</span>
-            <span style={{ color: 'var(--hb-accent-amber)' }}>/</span>
-            <span>EVIDENCE-BASED TRADING ACADEMY</span>
-          </div>
-
-          <h1 className="herbaria-title">
-            Forex School: The 30-Lesson Quantitative Curriculum
-          </h1>
-
-          <div className="herbaria-italic-quote">
-            &ldquo;A progressive, evidence-based syllabus engineered to build systematic execution discipline from first principles &mdash; subsidized through our official Introducing Broker partnership.&rdquo;
-          </div>
-
-          <p style={{ fontSize: '16px', lineHeight: 1.7, color: 'var(--text-secondary)', maxWidth: '820px', marginBottom: '32px' }}>
-            Public title and summary previews remain available. Full lessons and assessments are temporarily unavailable while verified server-side identity and sequential learning records are secured. Browser progress is a display cache, not verified completion or access authorization. Required learning remains a prerequisite, and automation still requires separate explicit consent.
+      <main style={{ maxWidth: '1100px', margin: '0 auto' }}>
+        <nav aria-label="Academy navigation" style={{ marginBottom: '24px' }}>
+          <Link href="/">Velarion</Link> / Learning academy
+        </nav>
+        <header style={{ marginBottom: '32px' }}>
+          <div className="herbaria-plate-kicker">LEARN AT YOUR OWN PACE</div>
+          <h1 className="herbaria-title">Forex School: The 30-Lesson Quantitative Curriculum</h1>
+          <p style={{ maxWidth: '820px', lineHeight: 1.7 }}>
+            Explore public lesson titles and summaries. Full lessons, assessments and verified learning progress are temporarily unavailable while server-verified identity and private learning records are secured.
+          </p>
+          <p style={{ lineHeight: 1.7 }}>
+            Required journey: JustMarkets referral and verified deposit → mandatory learning → account linking → separate, explicit automation activation. Completing lessons must never activate trading.
           </p>
         </header>
 
-        {/* Section 02: Progress Dossier (Plate II) */}
-        <section style={{
-          border: '1px solid var(--hb-hairline-citron)',
-          backgroundColor: 'var(--hb-bg-primary)',
-          padding: '36px 32px',
-          marginBottom: '56px',
-          borderRadius: 0,
-        }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '24px', marginBottom: '24px' }}>
-            <div>
-              <div style={{ fontFamily: 'var(--font-herbaria-mono)', fontSize: '10px', letterSpacing: '0.25em', color: 'var(--hb-accent-citron)', textTransform: 'uppercase', marginBottom: '8px' }}>
-                &sect; 02 / CURRICULUM PROGRESS TRACKER
-              </div>
-              <h2 style={{ fontFamily: 'var(--font-herbaria-display)', fontSize: '26px', color: 'var(--text-primary)', margin: '0 0 6px', fontWeight: 400 }}>
-                {passedCount} of {totalLessons} Units in Browser Cache ({progressPercent}%)
-              </h2>
-              <div style={{ fontSize: '13.5px', color: 'var(--text-secondary)' }}>
-                Fully subsidized through JustMarkets IB partner code <strong style={{ color: 'var(--hb-accent-citron)', fontFamily: 'var(--font-herbaria-mono)' }}>tohstb0d83</strong>
-              </div>
-            </div>
+        <section aria-labelledby="learning-status" style={panel}>
+          <h2 id="learning-status">Your learning record</h2>
+          <p role="status">Verified progress unavailable — no completion or reward balance is being shown.</p>
+          <p style={{ lineHeight: 1.7 }}>
+            Old browser progress is not verified completion. It cannot unlock a lesson, award a badge or authorize account linking or trading. Existing records need a secure migration and reassessment policy before they can be trusted.
+          </p>
+          <Link href="/academy/lesson-1" className="herbaria-btn-secondary">Explore the first lesson summary →</Link>
+        </section>
 
-            <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap' }}>
-              <Link
-                href={courseComplete ? '/academy' : `/academy/lesson-${firstIncompleteLesson}`}
-                className="herbaria-btn-citron"
-              >
-                {courseComplete ? 'Curriculum Complete' : passedCount > 0 ? `Resume Lesson ${String(firstIncompleteLesson).padStart(2, '0')}` : 'Begin Lesson 01 (Public)'} &rarr;
-              </Link>
-              <Link
-                href="/onboarding"
-                className="herbaria-btn-secondary"
-              >
-                Unlock Gated Modules &rarr;
-              </Link>
-            </div>
+        <section aria-labelledby="rewards-preview" style={panel}>
+          <div className="herbaria-plate-kicker">PROPOSED EXPERIENCE · NOT ENABLED</div>
+          <h2 id="rewards-preview">Small wins. Lasting learning.</h2>
+          <p style={{ lineHeight: 1.7 }}>
+            A proposed non-cash rewards system celebrates learning, not financial activity. These are design previews, not earned rewards. No points, badges or streaks are currently recorded.
+          </p>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 240px), 1fr))', gap: '20px', margin: '24px 0' }}>
+            <article>
+              <h3>Learning points</h3>
+              <p style={{ lineHeight: 1.7 }}>Proposed: 20 points for the first server-verified assessment pass for each lesson. Repeats and content-version changes do not farm more points. Points have no cash value and cannot be redeemed.</p>
+            </article>
+            <article>
+              <h3>Personal milestones</h3>
+              <p style={{ lineHeight: 1.7 }}>Celebrate your first check and 5, 15 and 30 completed lessons with private badges. A badge records a learning milestone, not trading expertise, safety or a profit guarantee.</p>
+            </article>
+            <article>
+              <h3>Gentle streaks</h3>
+              <p style={{ lineHeight: 1.7 }}>A first-time lesson pass can count as one active learning day, using the server’s UTC calendar. Multiple lessons on one day count once. A missed day resets only the current streak; earned progress, points, badges and your best streak stay.</p>
+            </article>
           </div>
+          <p style={{ lineHeight: 1.7 }}>
+            Core safety learning and eligible access never depend on a streak, points or a badge. No leaderboards, countdown pressure or streak purchases. Take a break whenever you need one.
+          </p>
+          <p style={{ lineHeight: 1.7 }}>
+            No rewards for deposits, recruiting referrals, trading volume, profit, account linking or automation activation. Cash and broker-linked incentives are outside this proposal and require separate legal and broker approval.
+          </p>
+        </section>
 
-          {/* Sharp Progress Bar */}
-          <div
-            role="progressbar"
-            aria-label="Course progress"
-            aria-valuemin={0}
-            aria-valuemax={100}
-            aria-valuenow={progressPercent}
-            style={{
-              width: '100%',
-              height: '8px',
-              background: 'var(--bg-surface-2)',
-              border: '1px solid var(--hb-hairline-amber)',
-              borderRadius: 0,
-              overflow: 'hidden'
-            }}
-          >
-            <div
-              style={{
-                width: `${progressPercent}%`,
-                height: '100%',
-                background: 'var(--hb-accent-citron)',
-                transition: 'width 0.4s ease'
-              }}
-            />
+        <section aria-labelledby="lesson-catalogue" style={{ marginBottom: '32px' }}>
+          <h2 id="lesson-catalogue">Choose a public summary</h2>
+          <p>All full lessons and quizzes remain unavailable. These cards are previews, not unlocks or proof of completion.</p>
+          <div role="group" aria-label="Filter lessons by level" style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', margin: '20px 0' }}>
+            {(['all', 'beginner', 'intermediate', 'advanced'] as const).map((level) => (
+              <button key={level} type="button" aria-pressed={selectedLevel === level} onClick={() => setSelectedLevel(level)} className={selectedLevel === level ? 'herbaria-btn-citron' : 'herbaria-btn-secondary'}>
+                {level === 'all' ? 'All lessons' : level} ({level === 'all' ? allLessons.length : allLessons.filter((lesson) => lesson.level === level).length})
+              </button>
+            ))}
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))', gap: '20px' }}>
+            {filteredLessons.map((lesson) => (
+              <article key={lesson.id} style={{ ...panel, marginBottom: 0, display: 'flex', flexDirection: 'column' }}>
+                <span className="herbaria-plate-kicker">Lesson {String(lesson.globalNum).padStart(2, '0')} / {lesson.level}</span>
+                <h3 style={{ lineHeight: 1.4 }}>{lesson.title}</h3>
+                <p style={{ lineHeight: 1.7, flex: 1 }}>{lesson.summary}</p>
+                <p style={{ fontSize: '13px' }}>Public summary only · full lesson unavailable</p>
+                <Link href={`/academy/lesson-${lesson.globalNum}`} className="herbaria-btn-secondary">Read summary →</Link>
+              </article>
+            ))}
           </div>
         </section>
 
-        {/* Section 03: Three-Tier Specimen Triptych (Plate III) */}
-        <section style={{ marginBottom: '56px' }}>
-          <div className="herbaria-plate-kicker">
-            <span>&sect; 03</span>
-            <span style={{ color: 'var(--hb-accent-amber)' }}>/</span>
-            <span>THREE CURRICULUM TIERS</span>
-          </div>
-
-          <div className="herbaria-triptych">
-            {/* Tier 1: Foundations */}
-            <div
-              onClick={() => setSelectedLevel('beginner')}
-              className={`herbaria-triptych-col ${selectedLevel === 'beginner' ? 'herbaria-panel-green' : 'herbaria-panel-dark'}`}
-              style={{ cursor: 'pointer' }}
-            >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-                <span className="herbaria-badge-sharp" style={{ background: 'var(--accent-gold-subtle)', color: 'var(--accent-gold)', border: '1px solid var(--border-accent)' }}>
-                  TIER 1
-                </span>
-                <span style={{ fontFamily: 'var(--font-herbaria-mono)', fontSize: '11px', color: 'var(--accent-gold)' }}>
-                  FOUNDATIONS
-                </span>
-              </div>
-
-              <div className="herbaria-numeral" style={{ marginBottom: '10px' }}>
-                {beginnerCount} Units
-              </div>
-
-              <h3 style={{ fontFamily: 'var(--font-herbaria-display)', fontSize: '22px', fontWeight: 500, color: 'var(--text-primary)', margin: '0 0 10px' }}>
-                Forex Foundations
-              </h3>
-
-              <p style={{ fontSize: '13.5px', lineHeight: 1.6, color: 'var(--text-secondary)', flex: 1, margin: '0 0 16px' }}>
-                Currency pairs, bid/ask spreads, pip values, lot sizing, margin, leverage, and MT5 order types. Lessons 1&ndash;5 are open for instant public study.
-              </p>
-
-              <div style={{ fontFamily: 'var(--font-herbaria-mono)', fontSize: '11px', color: 'var(--accent-gold)', borderTop: '1px solid var(--border-subtle)', paddingTop: '10px' }}>
-                Lessons 01&ndash;12 / Foundational
-              </div>
-            </div>
-
-            {/* Tier 2: Dynamics */}
-            <div
-              onClick={() => setSelectedLevel('intermediate')}
-              className={`herbaria-triptych-col ${selectedLevel === 'intermediate' ? 'herbaria-panel-cream' : 'herbaria-panel-dark'}`}
-              style={{ cursor: 'pointer' }}
-            >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-                <span className="herbaria-badge-sharp" style={{ background: 'rgba(56, 189, 248, 0.14)', color: '#38BDF8', border: '1px solid rgba(56, 189, 248, 0.35)' }}>
-                  TIER 2
-                </span>
-                <span style={{ fontFamily: 'var(--font-herbaria-mono)', fontSize: '11px', color: 'var(--accent-gold)' }}>
-                  DYNAMICS
-                </span>
-              </div>
-
-              <div className="herbaria-numeral" style={{ color: 'var(--accent-gold)', marginBottom: '10px' }}>
-                {intermediateCount} Units
-              </div>
-
-              <h3 style={{ fontFamily: 'var(--font-herbaria-display)', fontSize: '22px', fontWeight: 500, color: 'var(--text-primary)', margin: '0 0 10px' }}>
-                Analysis &amp; Market Structure
-              </h3>
-
-              <p style={{ fontSize: '13.5px', lineHeight: 1.6, color: 'var(--text-secondary)', flex: 1, margin: '0 0 16px' }}>
-                Candlestick anatomy, market structure, support/resistance, multi-timeframe analysis, and session liquidity windows.
-              </p>
-
-              <div style={{ fontFamily: 'var(--font-herbaria-mono)', fontSize: '11px', color: 'var(--accent-gold)', borderTop: '1px solid var(--border-subtle)', paddingTop: '10px' }}>
-                Lessons 13&ndash;22 / Gated by IB Link
-              </div>
-            </div>
-
-            {/* Tier 3: Institutional */}
-            <div
-              onClick={() => setSelectedLevel('advanced')}
-              className={`herbaria-triptych-col ${selectedLevel === 'advanced' ? 'herbaria-panel-green' : 'herbaria-panel-dark'}`}
-              style={{ cursor: 'pointer' }}
-            >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-                <span className="herbaria-badge-sharp" style={{ background: 'var(--accent-green-subtle)', color: 'var(--accent-green)', border: '1px solid var(--accent-green-border)' }}>
-                  TIER 3
-                </span>
-                <span style={{ fontFamily: 'var(--font-herbaria-mono)', fontSize: '11px', color: 'var(--accent-gold)' }}>
-                  INSTITUTIONAL
-                </span>
-              </div>
-
-              <div className="herbaria-numeral" style={{ marginBottom: '10px' }}>
-                {advancedCount} Units
-              </div>
-
-              <h3 style={{ fontFamily: 'var(--font-herbaria-display)', fontSize: '22px', fontWeight: 500, color: 'var(--text-primary)', margin: '0 0 10px' }}>
-                Asymmetric Risk &amp; Strategy
-              </h3>
-
-              <p style={{ fontSize: '13.5px', lineHeight: 1.6, color: 'var(--text-secondary)', flex: 1, margin: '0 0 16px' }}>
-                Mathematical position sizing, asymmetric drawdown mechanics, execution psychology, backtesting rigor, and XAUUSD mechanics.
-              </p>
-
-              <div style={{ fontFamily: 'var(--font-herbaria-mono)', fontSize: '11px', color: 'var(--accent-gold)', borderTop: '1px solid var(--border-subtle)', paddingTop: '10px' }}>
-                Lessons 23&ndash;30 / Master Quantitative
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Section 04: Filter Bar & Catalog (Plate IV) */}
-        <section style={{ marginBottom: '72px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px', marginBottom: '24px', borderBottom: '1px solid var(--hb-hairline-amber)', paddingBottom: '16px' }}>
-            <div className="herbaria-plate-kicker" style={{ margin: 0 }}>
-              <span>&sect; 04</span>
-              <span style={{ color: 'var(--hb-accent-amber)' }}>/</span>
-              <span>CURRICULUM SPECIMEN CATALOG ({filteredLessons.length} UNITS)</span>
-            </div>
-
-            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-              {(['all', 'beginner', 'intermediate', 'advanced'] as const).map((lvl) => (
-                <button
-                  key={lvl}
-                  onClick={() => setSelectedLevel(lvl)}
-                  style={{
-                    fontFamily: 'var(--font-herbaria-mono)',
-                    fontSize: '11px',
-                    fontWeight: 600,
-                    letterSpacing: '0.15em',
-                    textTransform: 'uppercase',
-                    padding: '8px 16px',
-                    borderRadius: 0,
-                    border: '1px solid',
-                    borderColor: selectedLevel === lvl ? 'var(--hb-accent-citron)' : 'var(--hb-hairline-amber)',
-                    backgroundColor: selectedLevel === lvl ? 'var(--hb-accent-citron)' : 'transparent',
-                    color: selectedLevel === lvl ? '#f7f7f0' : 'var(--text-secondary)',
-                    cursor: 'pointer',
-                    transition: 'all 0.15s ease'
-                  }}
-                >
-                  {lvl === 'all' ? 'ALL MODULES' : lvl.toUpperCase()} ({lvl === 'all' ? 30 : lvl === 'beginner' ? 12 : lvl === 'intermediate' ? 10 : 8})
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* 30 Lesson Grid */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: '20px' }}>
-            {filteredLessons.map((lesson) => {
-              const isCompleted = completedLessons.includes(lesson.globalNum);
-              const estReadingTime = 'Public summary';
-              const isPublic = lesson.globalNum <= 5;
-              const isSequenceLocked = lesson.globalNum > firstIncompleteLesson;
-
-              let statusBadge = (
-                <span className="herbaria-badge-sharp" style={{ background: 'rgba(234, 177, 103, 0.12)', color: 'var(--hb-accent-citron)', border: '1px solid rgba(234, 177, 103, 0.3)' }}>
-                  PARTNER SUBSIDIZED
-                </span>
-              );
-
-              if (isCompleted) {
-                statusBadge = (
-                  <span className="herbaria-badge-sharp" style={{ background: 'rgba(200, 212, 0, 0.2)', color: 'var(--hb-accent-citron)', border: '1px solid var(--hb-accent-citron)' }}>
-                    PASSED
-                  </span>
-                );
-              } else if (isSequenceLocked) {
-                statusBadge = (
-                  <span className="herbaria-badge-sharp" style={{ background: 'var(--bg-surface-2)', color: 'var(--text-muted)', border: '1px solid var(--border-subtle)' }}>
-                    LOCKED - PASS PRIOR UNIT
-                  </span>
-                );
-              } else if (lesson.globalNum === firstIncompleteLesson) {
-                statusBadge = (
-                  <span className="herbaria-badge-sharp" style={{ background: 'var(--accent-gold-subtle)', color: 'var(--hb-accent-citron)', border: '1px solid var(--hb-accent-citron)' }}>
-                    NEXT IN SEQUENCE
-                  </span>
-                );
-              } else if (isPublic) {
-                statusBadge = (
-                  <span className="herbaria-badge-sharp" style={{ background: 'var(--bg-surface-1)', color: 'var(--text-primary)', border: '1px solid var(--hb-hairline-cream)' }}>
-                    PUBLIC ACCESS
-                  </span>
-                );
-              }
-
-              return (
-                <article
-                  key={lesson.id}
-                  style={{
-                    backgroundColor: 'var(--hb-bg-dark-card)',
-                    border: '1px solid var(--hb-hairline-amber)',
-                    borderRadius: 0,
-                    padding: '24px',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'space-between',
-                    transition: 'border-color 0.2s ease',
-                  }}
-                  onMouseEnter={(e) => (e.currentTarget.style.borderColor = 'var(--hb-accent-citron)')}
-                  onMouseLeave={(e) => (e.currentTarget.style.borderColor = 'var(--hb-hairline-amber)')}
-                >
-                  <div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', borderBottom: '1px dotted var(--hb-hairline-amber)', paddingBottom: '10px' }}>
-                      <span style={{ fontFamily: 'var(--font-herbaria-mono)', fontSize: '11px', color: 'var(--hb-accent-citron)', fontWeight: 700 }}>
-                        &sect; {lesson.globalNum < 10 ? `0${lesson.globalNum}` : lesson.globalNum}
-                      </span>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <span style={{ fontFamily: 'var(--font-herbaria-mono)', fontSize: '10px', color: 'var(--text-muted)' }}>
-                          {estReadingTime}
-                        </span>
-                        {statusBadge}
-                      </div>
-                    </div>
-
-                    <h3 style={{ fontFamily: 'var(--font-herbaria-display)', fontSize: '18px', fontWeight: 400, color: 'var(--text-primary)', margin: '0 0 10px', lineHeight: 1.3 }}>
-                      {lesson.title}
-                    </h3>
-
-                    <p style={{ fontSize: '13px', color: 'var(--text-muted)', lineHeight: 1.6, marginBottom: '20px' }}>
-                      {lesson.summary}
-                    </p>
-                  </div>
-
-                  <div style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    paddingTop: '14px',
-                    borderTop: '1px solid var(--hb-hairline-amber)'
-                  }}>
-                    <span style={{ fontFamily: 'var(--font-herbaria-mono)', fontSize: '10.5px', color: 'var(--hb-accent-amber)', textTransform: 'uppercase' }}>
-                      Tier {lesson.level === 'beginner' ? '1 Foundations' : lesson.level === 'intermediate' ? '2 Dynamics' : '3 Asymmetric'}
-                    </span>
-
-                    {isSequenceLocked ? (
-                      <span style={{ fontFamily: 'var(--font-herbaria-mono)', fontSize: '10.5px', color: 'var(--text-muted)' }}>
-                        Unlock via Unit {firstIncompleteLesson}
-                      </span>
-                    ) : (
-                      <Link
-                        href={`/academy/lesson-${lesson.globalNum}`}
-                        style={{
-                          fontFamily: 'var(--font-herbaria-mono)',
-                          fontSize: '11px',
-                          fontWeight: 700,
-                          letterSpacing: '0.15em',
-                          textTransform: 'uppercase',
-                          textDecoration: 'none',
-                          color: '#f7f7f0',
-                          backgroundColor: 'var(--hb-accent-citron)',
-                          padding: '6px 14px',
-                          borderRadius: 0,
-                          transition: 'background 0.2s ease'
-                        }}
-                      >
-                        {isCompleted ? 'Review Unit' : isPublic ? 'Study (Public)' : 'Study Unit'} &rarr;
-                      </Link>
-                    )}
-                  </div>
-                </article>
-              );
-            })}
-          </div>
-        </section>
-
-        {/* Section 05: Subsidized Footnote & IB Verification */}
-        <section style={{
-          border: '1px solid var(--hb-hairline-amber)',
-          backgroundColor: 'var(--hb-bg-primary)',
-          borderRadius: 0,
-          padding: '36px',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          flexWrap: 'wrap',
-          gap: '24px'
-        }}>
-          <div style={{ maxWidth: '640px' }}>
-            <div style={{ fontFamily: 'var(--font-herbaria-mono)', fontSize: '10px', letterSpacing: '0.25em', color: 'var(--hb-accent-citron)', textTransform: 'uppercase', marginBottom: '8px' }}>
-              &sect; 05 / LIFETIME SPONSORED TRADING EDUCATION
-            </div>
-            <h3 style={{ fontFamily: 'var(--font-herbaria-display)', fontSize: '24px', color: 'var(--text-primary)', margin: '0 0 10px', fontWeight: 400 }}>
-              Zero Subscription Fees &mdash; Subsidized by JustMarkets
-            </h3>
-            <p style={{ fontSize: '13.5px', color: 'var(--text-secondary)', lineHeight: 1.6, margin: 0 }}>
-              Units 1 through 5 are open for instant public study. Units 6 through 30 carry no subscription fees when verified under our JustMarkets Introducing Broker partner agreement (code tohstb0d83).
-            </p>
-          </div>
-
-          <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap' }}>
-            <Link
-              href="/onboarding"
-              className="herbaria-btn-citron"
-            >
-              Unlock Full Curriculum &rarr;
-            </Link>
-            <a
-              href={DEFAULT_PARTNER_CONFIG.primaryLink}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="herbaria-btn-secondary"
-            >
-              Create an account &rarr;
-            </a>
-          </div>
-        </section>
-
-      </div>
+        <aside aria-labelledby="learning-disclosures" style={panel}>
+          <h2 id="learning-disclosures">Important disclosures</h2>
+          <p style={{ lineHeight: 1.7 }}>
+            Velarion’s Introducing Broker relationship creates a financial conflict of interest. It must not influence assessment grading or learning rewards. Kenyan legal review remains a pre-launch requirement; regulatory status, broker terms and eligibility verification remain unresolved, not approved by this proposal.
+          </p>
+          <p style={{ lineHeight: 1.7 }}>
+            <Link href="/legal/ib-disclosure">IB conflict disclosure</Link> · <Link href="/legal/risk-disclosure">Trading risk disclosure</Link> · <Link href="/legal/privacy">Privacy</Link>
+          </p>
+        </aside>
+      </main>
     </div>
   );
 }
