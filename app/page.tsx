@@ -22,11 +22,11 @@ export const metadata: Metadata = {
 };
 
 const journey = [
-  { number: '01', title: 'Register with JustMarkets', copy: 'Use the referral link and confirm partner attribution. Eligibility and broker terms apply.' },
-  { number: '02', title: 'Fund your broker account', copy: 'Deposit directly with the broker—not Velarion. Review the risks before committing capital.' },
-  { number: '03', title: 'Complete required learning', copy: 'Complete foundation lessons 1–5 in order, with mandatory quizzes, before account linking. The full School has 30 lessons.' },
-  { number: '04', title: 'Link your account', copy: 'After learning, complete verification and review account permissions. Linking is not activation.' },
-  { number: '05', title: 'Authorize automation', copy: 'Automation starts off. Activation is a separate, explicit decision after eligibility, risk settings, and demo-first checks.' },
+  { number: '01', title: 'Verify JustMarkets eligibility', copy: 'Current referral attribution and deposit evidence must be verified together. Registration or an account number alone proves neither eligibility nor ownership.' },
+  { number: '02', title: 'Complete all 30 School lessons', copy: 'All 30 required core lessons must be completed through approved assessments. Delivery is disabled; only curriculum summaries are currently available.' },
+  { number: '03', title: 'Verify broker ownership separately', copy: 'Independent broker ownership evidence is required after School. Linking a number or read-only credentials is not proof of ownership.' },
+  { number: '04', title: 'Give explicit automation consent', copy: 'Consent must identify the account, environment, permissions and risk settings. School completion and account linking are not activation.' },
+  { number: '05', title: 'Require worker acknowledgement', copy: 'An authenticated worker must acknowledge the exact authorized configuration before any separately approved execution. No automation or live trading is enabled in this release.' },
 ];
 
 export default function HomePage() {

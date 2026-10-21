@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { WhyThisTrade, LivePosition, ExecutedTrade } from '@/app/api/trades/live/route';
+import type { WhyThisTrade, LivePosition, ExecutedTrade } from '@/lib/trade-types';
 
 interface TradingSettingsState {
   maxLots: number;

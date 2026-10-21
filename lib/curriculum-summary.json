@@ -1,0 +1,275 @@
+{
+  "lessons": [
+    {
+      "id": "b1",
+      "level": "beginner",
+      "levelTitle": "Beginner: Forex Foundations",
+      "lessonNum": 1,
+      "globalNum": 1,
+      "title": "What Is Forex Trading?",
+      "summary": "Discover the global foreign exchange marketplace, how currencies are exchanged, and why it operates 24 hours a day."
+    },
+    {
+      "id": "b2",
+      "level": "beginner",
+      "levelTitle": "Beginner: Forex Foundations",
+      "lessonNum": 2,
+      "globalNum": 2,
+      "title": "How the Forex Market Works",
+      "summary": "Explore market participants, the interbank tier, retail broker models, and how liquidity flows through the ecosystem."
+    },
+    {
+      "id": "b3",
+      "level": "beginner",
+      "levelTitle": "Beginner: Forex Foundations",
+      "lessonNum": 3,
+      "globalNum": 3,
+      "title": "Understanding Currency Pairs",
+      "summary": "Master the structure of currency pairs: Base versus Quote currency, Major pairs, Minor pairs, and Exotics."
+    },
+    {
+      "id": "b4",
+      "level": "beginner",
+      "levelTitle": "Beginner: Forex Foundations",
+      "lessonNum": 4,
+      "globalNum": 4,
+      "title": "How to Read Forex Quotes",
+      "summary": "Interpret price feeds on your terminal, understand decimal precision, and identify price trends."
+    },
+    {
+      "id": "b5",
+      "level": "beginner",
+      "levelTitle": "Beginner: Forex Foundations",
+      "lessonNum": 5,
+      "globalNum": 5,
+      "title": "Understanding Bid, Ask and Spread",
+      "summary": "Learn how the bid-ask spread works, how it represents transaction cost, and why spreads fluctuate with market volatility."
+    },
+    {
+      "id": "b6",
+      "level": "beginner",
+      "levelTitle": "Beginner: Forex Foundations",
+      "lessonNum": 6,
+      "globalNum": 6,
+      "title": "What Is a Pip?",
+      "summary": "Master the unit of measurement for price movement in Forex, pip values, and how price changes translate to dollar profit and loss."
+    },
+    {
+      "id": "b7",
+      "level": "beginner",
+      "levelTitle": "Beginner: Forex Foundations",
+      "lessonNum": 7,
+      "globalNum": 7,
+      "title": "Understanding Lot Sizes",
+      "summary": "Learn standard, mini, micro, and nano lot sizing conventions and how volume dictates pip values."
+    },
+    {
+      "id": "b8",
+      "level": "beginner",
+      "levelTitle": "Beginner: Forex Foundations",
+      "lessonNum": 8,
+      "globalNum": 8,
+      "title": "Leverage and Margin Explained",
+      "summary": "Understand how leverage multiplies purchasing power, how margin collateral works, and the danger of over-leveraging."
+    },
+    {
+      "id": "b9",
+      "level": "beginner",
+      "levelTitle": "Beginner: Forex Foundations",
+      "lessonNum": 9,
+      "globalNum": 9,
+      "title": "Understanding Buy and Sell Orders",
+      "summary": "Learn how traders profit in both rising and falling markets, and master Market versus Pending orders."
+    },
+    {
+      "id": "b10",
+      "level": "beginner",
+      "levelTitle": "Beginner: Forex Foundations",
+      "lessonNum": 10,
+      "globalNum": 10,
+      "title": "Introduction to MetaTrader 5",
+      "summary": "Navigate the MT5 terminal interface, charts, Market Watch, Navigator, and Toolbox windows."
+    },
+    {
+      "id": "b11",
+      "level": "beginner",
+      "levelTitle": "Beginner: Forex Foundations",
+      "lessonNum": 11,
+      "globalNum": 11,
+      "title": "Stop-Loss and Take-Profit",
+      "summary": "Master the twin pillars of trade risk management: defining your invalidation point and locking in profit targets."
+    },
+    {
+      "id": "b12",
+      "level": "beginner",
+      "levelTitle": "Beginner: Forex Foundations",
+      "lessonNum": 12,
+      "globalNum": 12,
+      "title": "Your First Demo Trade",
+      "summary": "Walk through executing, monitoring, and closing your first practice trade with zero financial risk."
+    },
+    {
+      "id": "i1",
+      "level": "intermediate",
+      "levelTitle": "Intermediate: Analysis and Strategy",
+      "lessonNum": 1,
+      "globalNum": 13,
+      "title": "Candlestick Charts",
+      "summary": "Read candlestick anatomy, interpret wicks and bodies, and identify key reversal patterns like Pin Bars and Engulfing candles."
+    },
+    {
+      "id": "i2",
+      "level": "intermediate",
+      "levelTitle": "Intermediate: Analysis and Strategy",
+      "lessonNum": 2,
+      "globalNum": 14,
+      "title": "Support and Resistance",
+      "summary": "Identify key horizontal price zones where supply and demand historically concentrate, and master role reversal."
+    },
+    {
+      "id": "i3",
+      "level": "intermediate",
+      "levelTitle": "Intermediate: Analysis and Strategy",
+      "lessonNum": 3,
+      "globalNum": 15,
+      "title": "Market Structure and Trends",
+      "summary": "Analyze trend direction using Higher Highs and Higher Lows, identify ranges, and spot Breaks of Structure (BOS)."
+    },
+    {
+      "id": "i4",
+      "level": "intermediate",
+      "levelTitle": "Intermediate: Analysis and Strategy",
+      "lessonNum": 4,
+      "globalNum": 16,
+      "title": "Multiple Timeframe Analysis",
+      "summary": "Align macro trend direction with micro entry execution using a structured top-down analysis framework."
+    },
+    {
+      "id": "i5",
+      "level": "intermediate",
+      "levelTitle": "Intermediate: Analysis and Strategy",
+      "lessonNum": 5,
+      "globalNum": 17,
+      "title": "Technical Indicators",
+      "summary": "Understand moving averages, RSI, and ATR. Learn how to use indicators as secondary confirmation rather than primary entry signals."
+    },
+    {
+      "id": "i6",
+      "level": "intermediate",
+      "levelTitle": "Intermediate: Analysis and Strategy",
+      "lessonNum": 6,
+      "globalNum": 18,
+      "title": "Fundamental Analysis",
+      "summary": "Understand macro drivers of currency valuation: interest rate differentials, central bank policies, and macroeconomic health."
+    },
+    {
+      "id": "i7",
+      "level": "intermediate",
+      "levelTitle": "Intermediate: Analysis and Strategy",
+      "lessonNum": 7,
+      "globalNum": 19,
+      "title": "Economic Calendar and News",
+      "summary": "Navigate high-impact news releases, manage volatility spikes, and protect trades during major economic events."
+    },
+    {
+      "id": "i8",
+      "level": "intermediate",
+      "levelTitle": "Intermediate: Analysis and Strategy",
+      "lessonNum": 8,
+      "globalNum": 20,
+      "title": "Liquidity and Market Sessions",
+      "summary": "Master the 4 global sessions, London/NY overlap volume, Asian range sweeps, and the rollover danger hour."
+    },
+    {
+      "id": "i9",
+      "level": "intermediate",
+      "levelTitle": "Intermediate: Analysis and Strategy",
+      "lessonNum": 9,
+      "globalNum": 21,
+      "title": "Risk-to-Reward Ratio",
+      "summary": "Master mathematical expectancy. Learn why a favorable risk-to-reward ratio allows you to be profitable even with a 40% win rate."
+    },
+    {
+      "id": "i10",
+      "level": "intermediate",
+      "levelTitle": "Intermediate: Analysis and Strategy",
+      "lessonNum": 10,
+      "globalNum": 22,
+      "title": "Trading Plans and Journals",
+      "summary": "Build a written rulebook: entry checklists, invalidation criteria, trade logging, and weekly performance reviews."
+    },
+    {
+      "id": "a1",
+      "level": "advanced",
+      "levelTitle": "Advanced: Risk and Execution",
+      "lessonNum": 1,
+      "globalNum": 23,
+      "title": "Position Sizing",
+      "summary": "Master fixed fractional position sizing formulas. Never choose an arbitrary lot size again."
+    },
+    {
+      "id": "a2",
+      "level": "advanced",
+      "levelTitle": "Advanced: Risk and Execution",
+      "lessonNum": 2,
+      "globalNum": 24,
+      "title": "Advanced Risk Management",
+      "summary": "Manage currency correlation, portfolio heat, daily loss limits, and automated circuit breakers."
+    },
+    {
+      "id": "a3",
+      "level": "advanced",
+      "levelTitle": "Advanced: Risk and Execution",
+      "lessonNum": 3,
+      "globalNum": 25,
+      "title": "Drawdown and Capital Preservation",
+      "summary": "Understand the non-linear physics of asymmetric drawdown and why capital preservation is mathematically mandatory."
+    },
+    {
+      "id": "a4",
+      "level": "advanced",
+      "levelTitle": "Advanced: Risk and Execution",
+      "lessonNum": 4,
+      "globalNum": 26,
+      "title": "Trading Psychology",
+      "summary": "Overcome cognitive biases: revenge trading, loss aversion, FOMO, and the illusion of control."
+    },
+    {
+      "id": "a5",
+      "level": "advanced",
+      "levelTitle": "Advanced: Risk and Execution",
+      "lessonNum": 5,
+      "globalNum": 27,
+      "title": "Strategy Backtesting",
+      "summary": "Validate trading edges using rigorous historical backtesting, walk-forward testing, and overfitting prevention."
+    },
+    {
+      "id": "a6",
+      "level": "advanced",
+      "levelTitle": "Advanced: Risk and Execution",
+      "lessonNum": 6,
+      "globalNum": 28,
+      "title": "Advanced Market Structure",
+      "summary": "Master Fair Value Gaps (FVG), order blocks, internal versus external liquidity, and institutional order flow."
+    },
+    {
+      "id": "a7",
+      "level": "advanced",
+      "levelTitle": "Advanced: Risk and Execution",
+      "lessonNum": 7,
+      "globalNum": 29,
+      "title": "XAUUSD Trading Mechanics",
+      "summary": "Master spot gold volatility, tick sizes, London physical fixing auctions, real interest rate correlations, and DXY dynamics."
+    },
+    {
+      "id": "a8",
+      "level": "advanced",
+      "levelTitle": "Advanced: Risk and Execution",
+      "lessonNum": 8,
+      "globalNum": 30,
+      "title": "Trading System Evaluation",
+      "summary": "Evaluate quantitative trading models using Sharpe Ratio, Profit Factor, Max Drawdown, and return stability."
+    }
+  ],
+  "glossary": []
+}

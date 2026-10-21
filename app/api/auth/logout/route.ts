@@ -1,8 +1,4 @@
-import { NextResponse } from 'next/server';
-import { AUTH_COOKIE_NAME } from '@/lib/auth';
-
-export async function POST() {
-  const response = NextResponse.json({ success: true, message: 'Logged out successfully.' });
-  response.cookies.delete(AUTH_COOKIE_NAME);
-  return response;
-}
+import { integratedHttp } from '@/lib/server/integrated-runtime';
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+export const POST = (request: Request) => integratedHttp.logout(request, false);

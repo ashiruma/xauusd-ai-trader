@@ -8,17 +8,25 @@
     "build": "next build",
     "start": "next start",
     "server": "python -m uvicorn api.app:app --host 127.0.0.1 --port 8000",
-    "backend": "python -m uvicorn api.app:app --host 127.0.0.1 --port 8000"
+    "backend": "python -m uvicorn api.app:app --host 127.0.0.1 --port 8000",
+    "test:connection": "node --import tsx --test tests/node/*.test.mjs",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@supabase/ssr": "0.12.7",
+    "@supabase/supabase-js": "2.118.0",
+    "jose": "6.2.13",
     "next": "^16.4.1",
+    "postgres": "3.4.9",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "server-only": "0.0.1"
   },
   "devDependencies": {
     "@types/node": "^26.6.5",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
+    "tsx": "4.23.15",
     "typescript": "^5.7.0"
   }
 }

@@ -1,22 +1,7 @@
-// app/api/access/status/route.ts
-import { NextResponse } from 'next/server';
 import { evaluateAccessJourney } from '@/lib/access-control';
-
+import { privateJson } from '@/lib/server/http';
+import { RELEASE_POLICY } from '@/lib/release-policy';
 export const dynamic = 'force-dynamic';
-export const revalidate = 0;
-
 export async function GET() {
-  try {
-    const journey = await evaluateAccessJourney();
-    return NextResponse.json({
-      success: true,
-      ...journey,
-    });
-  } catch (error) {
-    console.error('[Access Status API Error]', error);
-    return NextResponse.json(
-      { success: false, error: 'Failed to evaluate access requirements' },
-      { status: 500 }
-    );
-  }
+  return privateJson({ success: false, ...RELEASE_POLICY, ...(await evaluateAccessJourney()), error: 'RELEASE_NOT_PROVISIONED' }, 503);
 }

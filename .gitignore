@@ -49,3 +49,11 @@ Thumbs.db
 *.swp
 *~
 navbar_*.png
+
+.env.*
+!.env.example
+!.env.staging.example
+.vercel/
+
+# Local Auth/SSR review outputs; source scripts and review notes remain versioned.
+.local-auth-validation/

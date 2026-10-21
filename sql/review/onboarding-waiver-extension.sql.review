@@ -1,0 +1,238 @@
+-- REVIEW ONLY. Separate approval required; do not apply to any hosted database.
+-- Additive layer after exact generation + session-admission SQL dependencies.
+-- No operator/email identities or seeded waiver rows. No enrollment or delivery enablement.
+\set ON_ERROR_STOP on
+\if :{?STAGING_PROJECT_REF}
+\else
+ DO $$ BEGIN RAISE EXCEPTION 'Missing exact staging project ref'; END $$;
+\endif
+SELECT (:'STAGING_PROJECT_REF'='akhftbbszejafxpoxiem') AS target_ok \gset
+\if :target_ok
+\else
+ DO $$ BEGIN RAISE EXCEPTION 'Wrong staging project ref'; END $$;
+\endif
+BEGIN;
+SET LOCAL search_path=pg_catalog;
+SET LOCAL lock_timeout='5s';
+SET LOCAL statement_timeout='60s';
+SELECT pg_catalog.pg_advisory_xact_lock(741852963,20261021);
+DO $guard$
+BEGIN
+ IF current_user<>'postgres' OR session_user<>'postgres' OR current_database()<>'postgres' OR current_setting('server_version_num')::int<>170011 THEN RAISE EXCEPTION 'Principal/database/version drift'; END IF;
+ IF (SELECT count(*) FROM pg_auth_members WHERE roleid IN ('velarion_owner'::regrole,'velarion_bff'::regrole,'velarion_broker_ingest'::regrole,'velarion_execution_worker'::regrole))<>4 OR EXISTS(SELECT 1 FROM pg_auth_members WHERE roleid IN ('velarion_owner'::regrole,'velarion_bff'::regrole,'velarion_broker_ingest'::regrole,'velarion_execution_worker'::regrole) AND (member<>'postgres'::regrole OR NOT admin_option OR inherit_option OR set_option)) OR EXISTS(SELECT 1 FROM pg_auth_members WHERE member IN ('velarion_owner'::regrole,'velarion_bff'::regrole,'velarion_broker_ingest'::regrole,'velarion_execution_worker'::regrole)) THEN RAISE EXCEPTION 'Membership drift'; END IF;
+ IF NOT EXISTS(SELECT 1 FROM pg_roles WHERE rolname='postgres' AND NOT rolsuper AND rolcanlogin AND rolcreaterole AND rolcreatedb AND rolbypassrls AND rolinherit) OR EXISTS(SELECT 1 FROM pg_roles WHERE left(rolname,9)='velarion_' AND (rolcanlogin OR rolsuper OR rolbypassrls OR rolcreaterole OR rolcreatedb)) THEN RAISE EXCEPTION 'Role attribute drift'; END IF;
+ -- Exact application-role set; provider-managed attributes are allowed only on postgres within this deployment/app boundary.
+ IF (SELECT count(*) FROM pg_roles WHERE left(rolname,9)='velarion_')<>4
+ OR (SELECT count(*) FROM pg_roles WHERE rolname IN ('velarion_owner','velarion_bff','velarion_broker_ingest','velarion_execution_worker') AND NOT rolcanlogin AND NOT rolsuper AND NOT rolbypassrls AND NOT rolcreaterole AND NOT rolcreatedb AND NOT rolreplication AND rolinherit AND rolconfig IS NULL)<>4 THEN RAISE EXCEPTION 'Locked application role set drift'; END IF;
+ IF EXISTS(SELECT 1 FROM pg_auth_members WHERE roleid IN (SELECT oid FROM pg_roles WHERE rolname IN ('velarion_owner','velarion_bff','velarion_broker_ingest','velarion_execution_worker')) AND grantor<>(SELECT oid FROM pg_roles WHERE rolname='supabase_admin'))
+ OR NOT EXISTS(SELECT 1 FROM pg_roles WHERE rolname='supabase_admin') THEN RAISE EXCEPTION 'Provider membership grantor drift'; END IF;
+ IF pg_has_role('postgres','velarion_owner','SET') THEN RAISE EXCEPTION 'Unexpected preexisting owner SET authority'; END IF;
+END $guard$;
+GRANT velarion_owner TO postgres WITH INHERIT FALSE, SET TRUE;
+SET LOCAL ROLE velarion_owner;
+DO $role_path$
+BEGIN
+ IF current_user<>'velarion_owner' OR session_user<>'postgres'
+ OR NOT pg_has_role(session_user,'velarion_owner','SET')
+ OR EXISTS(SELECT 1 FROM pg_roles WHERE rolname=current_user AND (rolsuper OR rolbypassrls OR rolcanlogin OR rolcreaterole OR rolcreatedb OR rolreplication)) THEN RAISE EXCEPTION 'Owner SET ROLE path drift'; END IF;
+ IF (SELECT count(*) FROM pg_auth_members WHERE roleid='velarion_owner'::regrole AND member='postgres'::regrole AND grantor='postgres'::regrole AND NOT admin_option AND NOT inherit_option AND set_option)<>1 THEN RAISE EXCEPTION 'Temporary owner authority drift'; END IF;
+END $role_path$;
+DO $dependency$
+BEGIN
+ IF to_regclass('velarion_private.app_session_handles') IS NULL OR to_regprocedure('velarion_private.require_app_handle(text,text,uuid,uuid,timestamptz,timestamptz,boolean)') IS NULL THEN RAISE EXCEPTION 'Generation/admission dependency missing'; END IF;
+ -- BEGIN EXACT POST-ADMISSION ROUTINE GUARDS
+ IF NOT EXISTS(SELECT 1 FROM pg_proc WHERE oid=to_regprocedure('velarion_api.admit_session(uuid,text,text,uuid,uuid,timestamp with time zone,timestamp with time zone,text,text)') AND md5(prosrc)='4db37b767c405576b67837e779cf8015' AND proowner='velarion_owner'::regrole AND proconfig=ARRAY['search_path=""'] AND prosecdef=true AND NOT proleakproof AND provolatile='v' AND prorettype='jsonb'::regtype AND NOT proretset AND coalesce(proacl,acldefault('f',proowner))::text='{velarion_owner=X/velarion_owner,velarion_bff=X/velarion_owner}') THEN RAISE EXCEPTION 'Admission dependency routine fingerprint drift: velarion_api.admit_session'; END IF;
+ IF NOT EXISTS(SELECT 1 FROM pg_proc WHERE oid=to_regprocedure('velarion_api.begin_session_admission(uuid,text)') AND md5(prosrc)='5e6777e8220f0df083b1b4bc36310300' AND proowner='velarion_owner'::regrole AND proconfig=ARRAY['search_path=""'] AND prosecdef=true AND NOT proleakproof AND provolatile='v' AND prorettype='jsonb'::regtype AND NOT proretset AND coalesce(proacl,acldefault('f',proowner))::text='{velarion_owner=X/velarion_owner,velarion_bff=X/velarion_owner}') THEN RAISE EXCEPTION 'Admission dependency routine fingerprint drift: velarion_api.begin_session_admission'; END IF;
+ IF NOT EXISTS(SELECT 1 FROM pg_proc WHERE oid=to_regprocedure('velarion_api.check_auth_session(text,text,uuid,uuid,timestamp with time zone,timestamp with time zone)') AND md5(prosrc)='bf29734a92f7282c53434cd8fce534e6' AND proowner='velarion_owner'::regrole AND proconfig=ARRAY['search_path=""'] AND prosecdef=true AND NOT proleakproof AND provolatile='v' AND prorettype='boolean'::regtype AND NOT proretset AND coalesce(proacl,acldefault('f',proowner))::text='{velarion_owner=X/velarion_owner,velarion_bff=X/velarion_owner}') THEN RAISE EXCEPTION 'Admission dependency routine fingerprint drift: velarion_api.check_auth_session'; END IF;
+ IF NOT EXISTS(SELECT 1 FROM pg_proc WHERE oid=to_regprocedure('velarion_api.read_core_progress(text,text,uuid,uuid,timestamp with time zone,timestamp with time zone,text,text)') AND md5(prosrc)='ead69ba0564e15bfcb1d65d5b2b96f02' AND proowner='velarion_owner'::regrole AND proconfig=ARRAY['search_path=""'] AND prosecdef=true AND NOT proleakproof AND provolatile='v' AND prorettype='jsonb'::regtype AND NOT proretset AND coalesce(proacl,acldefault('f',proowner))::text='{velarion_owner=X/velarion_owner,velarion_bff=X/velarion_owner}') THEN RAISE EXCEPTION 'Admission dependency routine fingerprint drift: velarion_api.read_core_progress'; END IF;
+ IF NOT EXISTS(SELECT 1 FROM pg_proc WHERE oid=to_regprocedure('velarion_api.recover_admission(uuid,text,text,uuid,uuid,timestamp with time zone,timestamp with time zone,text,text)') AND md5(prosrc)='59fc7639efb390c8e7c2f3fb04e9a772' AND proowner='velarion_owner'::regrole AND proconfig=ARRAY['search_path=""'] AND prosecdef=true AND NOT proleakproof AND provolatile='v' AND prorettype='jsonb'::regtype AND NOT proretset AND coalesce(proacl,acldefault('f',proowner))::text='{velarion_owner=X/velarion_owner,velarion_bff=X/velarion_owner}') THEN RAISE EXCEPTION 'Admission dependency routine fingerprint drift: velarion_api.recover_admission'; END IF;
+ IF NOT EXISTS(SELECT 1 FROM pg_proc WHERE oid=to_regprocedure('velarion_api.revoke_account_sessions(text,text,uuid,uuid,timestamp with time zone,timestamp with time zone,uuid,text)') AND md5(prosrc)='a2f1b1bba1cf84fd9b1fe9fbbac6a93c' AND proowner='velarion_owner'::regrole AND proconfig=ARRAY['search_path=""'] AND prosecdef=true AND NOT proleakproof AND provolatile='v' AND prorettype='jsonb'::regtype AND NOT proretset AND coalesce(proacl,acldefault('f',proowner))::text='{velarion_owner=X/velarion_owner,velarion_bff=X/velarion_owner}') THEN RAISE EXCEPTION 'Admission dependency routine fingerprint drift: velarion_api.revoke_account_sessions'; END IF;
+ IF NOT EXISTS(SELECT 1 FROM pg_proc WHERE oid=to_regprocedure('velarion_api.revoke_current_session(text,text,uuid,uuid,timestamp with time zone,timestamp with time zone,uuid,text)') AND md5(prosrc)='88657bacd8647a30c4b890184327e541' AND proowner='velarion_owner'::regrole AND proconfig=ARRAY['search_path=""'] AND prosecdef=true AND NOT proleakproof AND provolatile='v' AND prorettype='jsonb'::regtype AND NOT proretset AND coalesce(proacl,acldefault('f',proowner))::text='{velarion_owner=X/velarion_owner,velarion_bff=X/velarion_owner}') THEN RAISE EXCEPTION 'Admission dependency routine fingerprint drift: velarion_api.revoke_current_session'; END IF;
+ IF NOT EXISTS(SELECT 1 FROM pg_proc WHERE oid=to_regprocedure('velarion_api.rotate_session(text,text,uuid,uuid,timestamp with time zone,timestamp with time zone,uuid,text,text)') AND md5(prosrc)='db3b73d7938c0c59a055af683ca385e3' AND proowner='velarion_owner'::regrole AND proconfig=ARRAY['search_path=""'] AND prosecdef=true AND NOT proleakproof AND provolatile='v' AND prorettype='jsonb'::regtype AND NOT proretset AND coalesce(proacl,acldefault('f',proowner))::text='{velarion_owner=X/velarion_owner,velarion_bff=X/velarion_owner}') THEN RAISE EXCEPTION 'Admission dependency routine fingerprint drift: velarion_api.rotate_session'; END IF;
+ IF NOT EXISTS(SELECT 1 FROM pg_proc WHERE oid=to_regprocedure('velarion_api.start_attempt(text,text,uuid,uuid,timestamp with time zone,timestamp with time zone,text,text,text,text,uuid)') AND md5(prosrc)='0d48c546397eb982656f81dae3e5960d' AND proowner='velarion_owner'::regrole AND proconfig=ARRAY['search_path=""'] AND prosecdef=true AND NOT proleakproof AND provolatile='v' AND prorettype='uuid'::regtype AND NOT proretset AND coalesce(proacl,acldefault('f',proowner))::text='{velarion_owner=X/velarion_owner,velarion_bff=X/velarion_owner}') THEN RAISE EXCEPTION 'Admission dependency routine fingerprint drift: velarion_api.start_attempt'; END IF;
+ IF NOT EXISTS(SELECT 1 FROM pg_proc WHERE oid=to_regprocedure('velarion_api.submit_attempt(text,text,uuid,uuid,timestamp with time zone,timestamp with time zone,uuid,integer[])') AND md5(prosrc)='3adf62e1e227744f09e5b1140b6f5b0c' AND proowner='velarion_owner'::regrole AND proconfig=ARRAY['search_path=""'] AND prosecdef=true AND NOT proleakproof AND provolatile='v' AND prorettype='boolean'::regtype AND NOT proretset AND coalesce(proacl,acldefault('f',proowner))::text='{velarion_owner=X/velarion_owner,velarion_bff=X/velarion_owner}') THEN RAISE EXCEPTION 'Admission dependency routine fingerprint drift: velarion_api.submit_attempt'; END IF;
+ IF NOT EXISTS(SELECT 1 FROM pg_proc WHERE oid=to_regprocedure('velarion_private.bump_admission_fence()') AND md5(prosrc)='4625fae0eea309e9be4d46d9529ea5d9' AND proowner='velarion_owner'::regrole AND proconfig=ARRAY['search_path=""'] AND prosecdef=false AND NOT proleakproof AND provolatile='v' AND prorettype='trigger'::regtype AND NOT proretset AND coalesce(proacl,acldefault('f',proowner))::text='{velarion_owner=X/velarion_owner}') THEN RAISE EXCEPTION 'Admission dependency routine fingerprint drift: velarion_private.bump_admission_fence'; END IF;
+ IF NOT EXISTS(SELECT 1 FROM pg_proc WHERE oid=to_regprocedure('velarion_private.check_release_seal()') AND md5(prosrc)='c63d31f5d38da06488ceb86b1567e7c3' AND proowner='velarion_owner'::regrole AND proconfig=ARRAY['search_path=""'] AND prosecdef=false AND NOT proleakproof AND provolatile='v' AND prorettype='trigger'::regtype AND NOT proretset AND coalesce(proacl,acldefault('f',proowner))::text='{velarion_owner=X/velarion_owner}') THEN RAISE EXCEPTION 'Admission dependency routine fingerprint drift: velarion_private.check_release_seal'; END IF;
+ IF NOT EXISTS(SELECT 1 FROM pg_proc WHERE oid=to_regprocedure('velarion_private.has_completion(uuid,text,text,text)') AND md5(prosrc)='41b8af5e989642d01764238d78c0bf68' AND proowner='velarion_owner'::regrole AND proconfig=ARRAY['search_path=""'] AND prosecdef=false AND NOT proleakproof AND provolatile='s' AND prorettype='boolean'::regtype AND NOT proretset AND coalesce(proacl,acldefault('f',proowner))::text='{velarion_owner=X/velarion_owner}') THEN RAISE EXCEPTION 'Admission dependency routine fingerprint drift: velarion_private.has_completion'; END IF;
+ IF NOT EXISTS(SELECT 1 FROM pg_proc WHERE oid=to_regprocedure('velarion_private.keep_app_binding()') AND md5(prosrc)='9f4729b5e2bb95152daa5a74e9fdf433' AND proowner='velarion_owner'::regrole AND proconfig=ARRAY['search_path=""'] AND prosecdef=false AND NOT proleakproof AND provolatile='v' AND prorettype='trigger'::regtype AND NOT proretset AND coalesce(proacl,acldefault('f',proowner))::text='{velarion_owner=X/velarion_owner}') THEN RAISE EXCEPTION 'Admission dependency routine fingerprint drift: velarion_private.keep_app_binding'; END IF;
+ IF NOT EXISTS(SELECT 1 FROM pg_proc WHERE oid=to_regprocedure('velarion_private.keep_generation()') AND md5(prosrc)='234c74f00e8b0d341ff87048743ac426' AND proowner='velarion_owner'::regrole AND proconfig=ARRAY['search_path=""'] AND prosecdef=false AND NOT proleakproof AND provolatile='v' AND prorettype='trigger'::regtype AND NOT proretset AND coalesce(proacl,acldefault('f',proowner))::text='{velarion_owner=X/velarion_owner}') THEN RAISE EXCEPTION 'Admission dependency routine fingerprint drift: velarion_private.keep_generation'; END IF;
+ IF NOT EXISTS(SELECT 1 FROM pg_proc WHERE oid=to_regprocedure('velarion_private.keep_handle_binding()') AND md5(prosrc)='77f8e0b722e97702fcce755502880e7a' AND proowner='velarion_owner'::regrole AND proconfig=ARRAY['search_path=""'] AND prosecdef=false AND NOT proleakproof AND provolatile='v' AND prorettype='trigger'::regtype AND NOT proretset AND coalesce(proacl,acldefault('f',proowner))::text='{velarion_owner=X/velarion_owner}') THEN RAISE EXCEPTION 'Admission dependency routine fingerprint drift: velarion_private.keep_handle_binding'; END IF;
+ IF NOT EXISTS(SELECT 1 FROM pg_proc WHERE oid=to_regprocedure('velarion_private.reject_mutation()') AND md5(prosrc)='96cc5c4cea325257776fc71449091640' AND proowner='velarion_owner'::regrole AND proconfig=ARRAY['search_path=""'] AND prosecdef=false AND NOT proleakproof AND provolatile='v' AND prorettype='trigger'::regtype AND NOT proretset AND coalesce(proacl,acldefault('f',proowner))::text='{velarion_owner=X/velarion_owner}') THEN RAISE EXCEPTION 'Admission dependency routine fingerprint drift: velarion_private.reject_mutation'; END IF;
+ IF NOT EXISTS(SELECT 1 FROM pg_proc WHERE oid=to_regprocedure('velarion_private.reject_sealed_insert()') AND md5(prosrc)='be1774caf95ca4f3ad2f831db3304b52' AND proowner='velarion_owner'::regrole AND proconfig=ARRAY['search_path=""'] AND prosecdef=false AND NOT proleakproof AND provolatile='v' AND prorettype='trigger'::regtype AND NOT proretset AND coalesce(proacl,acldefault('f',proowner))::text='{velarion_owner=X/velarion_owner}') THEN RAISE EXCEPTION 'Admission dependency routine fingerprint drift: velarion_private.reject_sealed_insert'; END IF;
+ IF NOT EXISTS(SELECT 1 FROM pg_proc WHERE oid=to_regprocedure('velarion_private.require_admission_identity(text,uuid,uuid,timestamp with time zone,timestamp with time zone,boolean)') AND md5(prosrc)='c93e4e7c9be81fa3fe0680adf88981de' AND proowner='velarion_owner'::regrole AND proconfig=ARRAY['search_path=""'] AND prosecdef=false AND NOT proleakproof AND provolatile='v' AND prorettype='uuid'::regtype AND NOT proretset AND coalesce(proacl,acldefault('f',proowner))::text='{velarion_owner=X/velarion_owner}') THEN RAISE EXCEPTION 'Admission dependency routine fingerprint drift: velarion_private.require_admission_identity'; END IF;
+ IF NOT EXISTS(SELECT 1 FROM pg_proc WHERE oid=to_regprocedure('velarion_private.require_app_handle(text,text,uuid,uuid,timestamp with time zone,timestamp with time zone,boolean)') AND md5(prosrc)='5198f2a0534e43f78f53e27774093d9a' AND proowner='velarion_owner'::regrole AND proconfig=ARRAY['search_path=""'] AND prosecdef=false AND NOT proleakproof AND provolatile='v' AND prorettype='uuid'::regtype AND NOT proretset AND coalesce(proacl,acldefault('f',proowner))::text='{velarion_owner=X/velarion_owner}') THEN RAISE EXCEPTION 'Admission dependency routine fingerprint drift: velarion_private.require_app_handle'; END IF;
+ IF NOT EXISTS(SELECT 1 FROM pg_proc WHERE oid=to_regprocedure('velarion_private.require_app_session(text,uuid,uuid,timestamp with time zone,timestamp with time zone,boolean)') AND md5(prosrc)='0efcfd2a1548d816fb527212a7622ef6' AND proowner='velarion_owner'::regrole AND proconfig=ARRAY['search_path=""'] AND prosecdef=false AND NOT proleakproof AND provolatile='v' AND prorettype='uuid'::regtype AND NOT proretset AND coalesce(proacl,acldefault('f',proowner))::text='{velarion_owner=X/velarion_owner}') THEN RAISE EXCEPTION 'Admission dependency routine fingerprint drift: velarion_private.require_app_session'; END IF;
+ IF NOT EXISTS(SELECT 1 FROM pg_proc WHERE oid=to_regprocedure('velarion_private.require_learner(text,uuid,uuid,timestamp with time zone)') AND md5(prosrc)='14b6f73cf81cb16c0cd865cb5c05a47d' AND proowner='velarion_owner'::regrole AND proconfig=ARRAY['search_path=""'] AND prosecdef=false AND NOT proleakproof AND provolatile='v' AND prorettype='uuid'::regtype AND NOT proretset AND coalesce(proacl,acldefault('f',proowner))::text='{velarion_owner=X/velarion_owner}') THEN RAISE EXCEPTION 'Admission dependency routine fingerprint drift: velarion_private.require_learner'; END IF;
+ IF NOT EXISTS(SELECT 1 FROM pg_proc WHERE oid=to_regprocedure('velarion_private.require_prerequisites(uuid,text,text,text)') AND md5(prosrc)='32c6dfde3f19f5c409861019e705b92d' AND proowner='velarion_owner'::regrole AND proconfig=ARRAY['search_path=""'] AND prosecdef=false AND NOT proleakproof AND provolatile='v' AND prorettype='void'::regtype AND NOT proretset AND coalesce(proacl,acldefault('f',proowner))::text='{velarion_owner=X/velarion_owner}') THEN RAISE EXCEPTION 'Admission dependency routine fingerprint drift: velarion_private.require_prerequisites'; END IF;
+ IF NOT EXISTS(SELECT 1 FROM pg_proc WHERE oid=to_regprocedure('velarion_private.require_study(uuid,text,text)') AND md5(prosrc)='359c9cde826b0f5a7b243aced3c77e85' AND proowner='velarion_owner'::regrole AND proconfig=ARRAY['search_path=""'] AND prosecdef=false AND NOT proleakproof AND provolatile='v' AND prorettype='void'::regtype AND NOT proretset AND coalesce(proacl,acldefault('f',proowner))::text='{velarion_owner=X/velarion_owner}') THEN RAISE EXCEPTION 'Admission dependency routine fingerprint drift: velarion_private.require_study'; END IF;
+ IF NOT EXISTS(SELECT 1 FROM pg_proc WHERE oid=to_regprocedure('velarion_private.secret_digest(text,text)') AND md5(prosrc)='229a9989ee62f8602f19ffd2c84e1359' AND proowner='velarion_owner'::regrole AND proconfig=ARRAY['search_path=""'] AND prosecdef=false AND NOT proleakproof AND provolatile='v' AND prorettype='bytea'::regtype AND NOT proretset AND coalesce(proacl,acldefault('f',proowner))::text='{velarion_owner=X/velarion_owner}') THEN RAISE EXCEPTION 'Admission dependency routine fingerprint drift: velarion_private.secret_digest'; END IF;
+ IF NOT EXISTS(SELECT 1 FROM pg_proc WHERE oid=to_regprocedure('velarion_private.session_operation(text,text,text,uuid,uuid,timestamp with time zone,timestamp with time zone,uuid,text,text)') AND md5(prosrc)='eafb82052b189531af7dbc8e9fb5068f' AND proowner='velarion_owner'::regrole AND proconfig=ARRAY['search_path=""'] AND prosecdef=false AND NOT proleakproof AND provolatile='v' AND prorettype='jsonb'::regtype AND NOT proretset AND coalesce(proacl,acldefault('f',proowner))::text='{velarion_owner=X/velarion_owner}') THEN RAISE EXCEPTION 'Admission dependency routine fingerprint drift: velarion_private.session_operation'; END IF;
+ IF (SELECT count(*) FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace WHERE n.nspname='velarion_api')<>10 THEN RAISE EXCEPTION 'API/private routine surface or overload drift'; END IF;
+ IF (SELECT count(*) FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace WHERE n.nspname='velarion_private')<>16 THEN RAISE EXCEPTION 'API/private routine surface or overload drift'; END IF;
+ -- END EXACT POST-ADMISSION ROUTINE GUARDS
+ IF EXISTS(SELECT 1 FROM velarion_private.identities) OR EXISTS(SELECT 1 FROM velarion_private.learners) OR EXISTS(SELECT 1 FROM velarion_private.app_sessions) OR EXISTS(SELECT 1 FROM velarion_private.app_session_handles) OR EXISTS(SELECT 1 FROM velarion_private.session_admission_attempts) OR EXISTS(SELECT 1 FROM velarion_private.delivery_controls WHERE enabled) THEN RAISE EXCEPTION 'Expected empty enrollment, handles and delivery-off baseline'; END IF;
+ IF to_regclass('velarion_private.onboarding_waivers') IS NOT NULL OR to_regprocedure('velarion_api.read_onboarding_status(text,text,uuid,uuid,timestamptz,timestamptz)') IS NOT NULL THEN RAISE EXCEPTION 'Onboarding extension collision'; END IF;
+ IF EXISTS(SELECT 1 FROM pg_namespace n WHERE n.nspname IN ('velarion_private','velarion_api') AND n.nspowner<>'velarion_owner'::regrole) OR EXISTS(SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname IN ('velarion_private','velarion_api') AND (c.relowner<>'velarion_owner'::regrole OR (c.relkind='r' AND NOT c.relrowsecurity))) THEN RAISE EXCEPTION 'Dependency owner/RLS drift'; END IF;
+ IF EXISTS(SELECT 1 FROM pg_namespace n CROSS JOIN LATERAL aclexplode(coalesce(n.nspacl,acldefault('n',n.nspowner))) a WHERE n.nspname IN ('velarion_private','velarion_api') AND a.grantee<>n.nspowner AND NOT(n.nspname='velarion_api' AND a.grantee='velarion_bff'::regrole AND a.privilege_type='USAGE' AND NOT a.is_grantable)) THEN RAISE EXCEPTION 'Dependency schema ACL drift'; END IF;
+ IF EXISTS(SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace CROSS JOIN LATERAL aclexplode(coalesce(c.relacl,acldefault('r',c.relowner))) a WHERE n.nspname IN ('velarion_private','velarion_api') AND a.grantee<>c.relowner) OR EXISTS(SELECT 1 FROM pg_attribute t JOIN pg_class c ON c.oid=t.attrelid JOIN pg_namespace n ON n.oid=c.relnamespace CROSS JOIN LATERAL aclexplode(t.attacl) a WHERE n.nspname IN ('velarion_private','velarion_api') AND a.grantee<>c.relowner) THEN RAISE EXCEPTION 'Dependency relation/column ACL drift'; END IF;
+ IF EXISTS(SELECT 1 FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace CROSS JOIN LATERAL aclexplode(coalesce(p.proacl,acldefault('f',p.proowner))) a WHERE n.nspname IN ('velarion_private','velarion_api') AND a.grantee<>p.proowner AND NOT(n.nspname='velarion_api' AND a.grantee='velarion_bff'::regrole AND a.privilege_type='EXECUTE' AND NOT a.is_grantable)) THEN RAISE EXCEPTION 'Dependency routine ACL drift'; END IF;
+ IF EXISTS(SELECT 1 FROM pg_default_acl d CROSS JOIN LATERAL aclexplode(d.defaclacl) a WHERE d.defaclrole='velarion_owner'::regrole AND a.grantee<>d.defaclrole) THEN RAISE EXCEPTION 'Dependency default ACL drift'; END IF;
+ END $dependency$;
+LOCK TABLE velarion_private.learners,velarion_private.identities,velarion_private.auth_issuers,velarion_private.delivery_controls,velarion_private.required_core,velarion_private.completions,velarion_private.eligibility_evidence IN ACCESS EXCLUSIVE MODE;
+CREATE TABLE velarion_private.onboarding_waivers(
+ issuer text NOT NULL CHECK(issuer='https://akhftbbszejafxpoxiem.supabase.co/auth/v1'),
+ subject uuid NOT NULL,
+ scope text NOT NULL CHECK(scope IN ('referral','deposit','core_completion')),
+ created_at timestamptz NOT NULL DEFAULT clock_timestamp() CHECK(isfinite(created_at)),
+ expires_at timestamptz NOT NULL CHECK(isfinite(expires_at) AND expires_at>created_at),
+ reason_code text NOT NULL CHECK(reason_code ~ '^[a-z0-9][a-z0-9_-]{0,63}$'),
+ PRIMARY KEY(issuer,subject,scope),
+ FOREIGN KEY(issuer,subject) REFERENCES velarion_private.identities(issuer,subject)
+);
+ALTER TABLE velarion_private.onboarding_waivers ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON TABLE velarion_private.onboarding_waivers FROM PUBLIC,anon,authenticated,service_role,velarion_bff,velarion_broker_ingest,velarion_execution_worker;
+-- Do not replace canonical require_study: exact subject context is unavailable there.
+-- Learning API wrappers call this guard after resolving and locking the live handle.
+CREATE FUNCTION velarion_private.require_study_for_subject(p_learner uuid,p_issuer text,p_subject uuid,p_course text,p_release text)
+RETURNS void LANGUAGE plpgsql SECURITY INVOKER SET search_path='' AS $$
+DECLARE referral_waived boolean; deposit_waived boolean;
+BEGIN
+ SELECT EXISTS(SELECT 1 FROM velarion_private.onboarding_waivers w JOIN velarion_private.identities i ON (i.issuer,i.subject)=(w.issuer,w.subject) JOIN velarion_private.auth_issuers a ON a.issuer=i.issuer WHERE w.issuer=p_issuer AND w.subject=p_subject AND i.learner_id=p_learner AND i.disabled_at IS NULL AND i.email_verified_at IS NOT NULL AND a.enabled AND w.scope='referral' AND w.expires_at>clock_timestamp()),
+        EXISTS(SELECT 1 FROM velarion_private.onboarding_waivers w JOIN velarion_private.identities i ON (i.issuer,i.subject)=(w.issuer,w.subject) JOIN velarion_private.auth_issuers a ON a.issuer=i.issuer WHERE w.issuer=p_issuer AND w.subject=p_subject AND i.learner_id=p_learner AND i.disabled_at IS NULL AND i.email_verified_at IS NOT NULL AND a.enabled AND w.scope='deposit' AND w.expires_at>clock_timestamp())
+ INTO referral_waived,deposit_waived;
+ IF NOT referral_waived AND NOT deposit_waived AND NOT EXISTS(SELECT 1 FROM velarion_private.eligibility_evidence r JOIN velarion_private.eligibility_evidence d ON d.learner_id=r.learner_id AND d.broker=r.broker AND d.broker_subject_digest=r.broker_subject_digest WHERE r.learner_id=p_learner AND r.kind='referral' AND d.kind='deposit' AND r.observed_at<=clock_timestamp() AND d.observed_at<=clock_timestamp() AND r.valid_until>clock_timestamp() AND d.valid_until>clock_timestamp() AND NOT EXISTS(SELECT 1 FROM velarion_private.evidence_revocations v WHERE v.evidence_id IN(r.id,d.id))) THEN RAISE EXCEPTION 'Verified current referral and deposit required' USING ERRCODE='42501'; END IF;
+ IF NOT referral_waived AND NOT EXISTS(SELECT 1 FROM velarion_private.eligibility_evidence r WHERE r.learner_id=p_learner AND r.kind='referral' AND r.observed_at<=clock_timestamp() AND r.valid_until>clock_timestamp() AND NOT EXISTS(SELECT 1 FROM velarion_private.evidence_revocations v WHERE v.evidence_id=r.id)) THEN RAISE EXCEPTION 'Verified current referral required' USING ERRCODE='42501'; END IF;
+ IF NOT deposit_waived AND NOT EXISTS(SELECT 1 FROM velarion_private.eligibility_evidence d WHERE d.learner_id=p_learner AND d.kind='deposit' AND d.observed_at<=clock_timestamp() AND d.valid_until>clock_timestamp() AND NOT EXISTS(SELECT 1 FROM velarion_private.evidence_revocations v WHERE v.evidence_id=d.id)) THEN RAISE EXCEPTION 'Verified current deposit required' USING ERRCODE='42501'; END IF;
+ PERFORM 1 FROM velarion_private.delivery_controls c JOIN velarion_private.release_seals s USING(course_id,release_version) WHERE c.course_id=p_course AND c.release_version=p_release AND c.enabled FOR SHARE OF c;
+ IF NOT FOUND THEN RAISE EXCEPTION 'Authorized content delivery is suspended' USING ERRCODE='42501'; END IF;
+END $$;
+-- Ordinary per-lesson prerequisite sequencing remains exactly as installed. A core waiver
+-- affects the overall onboarding gate only; it does not authorize skipping lessons.
+
+-- Full staged handle-aware routine definitions; only eligibility guard call is specialized.
+CREATE OR REPLACE FUNCTION velarion_api.start_attempt(p_handle text,
+ p_issuer text,p_subject uuid,p_session uuid,p_iat timestamptz,p_exp timestamptz,
+ p_course text,p_release text,p_lesson text,p_assessment text,p_request uuid) RETURNS uuid LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $$
+DECLARE l uuid; a velarion_private.attempts%ROWTYPE;
+BEGIN
+ l:=velarion_private.require_app_handle(p_handle,p_issuer,p_subject,p_session,p_iat,p_exp);
+ PERFORM velarion_private.require_study_for_subject(l,p_issuer,p_subject,p_course,p_release);
+ PERFORM velarion_private.require_prerequisites(l,p_course,p_release,p_lesson);
+ PERFORM 1 FROM velarion_private.assessment_versions v JOIN velarion_private.lesson_versions x
+ USING(course_id,release_version,lesson_id,content_version)
+ WHERE v.course_id=p_course AND v.release_version=p_release AND v.lesson_id=p_lesson
+ AND v.assessment_version=p_assessment AND x.publication='published';
+ IF NOT FOUND THEN RAISE EXCEPTION 'Published assessment unavailable' USING ERRCODE='42501'; END IF;
+ SELECT * INTO a FROM velarion_private.attempts WHERE learner_id=l AND request_id=p_request;
+ IF FOUND THEN
+ IF (a.course_id,a.release_version,a.lesson_id,a.assessment_version,a.issuer,a.subject)
+ IS DISTINCT FROM (p_course,p_release,p_lesson,p_assessment,p_issuer,p_subject) THEN
+ RAISE EXCEPTION 'Idempotency key reused for a different attempt'; END IF;
+ RETURN a.id; -- Same bound expired attempt remains expired; use a fresh request for an approved retry.
+ END IF;
+ INSERT INTO velarion_private.attempts(learner_id,issuer,subject,course_id,release_version,lesson_id,assessment_version,request_id,expires_at)
+ VALUES(l,p_issuer,p_subject,p_course,p_release,p_lesson,p_assessment,p_request,clock_timestamp()+interval '20 minutes') RETURNING * INTO a;
+ INSERT INTO velarion_private.audit_events(learner_id,actor_class,event_type,correlation_id)
+ VALUES(l,'learning-bff','attempt-created',p_request);
+ RETURN a.id;
+END $$;
+CREATE OR REPLACE FUNCTION velarion_api.submit_attempt(p_handle text,
+ p_issuer text,p_subject uuid,p_session uuid,p_iat timestamptz,p_exp timestamptz,p_attempt uuid,p_choices integer[]) RETURNS boolean LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $$
+DECLARE l uuid; a velarion_private.attempts%ROWTYPE; v velarion_private.assessment_versions%ROWTYPE;
+ k integer[]; score integer; did_pass boolean;
+BEGIN
+ l:=velarion_private.require_app_handle(p_handle,p_issuer,p_subject,p_session,p_iat,p_exp);
+ SELECT * INTO a FROM velarion_private.attempts WHERE id=p_attempt AND learner_id=l
+ AND issuer=p_issuer AND subject=p_subject FOR UPDATE;
+ IF NOT FOUND THEN RAISE EXCEPTION 'Attempt unavailable' USING ERRCODE='42501'; END IF;
+ PERFORM velarion_private.require_study_for_subject(l,p_issuer,p_subject,a.course_id,a.release_version);
+ PERFORM velarion_private.require_prerequisites(l,a.course_id,a.release_version,a.lesson_id);
+ IF a.submitted_at IS NOT NULL THEN
+ IF a.submitted_choices IS DISTINCT FROM p_choices THEN RAISE EXCEPTION 'Submission replay has different answers'; END IF;
+ RETURN a.passed; -- Retry of identical request, after reauthorization; no new completion/audit/award.
+ END IF;
+ IF a.expires_at<=clock_timestamp() THEN RAISE EXCEPTION 'Attempt expired'; END IF;
+ SELECT * INTO STRICT v FROM velarion_private.assessment_versions
+ WHERE course_id=a.course_id AND release_version=a.release_version AND lesson_id=a.lesson_id AND assessment_version=a.assessment_version;
+ SELECT correct_choices INTO STRICT k FROM velarion_private.answer_keys
+ WHERE course_id=a.course_id AND release_version=a.release_version AND lesson_id=a.lesson_id AND assessment_version=a.assessment_version;
+ IF cardinality(k)<>v.question_count THEN RAISE EXCEPTION 'Assessment key unavailable'; END IF;
+ IF p_choices IS NULL OR array_ndims(p_choices) IS DISTINCT FROM 1 OR array_lower(p_choices,1) IS DISTINCT FROM 1
+ OR cardinality(p_choices)<>v.question_count OR array_position(p_choices,NULL) IS NOT NULL
+ OR EXISTS(SELECT 1 FROM unnest(p_choices) c WHERE c<0 OR c>99) THEN
+ RAISE EXCEPTION 'Malformed answer vector'; END IF;
+ SELECT count(*)::integer INTO score FROM generate_subscripts(k,1) n WHERE k[n]=p_choices[n];
+ did_pass:=score>=v.pass_count;
+ UPDATE velarion_private.attempts SET submitted_at=clock_timestamp(),submitted_choices=p_choices,
+ correct_count=score,passed=did_pass WHERE id=a.id;
+ IF did_pass THEN
+ INSERT INTO velarion_private.completions(learner_id,course_id,release_version,lesson_id,attempt_id)
+ VALUES(l,a.course_id,a.release_version,a.lesson_id,a.id)
+ ON CONFLICT(learner_id,course_id,release_version,lesson_id) DO NOTHING;
+ END IF;
+ INSERT INTO velarion_private.audit_events(learner_id,actor_class,event_type,correlation_id,safe_metadata)
+ VALUES(l,'learning-bff','attempt-submitted',a.request_id,jsonb_build_object('passed',did_pass));
+ -- Intentionally NO reward/activity/streak/broker/activation write.
+ RETURN did_pass;
+END $$;
+CREATE OR REPLACE FUNCTION velarion_api.read_core_progress(p_handle text,
+ p_issuer text,p_subject uuid,p_session uuid,p_iat timestamptz,p_exp timestamptz,p_course text,p_release text) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $$
+DECLARE l uuid; n integer; total integer; early boolean;
+BEGIN
+ l:=velarion_private.require_app_handle(p_handle,p_issuer,p_subject,p_session,p_iat,p_exp);
+ -- Current eligibility required for protected learning DTO too; fail closed under suspension.
+ PERFORM velarion_private.require_study_for_subject(l,p_issuer,p_subject,p_course,p_release);
+ SELECT count(*),count(*) FILTER(WHERE velarion_private.has_completion(l,p_course,p_release,r.lesson_id))
+ INTO total,n FROM velarion_private.required_core r WHERE r.course_id=p_course AND r.release_version=p_release;
+ SELECT bool_and(velarion_private.has_completion(l,p_course,p_release,x.id)) INTO early
+ FROM unnest(ARRAY['b1','b2','b3','b4','b5']) x(id);
+ RETURN jsonb_build_object('coreCompleted',n,'coreTotal',total,'coreGraduated',total=30 AND n=30,
+ 'earlyMilestone',coalesce(early,false),'automationEligible',false);
+END $$;
+CREATE FUNCTION velarion_api.read_onboarding_status(p_handle text,p_issuer text,p_subject uuid,p_session uuid,p_iat timestamptz,p_exp timestamptz) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $$
+DECLARE l uuid; referral_ok boolean; deposit_ok boolean; matched_ok boolean; referral_waived boolean; deposit_waived boolean; core_done integer; core_total integer; core_waived boolean; gates jsonb;
+BEGIN
+ l:=velarion_private.require_app_handle(p_handle,p_issuer,p_subject,p_session,p_iat,p_exp);
+ -- require_app_handle resolves and locks the exact identity/session and learner, and fails closed for disabled/revoked/suspended state.
+ SELECT EXISTS(SELECT 1 FROM velarion_private.eligibility_evidence e WHERE e.learner_id=l AND e.kind='referral' AND e.observed_at<=clock_timestamp() AND e.valid_until>clock_timestamp() AND NOT EXISTS(SELECT 1 FROM velarion_private.evidence_revocations x WHERE x.evidence_id=e.id)) INTO referral_ok;
+ SELECT EXISTS(SELECT 1 FROM velarion_private.eligibility_evidence e WHERE e.learner_id=l AND e.kind='deposit' AND e.observed_at<=clock_timestamp() AND e.valid_until>clock_timestamp() AND NOT EXISTS(SELECT 1 FROM velarion_private.evidence_revocations x WHERE x.evidence_id=e.id)) INTO deposit_ok;
+ SELECT EXISTS(SELECT 1 FROM velarion_private.eligibility_evidence r JOIN velarion_private.eligibility_evidence d ON d.learner_id=r.learner_id AND d.broker=r.broker AND d.broker_subject_digest=r.broker_subject_digest WHERE r.learner_id=l AND r.kind='referral' AND d.kind='deposit' AND r.observed_at<=clock_timestamp() AND d.observed_at<=clock_timestamp() AND r.valid_until>clock_timestamp() AND d.valid_until>clock_timestamp() AND NOT EXISTS(SELECT 1 FROM velarion_private.evidence_revocations x WHERE x.evidence_id IN(r.id,d.id))) INTO matched_ok;
+ SELECT count(*)::integer INTO core_total FROM velarion_private.required_core;
+ SELECT count(*)::integer INTO core_done FROM velarion_private.required_core r WHERE EXISTS(SELECT 1 FROM velarion_private.completions c WHERE c.learner_id=l AND c.course_id=r.course_id AND c.release_version=r.release_version AND c.lesson_id=r.lesson_id AND NOT EXISTS(SELECT 1 FROM velarion_private.completion_revocations x WHERE (x.learner_id,x.course_id,x.release_version,x.lesson_id)=(c.learner_id,c.course_id,c.release_version,c.lesson_id)));
+ SELECT EXISTS(SELECT 1 FROM velarion_private.onboarding_waivers w WHERE w.issuer=p_issuer AND w.subject=p_subject AND w.scope='referral' AND w.expires_at>clock_timestamp()),
+        EXISTS(SELECT 1 FROM velarion_private.onboarding_waivers w WHERE w.issuer=p_issuer AND w.subject=p_subject AND w.scope='deposit' AND w.expires_at>clock_timestamp()),
+        EXISTS(SELECT 1 FROM velarion_private.onboarding_waivers w WHERE w.issuer=p_issuer AND w.subject=p_subject AND w.scope='core_completion' AND w.expires_at>clock_timestamp())
+ INTO referral_waived,deposit_waived,core_waived;
+ IF NOT referral_waived AND NOT deposit_waived AND NOT matched_ok THEN referral_ok:=false; deposit_ok:=false; END IF;
+ gates:=jsonb_build_array(
+  jsonb_build_object('gate','referral','status',CASE WHEN referral_ok THEN 'complete' WHEN referral_waived THEN 'waived' ELSE 'pending' END),
+  jsonb_build_object('gate','deposit','status',CASE WHEN deposit_ok THEN 'complete' WHEN deposit_waived THEN 'waived' ELSE 'pending' END),
+  jsonb_build_object('gate','core_completion','status',CASE WHEN core_total>0 AND core_done=core_total THEN 'complete' WHEN core_waived THEN 'waived' ELSE 'pending' END));
+ RETURN jsonb_build_object('gates',gates,'progress',jsonb_build_object('coreCompleted',core_done,'coreTotal',core_total),
+  'linking','pending','consent','pending','activation','pending','deliveryEnabled',false,'automationEligible',false,'tradingEligible',false,
+  'eligibilitySatisfied',(referral_waived OR referral_ok) AND (deposit_waived OR deposit_ok) AND (matched_ok OR referral_waived OR deposit_waived) AND ((core_total>0 AND core_done=core_total) OR core_waived));
+END $$;
+REVOKE ALL ON FUNCTION velarion_api.read_onboarding_status(text,text,uuid,uuid,timestamptz,timestamptz) FROM PUBLIC,anon,authenticated,service_role,velarion_broker_ingest,velarion_execution_worker;
+GRANT EXECUTE ON FUNCTION velarion_api.read_onboarding_status(text,text,uuid,uuid,timestamptz,timestamptz) TO velarion_bff;
+DO $post$
+BEGIN
+ IF (SELECT count(*) FROM velarion_private.onboarding_waivers)<>0 THEN RAISE EXCEPTION 'Waivers must start empty'; END IF;
+ IF EXISTS(SELECT 1 FROM velarion_private.auth_issuers) OR EXISTS(SELECT 1 FROM velarion_private.learners) OR EXISTS(SELECT 1 FROM velarion_private.identities) OR EXISTS(SELECT 1 FROM velarion_private.app_session_handles) OR EXISTS(SELECT 1 FROM velarion_private.session_admission_attempts) OR EXISTS(SELECT 1 FROM velarion_private.delivery_controls WHERE enabled) THEN RAISE EXCEPTION 'Locked state postcondition failed'; END IF;
+ IF EXISTS(SELECT 1 FROM velarion_private.delivery_controls WHERE enabled) THEN RAISE EXCEPTION 'Delivery unexpectedly enabled'; END IF;
+ IF (SELECT count(*) FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace WHERE n.nspname='velarion_api' AND p.proname='read_onboarding_status')<>1 THEN RAISE EXCEPTION 'Onboarding routine overload drift'; END IF;
+ IF has_function_privilege('anon','velarion_api.read_onboarding_status(text,text,uuid,uuid,timestamptz,timestamptz)','EXECUTE') OR has_function_privilege('authenticated','velarion_api.read_onboarding_status(text,text,uuid,uuid,timestamptz,timestamptz)','EXECUTE') OR has_function_privilege('service_role','velarion_api.read_onboarding_status(text,text,uuid,uuid,timestamptz,timestamptz)','EXECUTE') THEN RAISE EXCEPTION 'Unexpected onboarding EXECUTE'; END IF;
+END $post$;
+RESET ROLE;
+REVOKE velarion_owner FROM postgres GRANTED BY postgres;
+DO $role_restored$
+BEGIN
+ IF current_user<>'postgres' OR session_user<>'postgres'
+ OR pg_has_role('postgres','velarion_owner','SET') THEN RAISE EXCEPTION 'Owner authority cleanup failed'; END IF;
+ IF (SELECT count(*) FROM pg_auth_members WHERE roleid IN (SELECT oid FROM pg_roles WHERE rolname IN ('velarion_owner','velarion_bff','velarion_broker_ingest','velarion_execution_worker')))<>4
+ OR EXISTS(SELECT 1 FROM pg_auth_members WHERE roleid IN (SELECT oid FROM pg_roles WHERE rolname IN ('velarion_owner','velarion_bff','velarion_broker_ingest','velarion_execution_worker')) AND (member<>'postgres'::regrole OR grantor<>'supabase_admin'::regrole OR NOT admin_option OR inherit_option OR set_option))
+ OR EXISTS(SELECT 1 FROM pg_auth_members WHERE member IN (SELECT oid FROM pg_roles WHERE rolname IN ('velarion_owner','velarion_bff','velarion_broker_ingest','velarion_execution_worker'))) THEN RAISE EXCEPTION 'Restored membership drift'; END IF;
+ IF NOT EXISTS(SELECT 1 FROM pg_roles WHERE rolname='postgres' AND NOT rolsuper AND rolcanlogin AND rolcreaterole AND rolcreatedb AND rolbypassrls AND rolinherit) THEN RAISE EXCEPTION 'Restored deployment profile drift'; END IF;
+ IF (SELECT count(*) FROM pg_roles WHERE left(rolname,9)='velarion_')<>4
+ OR (SELECT count(*) FROM pg_roles WHERE rolname IN ('velarion_owner','velarion_bff','velarion_broker_ingest','velarion_execution_worker') AND NOT rolcanlogin AND NOT rolsuper AND NOT rolbypassrls AND NOT rolcreaterole AND NOT rolcreatedb AND NOT rolreplication AND rolinherit AND rolconfig IS NULL)<>4 THEN RAISE EXCEPTION 'Restored application profile drift'; END IF;
+END $role_restored$;
+COMMIT;

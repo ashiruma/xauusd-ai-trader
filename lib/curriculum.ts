@@ -1,4 +1,4 @@
-import curriculumData from './curriculum-data.json';
+import curriculumData from './curriculum-summary.json';
 
 export interface QuizQuestion {
   question: string;

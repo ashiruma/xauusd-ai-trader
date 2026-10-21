@@ -212,7 +212,7 @@ export default function HowItWorksPage() {
               Complete the Required Forex School &amp; Quizzes
             </h2>
             <p style={{ fontSize: '14px', color: 'var(--text-secondary)', lineHeight: 1.6, margin: '0 0 16px' }}>
-              Before any automated risk controls can be unlocked, members must complete Foundation Lessons 1 through 5 sequentially. Each lesson ends with a comprehension quiz. To guarantee true mastery, quizzes are graded strictly on the server: answering incorrectly resets your course progress back to Lesson 1 without leaking the correct answer.
+              All 30 required core School lessons need authoritative assessment completion; the first five are not graduation. Protected lesson delivery and assessment submission are currently disabled. Only curriculum summaries are available, and no browser progress is accepted as evidence.
             </p>
             <Link
               href="/school-preview"
@@ -263,7 +263,7 @@ export default function HowItWorksPage() {
               Securely Link Your MT5 Account
             </h2>
             <p style={{ fontSize: '14px', color: 'var(--text-secondary)', lineHeight: 1.6, margin: '0 0 16px' }}>
-              Link your trading account using officially supported least-privilege methods. You provide your JustMarkets MT5 Account ID and optional Investor (read-only) password for live telemetry monitoring. Velarion strictly prohibits and refuses to store master trading passwords. Account linking alone never places trades or enables automated execution.
+              Independent broker ownership verification is a separate gate after all 30 School lessons. An account number, email, or read-only password alone is not ownership evidence. Broker linking is disabled while the approved verification workflow is provisioned. Linking never places orders or authorizes automation.
             </p>
             <div
               style={{
@@ -276,7 +276,7 @@ export default function HowItWorksPage() {
               }}
             >
               <strong style={{ color: 'var(--text-primary)' }}>Security Commitment: </strong>
-              Zero storage of master trading credentials. You retain full cryptographic control and can disconnect or revoke linked accounts instantly at any time.
+              No broker credentials are accepted in this preparation release. Future execution additionally requires explicit account-scoped automation consent and exact authenticated worker acknowledgement. Automation and trading remain disabled.
             </div>
           </div>
 

@@ -1,0 +1,283 @@
+-- REVIEW ONLY. Separate new approval required; DO NOT apply under earlier approval.
+-- Only target: Velarion Staging / akhftbbszejafxpoxiem / database postgres / PG17.11.
+-- Independent connection verification is REQUIRED; psql ref is only operator attestation.
+-- No managed Auth relation reads/grants, issuer/learner/session enrollment, runtime LOGIN or credentials.
+-- Baseline fingerprints derive from exact recorded staging source, not a claim of current hosted equality.
+\set ON_ERROR_STOP on
+\if :{?STAGING_PROJECT_REF}
+\else
+ DO $$ BEGIN RAISE EXCEPTION 'Missing exact staging project ref'; END $$;
+\endif
+SELECT (:'STAGING_PROJECT_REF' = 'akhftbbszejafxpoxiem') AS target_ok \gset
+\if :target_ok
+\else
+ DO $$ BEGIN RAISE EXCEPTION 'Wrong staging project ref'; END $$;
+\endif
+BEGIN;
+SET LOCAL lock_timeout='5s';
+SET LOCAL statement_timeout='60s';
+SET LOCAL idle_in_transaction_session_timeout='60s';
+SET LOCAL search_path=pg_catalog;
+SELECT pg_catalog.pg_advisory_xact_lock(741852963,20261021);
+DO $roles$
+BEGIN
+ IF current_user<>'postgres' OR session_user<>'postgres' OR current_database()<>'postgres'
+ OR current_setting('server_version_num')::integer<>170011 THEN RAISE EXCEPTION 'Principal/database/version drift'; END IF;
+ IF NOT EXISTS(SELECT 1 FROM pg_roles WHERE rolname='postgres' AND NOT rolsuper AND rolcanlogin AND rolcreaterole AND rolcreatedb AND rolbypassrls AND rolinherit) THEN RAISE EXCEPTION 'Unsafe deployment role'; END IF;
+ IF (SELECT count(*) FROM pg_roles WHERE rolname IN ('velarion_owner','velarion_bff','velarion_broker_ingest','velarion_execution_worker') AND NOT rolcanlogin AND NOT rolsuper AND NOT rolbypassrls AND NOT rolcreaterole AND NOT rolcreatedb)<>4 THEN RAISE EXCEPTION 'Application role drift'; END IF;
+ IF EXISTS(SELECT 1 FROM pg_roles WHERE left(rolname,9)='velarion_' AND rolcanlogin) THEN RAISE EXCEPTION 'Runtime LOGIN already present; re-review exact ACL'; END IF;
+ IF (SELECT count(*) FROM pg_auth_members WHERE roleid IN ('velarion_owner'::regrole,'velarion_bff'::regrole,'velarion_broker_ingest'::regrole,'velarion_execution_worker'::regrole))<>4
+ OR EXISTS(SELECT 1 FROM pg_auth_members WHERE roleid IN ('velarion_owner'::regrole,'velarion_bff'::regrole,'velarion_broker_ingest'::regrole,'velarion_execution_worker'::regrole) AND (member<>'postgres'::regrole OR NOT admin_option OR inherit_option OR set_option)) THEN RAISE EXCEPTION 'Application membership drift'; END IF;
+ IF EXISTS(SELECT 1 FROM pg_auth_members WHERE member IN ('velarion_owner'::regrole,'velarion_bff'::regrole,'velarion_broker_ingest'::regrole,'velarion_execution_worker'::regrole)) THEN RAISE EXCEPTION 'Unexpected inherited role'; END IF;
+ IF NOT EXISTS(SELECT 1 FROM pg_auth_members WHERE roleid='velarion_owner'::regrole AND member='postgres'::regrole AND admin_option AND NOT inherit_option AND NOT set_option)
+ OR EXISTS(SELECT 1 FROM pg_auth_members WHERE roleid='velarion_owner'::regrole AND member<>'postgres'::regrole) THEN RAISE EXCEPTION 'Owner membership drift'; END IF;
+ IF EXISTS(SELECT 1 FROM pg_namespace WHERE nspname IN ('velarion_private','velarion_api') AND nspowner<>'velarion_owner'::regrole)
+ OR (SELECT count(*) FROM pg_namespace WHERE nspname IN ('velarion_private','velarion_api'))<>2 THEN RAISE EXCEPTION 'Schema owner drift'; END IF;
+ -- Exact application-role set; provider-managed attributes are allowed only on postgres within this deployment/app boundary.
+ IF (SELECT count(*) FROM pg_roles WHERE left(rolname,9)='velarion_')<>4
+ OR (SELECT count(*) FROM pg_roles WHERE rolname IN ('velarion_owner','velarion_bff','velarion_broker_ingest','velarion_execution_worker') AND NOT rolcanlogin AND NOT rolsuper AND NOT rolbypassrls AND NOT rolcreaterole AND NOT rolcreatedb AND NOT rolreplication AND rolinherit AND rolconfig IS NULL)<>4 THEN RAISE EXCEPTION 'Locked application role set drift'; END IF;
+ IF EXISTS(SELECT 1 FROM pg_auth_members WHERE roleid IN (SELECT oid FROM pg_roles WHERE rolname IN ('velarion_owner','velarion_bff','velarion_broker_ingest','velarion_execution_worker')) AND grantor<>(SELECT oid FROM pg_roles WHERE rolname='supabase_admin'))
+ OR NOT EXISTS(SELECT 1 FROM pg_roles WHERE rolname='supabase_admin') THEN RAISE EXCEPTION 'Provider membership grantor drift'; END IF;
+ IF pg_has_role('postgres','velarion_owner','SET') THEN RAISE EXCEPTION 'Unexpected preexisting owner SET authority'; END IF;
+END $roles$;
+-- Transaction-local deployment authority; restore the original ADMIN-only membership before commit.
+GRANT velarion_owner TO postgres WITH INHERIT FALSE, SET TRUE;
+SET LOCAL ROLE velarion_owner;
+DO $role_path$
+BEGIN
+ IF current_user<>'velarion_owner' OR session_user<>'postgres'
+ OR NOT pg_has_role(session_user,'velarion_owner','SET')
+ OR EXISTS(SELECT 1 FROM pg_roles WHERE rolname=current_user AND (rolsuper OR rolbypassrls OR rolcanlogin OR rolcreaterole OR rolcreatedb OR rolreplication)) THEN RAISE EXCEPTION 'Owner SET ROLE path drift'; END IF;
+ IF (SELECT count(*) FROM pg_auth_members WHERE roleid='velarion_owner'::regrole AND member='postgres'::regrole AND grantor='postgres'::regrole AND NOT admin_option AND NOT inherit_option AND set_option)<>1 THEN RAISE EXCEPTION 'Temporary owner authority drift'; END IF;
+END $role_path$;
+LOCK TABLE velarion_private.learners,velarion_private.identities,velarion_private.auth_issuers,velarion_private.delivery_controls,velarion_private.required_core IN ACCESS EXCLUSIVE MODE;
+DO $baseline$
+BEGIN
+ IF (SELECT count(*) FROM velarion_private.candidate_installation)<>1 OR NOT EXISTS(SELECT 1 FROM velarion_private.candidate_installation WHERE singleton AND stage=3 AND package_id='velarion-staging-2026-10-21-v1') THEN RAISE EXCEPTION 'Wrong installed staging package'; END IF;
+ IF (SELECT count(*) FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='velarion_private' AND c.relkind='r')<>27
+ OR EXISTS(SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname IN ('velarion_private','velarion_api') AND (c.relowner<>'velarion_owner'::regrole OR (c.relkind='r' AND NOT c.relrowsecurity))) THEN RAISE EXCEPTION 'Baseline table/owner/RLS drift'; END IF;
+ IF (SELECT count(*) FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace WHERE n.nspname='velarion_private')<>7
+ OR (SELECT count(*) FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace WHERE n.nspname='velarion_api')<>3 THEN RAISE EXCEPTION 'Unexpected routines / prior identity proposal'; END IF;
+ IF to_regclass('velarion_private.app_sessions') IS NOT NULL OR EXISTS(SELECT 1 FROM pg_attribute WHERE attrelid='velarion_private.learners'::regclass AND attname='authorization_generation' AND NOT attisdropped) THEN RAISE EXCEPTION 'Replacement collision'; END IF;
+ IF EXISTS(SELECT 1 FROM velarion_private.learners WHERE state<>'suspended') THEN RAISE EXCEPTION 'Learners must remain suspended'; END IF;
+ IF EXISTS(SELECT 1 FROM velarion_private.auth_issuers) OR EXISTS(SELECT 1 FROM velarion_private.identities) OR EXISTS(SELECT 1 FROM velarion_private.learners) THEN RAISE EXCEPTION 'Expected recorded empty enrollment baseline; no adoption'; END IF;
+ IF (SELECT count(*) FROM velarion_private.delivery_controls)<>1 OR EXISTS(SELECT 1 FROM velarion_private.delivery_controls WHERE enabled) THEN RAISE EXCEPTION 'Delivery must remain disabled'; END IF;
+ IF (SELECT count(*) FROM velarion_private.required_core)<>30 OR EXISTS(
+ (SELECT lesson_id FROM velarion_private.required_core WHERE course_id='velarion-forex' AND release_version='core-1.extensions-0' EXCEPT SELECT x FROM (SELECT 'b'||generate_series(1,12) x UNION ALL SELECT 'i'||generate_series(1,10) UNION ALL SELECT 'a'||generate_series(1,8)) e)
+ UNION ALL (SELECT x FROM (SELECT 'b'||generate_series(1,12) x UNION ALL SELECT 'i'||generate_series(1,10) UNION ALL SELECT 'a'||generate_series(1,8)) e EXCEPT SELECT lesson_id FROM velarion_private.required_core WHERE course_id='velarion-forex' AND release_version='core-1.extensions-0')) THEN RAISE EXCEPTION 'All-30 manifest drift'; END IF;
+  IF NOT EXISTS(SELECT 1 FROM pg_proc WHERE oid=to_regprocedure('velarion_private.reject_mutation()') AND md5(prosrc)='96cc5c4cea325257776fc71449091640' AND proowner='velarion_owner'::regrole AND prosecdef=false AND proconfig=ARRAY['search_path=""']) THEN RAISE EXCEPTION 'Routine source/owner/config drift: velarion_private.reject_mutation'; END IF;
+  IF NOT EXISTS(SELECT 1 FROM pg_proc WHERE oid=to_regprocedure('velarion_private.check_release_seal()') AND md5(prosrc)='c63d31f5d38da06488ceb86b1567e7c3' AND proowner='velarion_owner'::regrole AND prosecdef=false AND proconfig=ARRAY['search_path=""']) THEN RAISE EXCEPTION 'Routine source/owner/config drift: velarion_private.check_release_seal'; END IF;
+  IF NOT EXISTS(SELECT 1 FROM pg_proc WHERE oid=to_regprocedure('velarion_private.reject_sealed_insert()') AND md5(prosrc)='be1774caf95ca4f3ad2f831db3304b52' AND proowner='velarion_owner'::regrole AND prosecdef=false AND proconfig=ARRAY['search_path=""']) THEN RAISE EXCEPTION 'Routine source/owner/config drift: velarion_private.reject_sealed_insert'; END IF;
+  IF NOT EXISTS(SELECT 1 FROM pg_proc WHERE oid=to_regprocedure('velarion_private.require_learner(text,uuid,uuid,timestamptz)') AND md5(prosrc)='14b6f73cf81cb16c0cd865cb5c05a47d' AND proowner='velarion_owner'::regrole AND prosecdef=false AND proconfig=ARRAY['search_path=""']) THEN RAISE EXCEPTION 'Routine source/owner/config drift: velarion_private.require_learner'; END IF;
+  IF NOT EXISTS(SELECT 1 FROM pg_proc WHERE oid=to_regprocedure('velarion_private.require_study(uuid,text,text)') AND md5(prosrc)='359c9cde826b0f5a7b243aced3c77e85' AND proowner='velarion_owner'::regrole AND prosecdef=false AND proconfig=ARRAY['search_path=""']) THEN RAISE EXCEPTION 'Routine source/owner/config drift: velarion_private.require_study'; END IF;
+  IF NOT EXISTS(SELECT 1 FROM pg_proc WHERE oid=to_regprocedure('velarion_private.has_completion(uuid,text,text,text)') AND md5(prosrc)='41b8af5e989642d01764238d78c0bf68' AND proowner='velarion_owner'::regrole AND prosecdef=false AND proconfig=ARRAY['search_path=""']) THEN RAISE EXCEPTION 'Routine source/owner/config drift: velarion_private.has_completion'; END IF;
+  IF NOT EXISTS(SELECT 1 FROM pg_proc WHERE oid=to_regprocedure('velarion_private.require_prerequisites(uuid,text,text,text)') AND md5(prosrc)='32c6dfde3f19f5c409861019e705b92d' AND proowner='velarion_owner'::regrole AND prosecdef=false AND proconfig=ARRAY['search_path=""']) THEN RAISE EXCEPTION 'Routine source/owner/config drift: velarion_private.require_prerequisites'; END IF;
+  IF NOT EXISTS(SELECT 1 FROM pg_proc WHERE oid=to_regprocedure('velarion_api.start_attempt(text,uuid,uuid,timestamptz,text,text,text,text,uuid)') AND md5(prosrc)='86742255185483d1921033cd96ae8a29' AND proowner='velarion_owner'::regrole AND prosecdef=true AND proconfig=ARRAY['search_path=""']) THEN RAISE EXCEPTION 'Routine source/owner/config drift: velarion_api.start_attempt'; END IF;
+  IF NOT EXISTS(SELECT 1 FROM pg_proc WHERE oid=to_regprocedure('velarion_api.submit_attempt(text,uuid,uuid,timestamptz,uuid,integer[])') AND md5(prosrc)='3277e30734e65b39132f9f341ec9f626' AND proowner='velarion_owner'::regrole AND prosecdef=true AND proconfig=ARRAY['search_path=""']) THEN RAISE EXCEPTION 'Routine source/owner/config drift: velarion_api.submit_attempt'; END IF;
+  IF NOT EXISTS(SELECT 1 FROM pg_proc WHERE oid=to_regprocedure('velarion_api.read_core_progress(text,uuid,uuid,timestamptz,text,text)') AND md5(prosrc)='5f9312ad0a19c6670057e8e07e5d2cda' AND proowner='velarion_owner'::regrole AND prosecdef=true AND proconfig=ARRAY['search_path=""']) THEN RAISE EXCEPTION 'Routine source/owner/config drift: velarion_api.read_core_progress'; END IF;
+ -- No unexpected table grants or alternative routine path is adopted.
+ IF EXISTS(SELECT 1 FROM pg_namespace n CROSS JOIN (VALUES('anon'),('authenticated'),('service_role'),('velarion_bff'),('velarion_broker_ingest'),('velarion_execution_worker')) r(name) WHERE n.nspname IN ('velarion_private','velarion_api') AND has_schema_privilege(r.name,n.oid,'CREATE')) THEN RAISE EXCEPTION 'Application schema CREATE drift'; END IF;
+ IF EXISTS(SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace CROSS JOIN (VALUES('anon'),('authenticated'),('service_role'),('velarion_bff'),('velarion_broker_ingest'),('velarion_execution_worker')) r(name) WHERE n.nspname='velarion_private' AND c.relkind='r' AND has_table_privilege(r.name,c.oid,'SELECT,INSERT,UPDATE,DELETE,TRUNCATE,REFERENCES,TRIGGER,MAINTAIN')) THEN RAISE EXCEPTION 'Private table ACL drift'; END IF;
+ IF EXISTS(SELECT 1 FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace CROSS JOIN (VALUES('anon'),('authenticated'),('service_role'),('velarion_broker_ingest'),('velarion_execution_worker')) r(name) WHERE n.nspname IN ('velarion_private','velarion_api') AND has_function_privilege(r.name,p.oid,'EXECUTE')) THEN RAISE EXCEPTION 'Client/helper ACL drift'; END IF;
+ IF EXISTS(SELECT 1 FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace WHERE n.nspname='velarion_private' AND has_function_privilege('velarion_bff',p.oid,'EXECUTE')) OR (SELECT count(*) FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace WHERE n.nspname='velarion_api' AND has_function_privilege('velarion_bff',p.oid,'EXECUTE'))<>3 THEN RAISE EXCEPTION 'BFF baseline EXECUTE drift'; END IF;
+
+ IF EXISTS(SELECT 1 FROM pg_namespace n CROSS JOIN LATERAL aclexplode(coalesce(n.nspacl,acldefault('n',n.nspowner))) a WHERE n.nspname IN ('velarion_private','velarion_api') AND a.grantee<>n.nspowner AND NOT(n.nspname='velarion_api' AND a.grantee='velarion_bff'::regrole AND a.privilege_type='USAGE' AND NOT a.is_grantable)) THEN RAISE EXCEPTION 'Unexpected schema ACL principal'; END IF;
+ IF EXISTS(SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace CROSS JOIN LATERAL aclexplode(coalesce(c.relacl,CASE WHEN c.relkind='S' THEN acldefault('S',c.relowner) ELSE acldefault('r',c.relowner) END)) a WHERE n.nspname IN ('velarion_private','velarion_api') AND a.grantee<>c.relowner) THEN RAISE EXCEPTION 'Unexpected relation ACL principal'; END IF;
+ IF EXISTS(SELECT 1 FROM pg_attribute t JOIN pg_class c ON c.oid=t.attrelid JOIN pg_namespace n ON n.oid=c.relnamespace CROSS JOIN LATERAL aclexplode(t.attacl) a WHERE n.nspname IN ('velarion_private','velarion_api') AND a.grantee<>c.relowner) THEN RAISE EXCEPTION 'Unexpected column ACL principal'; END IF;
+ IF EXISTS(SELECT 1 FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace CROSS JOIN LATERAL aclexplode(coalesce(p.proacl,acldefault('f',p.proowner))) a WHERE n.nspname IN ('velarion_private','velarion_api') AND a.grantee<>p.proowner AND NOT(n.nspname='velarion_api' AND a.grantee='velarion_bff'::regrole AND a.privilege_type='EXECUTE' AND NOT a.is_grantable)) THEN RAISE EXCEPTION 'Unexpected routine ACL principal'; END IF;
+ IF EXISTS(SELECT 1 FROM pg_default_acl d CROSS JOIN LATERAL aclexplode(d.defaclacl) a WHERE d.defaclrole='velarion_owner'::regrole AND a.grantee<>d.defaclrole) THEN RAISE EXCEPTION 'Unexpected owner default privilege principal'; END IF;
+END $baseline$;
+-- Freeze authorization/manifest rows against in-flight baseline changes while replacing the API.
+LOCK TABLE velarion_private.learners,velarion_private.identities,velarion_private.auth_issuers,velarion_private.delivery_controls,velarion_private.required_core IN ACCESS EXCLUSIVE MODE;
+ALTER TABLE velarion_private.learners ADD COLUMN authorization_generation bigint NOT NULL DEFAULT 0 CHECK(authorization_generation>=0);
+CREATE TABLE velarion_private.app_sessions(
+ issuer text NOT NULL CHECK(issuer='https://akhftbbszejafxpoxiem.supabase.co/auth/v1'),
+ subject uuid NOT NULL,session_id uuid NOT NULL,learner_id uuid NOT NULL,
+ generation bigint NOT NULL CHECK(generation>=0),
+ valid_until timestamptz NOT NULL CHECK(isfinite(valid_until)),
+ revoked_at timestamptz CHECK(revoked_at IS NULL OR isfinite(revoked_at)),
+ PRIMARY KEY(issuer,subject,session_id),
+ FOREIGN KEY(issuer,subject,learner_id) REFERENCES velarion_private.identities(issuer,subject,learner_id)
+);
+ALTER TABLE velarion_private.app_sessions ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON TABLE velarion_private.app_sessions FROM PUBLIC,anon,authenticated,service_role,velarion_bff,velarion_broker_ingest,velarion_execution_worker;
+CREATE FUNCTION velarion_private.keep_generation() RETURNS trigger LANGUAGE plpgsql SECURITY INVOKER SET search_path='' AS $$
+BEGIN
+ IF NEW.authorization_generation<OLD.authorization_generation THEN RAISE EXCEPTION 'Generation cannot decrease'; END IF;
+ RETURN NEW;
+END $$;
+CREATE TRIGGER keep_generation BEFORE UPDATE ON velarion_private.learners FOR EACH ROW EXECUTE FUNCTION velarion_private.keep_generation();
+CREATE FUNCTION velarion_private.keep_app_binding() RETURNS trigger LANGUAGE plpgsql SECURITY INVOKER SET search_path='' AS $$
+BEGIN
+ IF TG_OP='DELETE' THEN RAISE EXCEPTION 'Session tombstones must be retained'; END IF;
+ IF (NEW.issuer,NEW.subject,NEW.session_id,NEW.learner_id,NEW.generation,NEW.valid_until) IS DISTINCT FROM (OLD.issuer,OLD.subject,OLD.session_id,OLD.learner_id,OLD.generation,OLD.valid_until)
+ OR (OLD.revoked_at IS NOT NULL AND NEW.revoked_at IS DISTINCT FROM OLD.revoked_at) THEN RAISE EXCEPTION 'Session binding is immutable'; END IF;
+ RETURN NEW;
+END $$;
+CREATE TRIGGER keep_app_binding BEFORE UPDATE OR DELETE ON velarion_private.app_sessions FOR EACH ROW EXECUTE FUNCTION velarion_private.keep_app_binding();
+-- This routine trusts only the BFF runtime as identity attestor. It does NOT verify JWTs.
+-- Locks last until the caller transaction ends; all public learning routines call it inside their operation.
+CREATE FUNCTION velarion_private.require_app_session(p_issuer text,p_subject uuid,p_session uuid,p_iat timestamptz,p_exp timestamptz,p_active boolean DEFAULT true)
+RETURNS uuid LANGUAGE plpgsql SECURITY INVOKER SET search_path='' AS $$
+DECLARE target uuid; l velarion_private.learners%ROWTYPE; s velarion_private.app_sessions%ROWTYPE;
+BEGIN
+ IF p_issuer IS DISTINCT FROM 'https://akhftbbszejafxpoxiem.supabase.co/auth/v1' OR p_subject IS NULL OR p_session IS NULL OR p_iat IS NULL OR p_exp IS NULL OR NOT isfinite(p_iat) OR NOT isfinite(p_exp) OR p_iat>=p_exp OR p_iat>clock_timestamp()+interval '30 seconds' OR p_exp<=clock_timestamp() OR p_exp-p_iat>interval '24 hours' THEN RAISE EXCEPTION 'Invalid attested context' USING ERRCODE='42501'; END IF;
+ SELECT learner_id INTO target FROM velarion_private.identities WHERE issuer=p_issuer AND subject=p_subject;
+ IF target IS NULL THEN RAISE EXCEPTION 'Application authorization unavailable' USING ERRCODE='42501'; END IF;
+ SELECT * INTO l FROM velarion_private.learners WHERE id=target FOR UPDATE;
+ IF NOT FOUND OR (p_active AND l.state<>'active') OR l.state='revoked' OR p_iat<=l.revoked_before THEN RAISE EXCEPTION 'Application authorization unavailable' USING ERRCODE='42501'; END IF;
+ -- Recheck after taking canonical learner lock; mapping/issuer locks prevent their concurrent change.
+ PERFORM 1 FROM velarion_private.identities i JOIN velarion_private.auth_issuers a ON a.issuer=i.issuer WHERE i.issuer=p_issuer AND i.subject=p_subject AND i.learner_id=l.id AND i.disabled_at IS NULL AND i.email_verified_at IS NOT NULL AND a.enabled FOR SHARE OF i,a;
+ IF NOT FOUND THEN RAISE EXCEPTION 'Application authorization unavailable' USING ERRCODE='42501'; END IF;
+ SELECT * INTO s FROM velarion_private.app_sessions WHERE issuer=p_issuer AND subject=p_subject AND session_id=p_session FOR UPDATE;
+ IF NOT FOUND OR s.learner_id<>l.id OR s.generation<>l.authorization_generation OR s.revoked_at IS NOT NULL OR s.valid_until<=clock_timestamp() OR p_exp<=clock_timestamp() OR EXISTS(SELECT 1 FROM velarion_private.revoked_sessions WHERE issuer=p_issuer AND subject=p_subject AND session_id=p_session) THEN RAISE EXCEPTION 'Application session unavailable' USING ERRCODE='42501'; END IF;
+ RETURN l.id;
+END $$;
+CREATE FUNCTION velarion_api.check_auth_session(p_issuer text,p_subject uuid,p_session uuid,p_iat timestamptz,p_exp timestamptz)
+RETURNS boolean LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $$
+BEGIN
+ PERFORM velarion_private.require_app_session(p_issuer,p_subject,p_session,p_iat,p_exp);
+ RETURN true;
+END $$;
+CREATE FUNCTION velarion_api.revoke_current_session(p_issuer text,p_subject uuid,p_session uuid,p_iat timestamptz,p_exp timestamptz)
+RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $$
+DECLARE l uuid; at_time timestamptz;
+BEGIN
+ l:=velarion_private.require_app_session(p_issuer,p_subject,p_session,p_iat,p_exp,false);
+ at_time:=clock_timestamp();
+ UPDATE velarion_private.app_sessions SET revoked_at=at_time WHERE issuer=p_issuer AND subject=p_subject AND session_id=p_session;
+ INSERT INTO velarion_private.audit_events(learner_id,actor_class,event_type,correlation_id) VALUES(l,'learning-bff','app-session-revoked',gen_random_uuid());
+ RETURN jsonb_build_object('scope','current','revoked',true,'revokedAt',at_time);
+END $$;
+CREATE FUNCTION velarion_api.revoke_account_sessions(p_issuer text,p_subject uuid,p_session uuid,p_iat timestamptz,p_exp timestamptz)
+RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $$
+DECLARE l uuid; at_time timestamptz;
+BEGIN
+ l:=velarion_private.require_app_session(p_issuer,p_subject,p_session,p_iat,p_exp,false);
+ at_time:=clock_timestamp();
+ -- bigint overflow aborts atomically; generation never wraps or resets.
+ UPDATE velarion_private.learners SET authorization_generation=authorization_generation+1 WHERE id=l;
+ UPDATE velarion_private.app_sessions SET revoked_at=at_time WHERE issuer=p_issuer AND subject=p_subject AND session_id=p_session;
+ INSERT INTO velarion_private.audit_events(learner_id,actor_class,event_type,correlation_id) VALUES(l,'learning-bff','app-account-sessions-revoked',gen_random_uuid());
+ RETURN jsonb_build_object('scope','account','revoked',true,'revokedAt',at_time);
+END $$;
+
+DROP FUNCTION velarion_api.start_attempt(text,uuid,uuid,timestamptz,text,text,text,text,uuid);
+DROP FUNCTION velarion_api.submit_attempt(text,uuid,uuid,timestamptz,uuid,integer[]);
+DROP FUNCTION velarion_api.read_core_progress(text,uuid,uuid,timestamptz,text,text);
+CREATE FUNCTION velarion_api.start_attempt(
+ p_issuer text,p_subject uuid,p_session uuid,p_iat timestamptz,p_exp timestamptz,
+ p_course text,p_release text,p_lesson text,p_assessment text,p_request uuid)
+RETURNS uuid LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $$
+DECLARE l uuid; a velarion_private.attempts%ROWTYPE;
+BEGIN
+ l:=velarion_private.require_app_session(p_issuer,p_subject,p_session,p_iat,p_exp);
+ PERFORM velarion_private.require_study(l,p_course,p_release);
+ PERFORM velarion_private.require_prerequisites(l,p_course,p_release,p_lesson);
+ PERFORM 1 FROM velarion_private.assessment_versions v JOIN velarion_private.lesson_versions x
+ USING(course_id,release_version,lesson_id,content_version)
+ WHERE v.course_id=p_course AND v.release_version=p_release AND v.lesson_id=p_lesson
+ AND v.assessment_version=p_assessment AND x.publication='published';
+ IF NOT FOUND THEN RAISE EXCEPTION 'Published assessment unavailable' USING ERRCODE='42501'; END IF;
+ SELECT * INTO a FROM velarion_private.attempts WHERE learner_id=l AND request_id=p_request;
+ IF FOUND THEN
+ IF (a.course_id,a.release_version,a.lesson_id,a.assessment_version,a.issuer,a.subject)
+ IS DISTINCT FROM (p_course,p_release,p_lesson,p_assessment,p_issuer,p_subject) THEN
+ RAISE EXCEPTION 'Idempotency key reused for a different attempt'; END IF;
+ RETURN a.id; -- Same bound expired attempt remains expired; use a fresh request for an approved retry.
+ END IF;
+ INSERT INTO velarion_private.attempts(learner_id,issuer,subject,course_id,release_version,lesson_id,assessment_version,request_id,expires_at)
+ VALUES(l,p_issuer,p_subject,p_course,p_release,p_lesson,p_assessment,p_request,clock_timestamp()+interval '20 minutes') RETURNING * INTO a;
+ INSERT INTO velarion_private.audit_events(learner_id,actor_class,event_type,correlation_id)
+ VALUES(l,'learning-bff','attempt-created',p_request);
+ RETURN a.id;
+END $$;
+CREATE FUNCTION velarion_api.submit_attempt(
+ p_issuer text,p_subject uuid,p_session uuid,p_iat timestamptz,p_exp timestamptz,p_attempt uuid,p_choices integer[])
+RETURNS boolean LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $$
+DECLARE l uuid; a velarion_private.attempts%ROWTYPE; v velarion_private.assessment_versions%ROWTYPE;
+ k integer[]; score integer; did_pass boolean;
+BEGIN
+ l:=velarion_private.require_app_session(p_issuer,p_subject,p_session,p_iat,p_exp);
+ SELECT * INTO a FROM velarion_private.attempts WHERE id=p_attempt AND learner_id=l
+ AND issuer=p_issuer AND subject=p_subject FOR UPDATE;
+ IF NOT FOUND THEN RAISE EXCEPTION 'Attempt unavailable' USING ERRCODE='42501'; END IF;
+ PERFORM velarion_private.require_study(l,a.course_id,a.release_version);
+ PERFORM velarion_private.require_prerequisites(l,a.course_id,a.release_version,a.lesson_id);
+ IF a.submitted_at IS NOT NULL THEN
+ IF a.submitted_choices IS DISTINCT FROM p_choices THEN RAISE EXCEPTION 'Submission replay has different answers'; END IF;
+ RETURN a.passed; -- Retry of identical request, after reauthorization; no new completion/audit/award.
+ END IF;
+ IF a.expires_at<=clock_timestamp() THEN RAISE EXCEPTION 'Attempt expired'; END IF;
+ SELECT * INTO STRICT v FROM velarion_private.assessment_versions
+ WHERE course_id=a.course_id AND release_version=a.release_version AND lesson_id=a.lesson_id AND assessment_version=a.assessment_version;
+ SELECT correct_choices INTO STRICT k FROM velarion_private.answer_keys
+ WHERE course_id=a.course_id AND release_version=a.release_version AND lesson_id=a.lesson_id AND assessment_version=a.assessment_version;
+ IF cardinality(k)<>v.question_count THEN RAISE EXCEPTION 'Assessment key unavailable'; END IF;
+ IF p_choices IS NULL OR array_ndims(p_choices) IS DISTINCT FROM 1 OR array_lower(p_choices,1) IS DISTINCT FROM 1
+ OR cardinality(p_choices)<>v.question_count OR array_position(p_choices,NULL) IS NOT NULL
+ OR EXISTS(SELECT 1 FROM unnest(p_choices) c WHERE c<0 OR c>99) THEN
+ RAISE EXCEPTION 'Malformed answer vector'; END IF;
+ SELECT count(*)::integer INTO score FROM generate_subscripts(k,1) n WHERE k[n]=p_choices[n];
+ did_pass:=score>=v.pass_count;
+ UPDATE velarion_private.attempts SET submitted_at=clock_timestamp(),submitted_choices=p_choices,
+ correct_count=score,passed=did_pass WHERE id=a.id;
+ IF did_pass THEN
+ INSERT INTO velarion_private.completions(learner_id,course_id,release_version,lesson_id,attempt_id)
+ VALUES(l,a.course_id,a.release_version,a.lesson_id,a.id)
+ ON CONFLICT(learner_id,course_id,release_version,lesson_id) DO NOTHING;
+ END IF;
+ INSERT INTO velarion_private.audit_events(learner_id,actor_class,event_type,correlation_id,safe_metadata)
+ VALUES(l,'learning-bff','attempt-submitted',a.request_id,jsonb_build_object('passed',did_pass));
+ -- Intentionally NO reward/activity/streak/broker/activation write.
+ RETURN did_pass;
+END $$;
+CREATE FUNCTION velarion_api.read_core_progress(
+ p_issuer text,p_subject uuid,p_session uuid,p_iat timestamptz,p_exp timestamptz,p_course text,p_release text)
+RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $$
+DECLARE l uuid; n integer; total integer; early boolean;
+BEGIN
+ l:=velarion_private.require_app_session(p_issuer,p_subject,p_session,p_iat,p_exp);
+ -- Current eligibility required for protected learning DTO too; fail closed under suspension.
+ PERFORM velarion_private.require_study(l,p_course,p_release);
+ SELECT count(*),count(*) FILTER(WHERE velarion_private.has_completion(l,p_course,p_release,r.lesson_id))
+ INTO total,n FROM velarion_private.required_core r WHERE r.course_id=p_course AND r.release_version=p_release;
+ SELECT bool_and(velarion_private.has_completion(l,p_course,p_release,x.id)) INTO early
+ FROM unnest(ARRAY['b1','b2','b3','b4','b5']) x(id);
+ RETURN jsonb_build_object('coreCompleted',n,'coreTotal',total,'coreGraduated',total=30 AND n=30,
+ 'earlyMilestone',coalesce(early,false),'automationEligible',false);
+END $$;
+-- No provisioner or session-admission routine exists. The new table stays empty.
+REVOKE ALL ON ALL FUNCTIONS IN SCHEMA velarion_private,velarion_api FROM PUBLIC,anon,authenticated,service_role,velarion_bff,velarion_broker_ingest,velarion_execution_worker;
+GRANT USAGE ON SCHEMA velarion_api TO velarion_bff;
+GRANT EXECUTE ON FUNCTION velarion_api.start_attempt(text,uuid,uuid,timestamptz,timestamptz,text,text,text,text,uuid),
+ velarion_api.submit_attempt(text,uuid,uuid,timestamptz,timestamptz,uuid,integer[]),
+ velarion_api.read_core_progress(text,uuid,uuid,timestamptz,timestamptz,text,text),
+ velarion_api.check_auth_session(text,uuid,uuid,timestamptz,timestamptz),
+ velarion_api.revoke_current_session(text,uuid,uuid,timestamptz,timestamptz),
+ velarion_api.revoke_account_sessions(text,uuid,uuid,timestamptz,timestamptz) TO velarion_bff;
+DO $post$
+BEGIN
+ IF EXISTS(SELECT 1 FROM velarion_private.app_sessions) OR EXISTS(SELECT 1 FROM velarion_private.learners WHERE state<>'suspended') OR EXISTS(SELECT 1 FROM velarion_private.delivery_controls WHERE enabled) THEN RAISE EXCEPTION 'Locked-state postcondition failed'; END IF;
+
+ IF EXISTS(SELECT 1 FROM pg_namespace n CROSS JOIN LATERAL aclexplode(coalesce(n.nspacl,acldefault('n',n.nspowner))) a WHERE n.nspname IN ('velarion_private','velarion_api') AND a.grantee<>n.nspowner AND NOT(n.nspname='velarion_api' AND a.grantee='velarion_bff'::regrole AND a.privilege_type='USAGE' AND NOT a.is_grantable)) THEN RAISE EXCEPTION 'Unexpected schema ACL principal'; END IF;
+ IF EXISTS(SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace CROSS JOIN LATERAL aclexplode(coalesce(c.relacl,CASE WHEN c.relkind='S' THEN acldefault('S',c.relowner) ELSE acldefault('r',c.relowner) END)) a WHERE n.nspname IN ('velarion_private','velarion_api') AND a.grantee<>c.relowner) THEN RAISE EXCEPTION 'Unexpected relation ACL principal'; END IF;
+ IF EXISTS(SELECT 1 FROM pg_attribute t JOIN pg_class c ON c.oid=t.attrelid JOIN pg_namespace n ON n.oid=c.relnamespace CROSS JOIN LATERAL aclexplode(t.attacl) a WHERE n.nspname IN ('velarion_private','velarion_api') AND a.grantee<>c.relowner) THEN RAISE EXCEPTION 'Unexpected column ACL principal'; END IF;
+ IF EXISTS(SELECT 1 FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace CROSS JOIN LATERAL aclexplode(coalesce(p.proacl,acldefault('f',p.proowner))) a WHERE n.nspname IN ('velarion_private','velarion_api') AND a.grantee<>p.proowner AND NOT(n.nspname='velarion_api' AND a.grantee='velarion_bff'::regrole AND a.privilege_type='EXECUTE' AND NOT a.is_grantable)) THEN RAISE EXCEPTION 'Unexpected routine ACL principal'; END IF;
+ IF EXISTS(SELECT 1 FROM pg_default_acl d CROSS JOIN LATERAL aclexplode(d.defaclacl) a WHERE d.defaclrole='velarion_owner'::regrole AND a.grantee<>d.defaclrole) THEN RAISE EXCEPTION 'Unexpected owner default privilege principal'; END IF;
+ IF (SELECT count(*) FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace WHERE n.nspname='velarion_api')<>6 THEN RAISE EXCEPTION 'Unexpected final API surface'; END IF;
+END $post$;
+RESET ROLE;
+REVOKE velarion_owner FROM postgres GRANTED BY postgres;
+DO $role_restored$
+BEGIN
+ IF current_user<>'postgres' OR session_user<>'postgres'
+ OR pg_has_role('postgres','velarion_owner','SET') THEN RAISE EXCEPTION 'Owner authority cleanup failed'; END IF;
+ IF (SELECT count(*) FROM pg_auth_members WHERE roleid IN (SELECT oid FROM pg_roles WHERE rolname IN ('velarion_owner','velarion_bff','velarion_broker_ingest','velarion_execution_worker')))<>4
+ OR EXISTS(SELECT 1 FROM pg_auth_members WHERE roleid IN (SELECT oid FROM pg_roles WHERE rolname IN ('velarion_owner','velarion_bff','velarion_broker_ingest','velarion_execution_worker')) AND (member<>'postgres'::regrole OR grantor<>'supabase_admin'::regrole OR NOT admin_option OR inherit_option OR set_option))
+ OR EXISTS(SELECT 1 FROM pg_auth_members WHERE member IN (SELECT oid FROM pg_roles WHERE rolname IN ('velarion_owner','velarion_bff','velarion_broker_ingest','velarion_execution_worker'))) THEN RAISE EXCEPTION 'Restored membership drift'; END IF;
+ IF NOT EXISTS(SELECT 1 FROM pg_roles WHERE rolname='postgres' AND NOT rolsuper AND rolcanlogin AND rolcreaterole AND rolcreatedb AND rolbypassrls AND rolinherit) THEN RAISE EXCEPTION 'Restored deployment profile drift'; END IF;
+ IF (SELECT count(*) FROM pg_roles WHERE left(rolname,9)='velarion_')<>4
+ OR (SELECT count(*) FROM pg_roles WHERE rolname IN ('velarion_owner','velarion_bff','velarion_broker_ingest','velarion_execution_worker') AND NOT rolcanlogin AND NOT rolsuper AND NOT rolbypassrls AND NOT rolcreaterole AND NOT rolcreatedb AND NOT rolreplication AND rolinherit AND rolconfig IS NULL)<>4 THEN RAISE EXCEPTION 'Restored application profile drift'; END IF;
+END $role_restored$;
+COMMIT;

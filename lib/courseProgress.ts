@@ -14,14 +14,8 @@ export function normalizeCourseProgress(values: unknown[], lessonCount = COURSE_
     .sort((a, b) => a - b);
 }
 
-export function parseCourseProgress(raw: string | null, lessonCount = COURSE_LESSON_COUNT): number[] {
-  if (!raw) return [];
-  try {
-    const value: unknown = JSON.parse(raw);
-    return Array.isArray(value) ? normalizeCourseProgress(value, lessonCount) : [];
-  } catch {
-    return [];
-  }
+export function parseCourseProgress(_raw: string | null, _lessonCount = COURSE_LESSON_COUNT): number[] {
+  return []; // Legacy browser claims are not learner evidence.
 }
 
 export function nextCourseLesson(completed: readonly number[], lessonCount = COURSE_LESSON_COUNT): number {
@@ -32,17 +26,6 @@ export function nextCourseLesson(completed: readonly number[], lessonCount = COU
   return lessonCount + 1;
 }
 
-export function saveCourseProgress(completed: readonly number[], lessonCount = COURSE_LESSON_COUNT): number[] {
-  const normalized = normalizeCourseProgress([...completed], lessonCount);
-  if (typeof window !== 'undefined') {
-    try {
-      window.localStorage.setItem(COURSE_PROGRESS_STORAGE_KEY, JSON.stringify(normalized));
-    } catch {
-      // Keep the in-memory UI usable if browser storage is unavailable.
-    }
-    window.dispatchEvent(new CustomEvent(COURSE_PROGRESS_CHANGED_EVENT, {
-      detail: { reset: normalized.length === 0 },
-    }));
-  }
-  return normalized;
+export function saveCourseProgress(_completed: readonly number[], _lessonCount = COURSE_LESSON_COUNT): number[] {
+  return []; // Writes are disabled until an approved authoritative progress cutover.
 }
