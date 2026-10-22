@@ -53,14 +53,29 @@ export function createIntegratedHttp(deps: IntegratedHttpDeps) {
   return {
     async begin(request: Request) {
       const rejection = denied(request); if (rejection) return rejection;
+      let phase: 'RATE_LIMIT_STORAGE' | 'SESSION_VAULT' | undefined;
       try {
         await requireEmptyMutationBody(request);
+        phase = 'RATE_LIMIT_STORAGE';
         await deps.rateLimit('begin');
+        phase = 'SESSION_VAULT';
         const cap = await deps.runtime().begin();
         const response = privateResponse({ success: true, ...LOCKED });
         clearLegacy(response, request); setCap(response, cap, 8 * 3600);
         return response;
-      } catch (e) { return failure(e); }
+      } catch (e) {
+        if (phase && (!(e instanceof BffError) || e.status >= 500)) {
+          // Never log the exception, its message/code, or any request/config data.
+          const configFailure = e instanceof BffError && [
+            'BFF_CONFIG_UNAVAILABLE', 'BFF_CONFIG_INVALID', 'STAGING_RELEASE_NOT_CONFIGURED',
+            'AUTH_CONFIG_UNAVAILABLE', 'AUTH_CONFIG_INVALID', 'ADMISSION_VAULT_CONFIG_INVALID',
+            'DATABASE_CONFIG_CHANGED',
+          ].includes(e.code);
+          const category = configFailure ? 'CONFIG_VALIDATION' : phase;
+          console.error(`[velarion.auth.begin] ${category}`);
+        }
+        return failure(e);
+      }
     },
     async credentials(request: Request, signup: boolean) {
       const rejection = denied(request); if (rejection) return rejection;
