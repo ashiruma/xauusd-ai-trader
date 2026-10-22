@@ -72,6 +72,41 @@
   border-color: var(--border-hover);
 }
 
+.passwordField {
+  position: relative;
+}
+
+.passwordInput {
+  padding-right: 52px;
+}
+
+.passwordToggle {
+  position: absolute;
+  top: 50%;
+  right: 2px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  transform: translateY(-50%);
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.passwordToggle:hover {
+  background: var(--bg-surface-2);
+  color: var(--text-primary);
+}
+
+.card .passwordToggle:focus-visible {
+  outline-offset: -3px;
+}
+
 .input:focus-visible,
 .card a:focus-visible,
 .card button:focus-visible {
