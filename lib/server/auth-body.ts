@@ -1,5 +1,5 @@
 import { BffError } from './core';
-export async function readCredentials(request: Request, signup: boolean, timeoutMs = 5000): Promise<{ email: string; password: string }> {
+export async function readAuthJson(request: Request, timeoutMs = 5000): Promise<unknown> {
   if (new URL(request.url).search) throw new BffError('UNEXPECTED_MUTATION_INPUT', 400);
   if (request.headers.get('content-type')?.split(';')[0].trim() !== 'application/json') throw new BffError('JSON_REQUIRED', 415);
   if (!request.body) throw new BffError('CREDENTIALS_REQUIRED', 400);
@@ -24,8 +24,19 @@ export async function readCredentials(request: Request, signup: boolean, timeout
   for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.byteLength; }
   let body: any;
   try { body = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes)); } catch { throw new BffError('INVALID_JSON', 400); }
+  return body;
+}
+export async function readCredentials(request: Request, signup: boolean, timeoutMs = 5000): Promise<{ email: string; password: string }> {
+  const body: any = await readAuthJson(request, timeoutMs);
   if (!body || typeof body !== 'object' || Array.isArray(body) || Object.keys(body).sort().join(',') !== 'email,password' ||
       typeof body.email !== 'string' || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(body.email) || body.email.length > 254 ||
       typeof body.password !== 'string' || body.password.length < (signup ? 12 : 1) || body.password.length > 1024) throw new BffError('CREDENTIALS_INVALID', 400);
   return { email: body.email, password: body.password };
+}
+export async function readConfirmation(request: Request, timeoutMs = 5000): Promise<{ email: string; code: string }> {
+  const body: any = await readAuthJson(request, timeoutMs);
+  if (!body || typeof body !== 'object' || Array.isArray(body) || Object.keys(body).sort().join(',') !== 'code,email' ||
+      typeof body.email !== 'string' || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(body.email) || body.email.length > 254 ||
+      typeof body.code !== 'string' || !/^[0-9]{6}$/.test(body.code)) throw new BffError('EMAIL_CONFIRMATION_REJECTED', 400);
+  return { email: body.email.trim().toLowerCase(), code: body.code };
 }

@@ -20,7 +20,8 @@ export default function Page() {
         body: JSON.stringify({ email: form.get('email'), password: form.get('password') }), cache: 'no-store' });
       const data = await response.json();
       if (response.ok && data.success && mode === 'login') { window.location.assign('/onboarding'); return; }
-      setMessage(response.ok && data.success ? 'Check your email and continue in this same browser within 15 minutes.' : 'Authentication is unavailable or the details could not be verified.');
+      if (response.ok && data.success && mode === 'signup') { window.location.assign('/auth/confirm'); return; }
+      setMessage('Authentication is unavailable or the details could not be verified.');
     } catch { setMessage('Authentication is unavailable.'); }
     finally { setBusy(false); }
   }
@@ -51,6 +52,7 @@ export default function Page() {
         <button className={`btn btn-primary ${styles.action}`} type="submit" disabled={busy}>{busy ? 'Please wait' : mode === 'login' ? 'Sign in' : 'Create account'}</button>
       </form>
       <button className={`btn btn-secondary ${styles.action} ${styles.switchMode}`} type="button" disabled={busy} onClick={() => { setMode(mode === 'login' ? 'signup' : 'login'); setMessage(''); }}>{mode === 'login' ? 'Create account' : 'Return to sign in'}</button>
+      <Link className={styles.detailLink} href="/auth/confirm">Already have an email confirmation code?</Link>
       <p role="status" aria-live="polite" aria-atomic="true" className={styles.message}>{message}</p>
       <div className={styles.referral}>
         <a className={styles.partnerLink} href={DEFAULT_PARTNER_CONFIG.primaryLink} target="_blank" rel="noopener noreferrer sponsored">New here? Join JustMarkets <span aria-hidden="true">↗</span><span className={styles.srOnly}> (opens in a new tab)</span></a>

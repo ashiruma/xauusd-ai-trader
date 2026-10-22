@@ -1,6 +1,6 @@
 import { randomBytes, randomUUID } from 'node:crypto';
 import { BffError, requireVerifiedContext, validateProgress, type VerifiedContext } from './core';
-import type { FreshProvider, ProviderStorage, ProviderTokens } from './integrated-provider';
+import type { FreshProvider, ProviderTokens } from './integrated-provider';
 import type { AdmissionDatabase } from './admission-db';
 import { validateOnboarding } from './onboarding-contract';
 export const SESSION_COOKIE = '__Host-velarion-session';
@@ -73,12 +73,13 @@ export function createIntegratedAuth({ provider, vault, db, clock = Date.now }: 
       let r = await load(cap);
       if (r.state !== 'new') throw new BffError('FRESH_LOGIN_REQUIRED', 409);
       r = await save(cap, r, { state: 'signing-up' });
-      const storage = await provider.signup(input);
-      await save(cap, r, { state: 'pkce', storage });
-      return { success: true, providerAuthenticated: false, pendingAccess: true, message: 'Check your email and continue in this same browser within 15 minutes.', ...LOCKED };
+      await provider.signup(input);
+      // No original-browser proof or provider session is retained for confirmation.
+      await save(cap, r, { state: 'awaiting-email', storage: null });
+      return { success: true, providerAuthenticated: false, pendingAccess: true, message: 'If signup is available, enter the code from your email on the confirmation page in any browser. Then sign in with your Velarion password.', ...LOCKED };
     },
     login: (cap: string, input: { email: string; password: string }) => exchange(cap, 'new', () => provider.login(input)),
-    callback: (cap: string, code: string) => exchange(cap, 'pkce', r => provider.callback(code, r.storage as ProviderStorage)),
+    async callback(_cap: string, _code: string): Promise<never> { throw new BffError('PASSWORD_SIGN_IN_REQUIRED', 401); },
     async recover(cap: string) {
       const r = await load(cap);
       if (!['admitting', 'complete'].includes(r.state) || typeof r.recoveryUntil !== 'number' || r.recoveryUntil <= clock()) throw new BffError('FRESH_LOGIN_REQUIRED', 401);

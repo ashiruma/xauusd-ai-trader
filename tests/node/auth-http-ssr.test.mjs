@@ -30,7 +30,7 @@ http('HTTP callback uses configured redirect authority and rejects open redirect
   assert.equal(unconfigured.status, 503); assert.equal(unconfigured.headers.get('location'), null);
   for (const query of ['', '?code=a&code=b', '?code=a&next=https://attacker.example', '?code=local-fake']) {
     const response = await fetch(`${configured}/auth/callback${query}`, { redirect: 'manual', headers: { 'X-Forwarded-Host': 'attacker.example' } });
-    assert.equal(response.status, 303); assert.equal(response.headers.get('location'), `${origin}/login?error=auth`);
+    assert.equal(response.status, 303); assert.equal(response.headers.get('location'), `${origin}/auth/confirm`);
     assert.match(response.headers.get('cache-control'), /no-store/); assert.equal(response.headers.get('set-cookie'), null);
     assert.equal(response.headers.get('referrer-policy'), 'no-referrer');
   }

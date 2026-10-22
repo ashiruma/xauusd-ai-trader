@@ -4,7 +4,9 @@ import { cookies } from 'next/headers';
 import { BffError, validateConfig } from './core';
 import { createFreshProvider } from './integrated-provider';
 import { createPostgresAdmissionVault } from './postgres-admission-vault';
+import { confirmSignupEmail } from './email-confirmation-provider';
 import { withServerlessDatabase } from './serverless-database';
+import { authRateBudget } from './auth-rate-policy';
 import { withAdmissionDatabase, type AdmissionDatabase } from './admission-db';
 import { createIntegratedAuth, SESSION_COOKIE, type VaultPort } from './integrated-auth-core';
 import { createIntegratedHttp } from './integrated-http-core';
@@ -40,19 +42,19 @@ async function rateLimit(scope: string) {
   const vault = durableVault();
   await vault.purgeExpired();
   const key = process.env.VELARION_ADMISSION_VAULT_KEY!;
-  const now = Date.now(), max = scope === 'begin' ? 60 : 6;
-  // A new digest for each fixed minute: consumed/expired hashes are never recreated.
-  const bucket = Math.floor(now / 60000);
+  // Original fixed-minute budgets plus a six-attempt/email/15-minute budget.
+  const { max, bucket, expiresAt } = authRateBudget(scope, Date.now());
   const cap = createHmac('sha256', key).update(`velarion-rate:v2:${bucket}:${scope}`).digest('hex');
   const r = await vault.read(cap);
   try {
-    if (!r) { await vault.create(cap, { state: 'rate', expiresAt: (bucket + 1) * 60000, count: 1 }); return; }
+    if (!r) { await vault.create(cap, { state: 'rate', expiresAt, count: 1 }); return; }
     if (typeof r.count !== 'number' || r.count >= max) throw new BffError('AUTH_RATE_LIMITED', 429);
     await vault.cas(cap, r.revision, { ...r, count: r.count + 1 });
   } catch { throw new BffError('AUTH_RATE_LIMITED', 429); }
 }
 export const integratedHttp = createIntegratedHttp({ runtime: integratedRuntime,
-  origin: () => process.env.VELARION_APP_ORIGIN, rateLimit });
+  origin: () => process.env.VELARION_APP_ORIGIN, rateLimit,
+  confirmEmail: input => { stagingRuntimeConfig(); return confirmSignupEmail(input); } });
 export async function currentCapability() { return (await cookies()).get(SESSION_COOKIE)?.value; }
 export async function currentSession() { return integratedRuntime().session(await currentCapability()); }
 export async function currentOnboarding() { return integratedRuntime().onboarding(await currentCapability()); }

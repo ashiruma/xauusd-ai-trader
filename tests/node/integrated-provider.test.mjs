@@ -10,7 +10,7 @@ test('actual provider adapter owns PKCE verifier server-side and fixed callback,
   const p=createFreshProvider(env,async(input,init)=>{
     const url=String(input),body=JSON.parse(init.body);calls.push({url,init,body});
     assert.ok(url.startsWith(env.VELARION_SUPABASE_URL));assert.equal(init.cache,'no-store');assert.ok(init.signal instanceof AbortSignal);
-    if(url.includes('/signup')){challenge=body.code_challenge;assert.equal(body.code_challenge_method,'s256');assert.ok(url.includes(encodeURIComponent(env.VELARION_APP_ORIGIN+'/auth/callback')));return Response.json({user,session:null});}
+    if(url.includes('/signup')){challenge=body.code_challenge;assert.equal(body.code_challenge_method,'s256');assert.ok(url.includes(encodeURIComponent(env.VELARION_APP_ORIGIN+'/auth/confirm')));return Response.json({user,session:null});}
     if(url.includes('grant_type=pkce')){assert.equal(body.auth_code,'synthetic-code');assert.equal(createHash('sha256').update(body.code_verifier).digest('base64url'),challenge);return Response.json(session);}
     throw Error('unexpected mock operation');
   });

@@ -32,7 +32,7 @@ export function createFreshProvider(env: NodeJS.ProcessEnv = process.env, fetche
   return {
     async signup(input) {
       const c = client();
-      const r = await c.sdk.auth.signUp({ ...input, options: { emailRedirectTo: `${config.origin}/auth/callback` } });
+      const r = await c.sdk.auth.signUp({ ...input, options: { emailRedirectTo: `${config.origin}/auth/confirm` } });
       if (r.error || r.data.session || !Object.keys(c.storage).some(k => k.endsWith('-code-verifier'))) throw new BffError('SIGNUP_CONFIRMATION_UNAVAILABLE', 400);
       // A provider that disables confirmation must not accidentally admit a signup.
       return Object.fromEntries(Object.entries(c.storage).filter(([k]) => k.endsWith('-code-verifier')));

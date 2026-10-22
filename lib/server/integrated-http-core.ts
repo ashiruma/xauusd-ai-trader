@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { BffError } from './core';
 import { createIntegratedAuth, SESSION_COOKIE, validCapability, LOCKED } from './integrated-auth-core';
-import { readCredentials } from './auth-body';
+import { readCredentials, readConfirmation } from './auth-body';
 import { requireEmptyMutationBody } from './mutation-body';
 import { checkMutationOrigin } from './http-policy';
 import { ownsAuthCookie } from './auth-client-core';
@@ -26,6 +26,7 @@ export type IntegratedHttpDeps = {
   runtime(): ReturnType<typeof createIntegratedAuth>;
   origin(): string | undefined;
   rateLimit(scope: string): Promise<void>;
+  confirmEmail?(input: { email: string; code: string }): Promise<void>;
 };
 export function createIntegratedHttp(deps: IntegratedHttpDeps) {
   const failure = (e: unknown) => privateResponse({ success: false, authenticated: false, bffAuthorized: false, pendingAccess: true, ...LOCKED,
@@ -89,25 +90,30 @@ export function createIntegratedHttp(deps: IntegratedHttpDeps) {
         return privateResponse(await (signup ? core.signup(cap, input) : core.login(cap, input)));
       } catch (e) { return failure(e); }
     },
+    async confirm(request: Request) {
+      const rejection = denied(request); if (rejection) return rejection;
+      try {
+        const input = await readConfirmation(request);
+        // Fixed global budget plus the existing durable email budget; never key on caller IP headers.
+        await deps.rateLimit('confirmation');
+        await deps.rateLimit(`credentials:${input.email}`);
+        await deps.rateLimit(`confirmation-email:${input.email}`);
+        if (!deps.confirmEmail) throw new BffError('EMAIL_CONFIRMATION_UNAVAILABLE', 503);
+        await deps.confirmEmail(input);
+        // No capability, admission, session cookie, provider token or identity is returned.
+        return privateResponse({ success: true, emailConfirmed: true, authenticated: false,
+          providerAuthenticated: false, bffAuthorized: false, pendingAccess: true, ...LOCKED });
+      } catch (e) { return failure(e); }
+    },
     async callback(request: Request) {
       const origin = deps.origin();
       try { if (!origin || new URL(origin).protocol !== 'https:' || new URL(origin).origin !== origin) throw 0; }
       catch { return failure(new BffError('STAGING_AUTH_UNAVAILABLE', 503)); }
-      try {
-        const url = new URL(request.url), codes = url.searchParams.getAll('code');
-        if (codes.length !== 1 || !codes[0] || codes[0].length > 2048 || [...url.searchParams.keys()].some(k => k !== 'code')) throw new BffError('CALLBACK_INVALID', 400);
-        const cap = readSessionCapability(request);
-        if (!cap) throw new BffError('PKCE_BROWSER_REQUIRED', 401);
-        await deps.rateLimit(`callback:${cap}`);
-        await deps.runtime().callback(cap, codes[0]);
-        const response = NextResponse.redirect(new URL('/onboarding', origin), 303);
-        response.headers.set('Cache-Control', 'private, no-store, max-age=0'); response.headers.set('Referrer-Policy', 'no-referrer');
-        return response; // Stable cookie: no delayed callback can overwrite a later handle/token cookie.
-      } catch {
-        const r = NextResponse.redirect(new URL('/login?error=auth', origin), 303);
-        r.headers.set('Cache-Control', 'private, no-store, max-age=0'); r.headers.set('Referrer-Policy', 'no-referrer');
-        return r;
-      }
+      // Retired PKCE links can never authenticate, admit, or transfer a session.
+      // Do not forward any query values. Old emails require a newly approved signup email.
+      const r = NextResponse.redirect(new URL('/auth/confirm', origin), 303);
+      r.headers.set('Cache-Control', 'private, no-store, max-age=0'); r.headers.set('Referrer-Policy', 'no-referrer');
+      return r;
     },
     recover: (r: Request) => mutate(r, (c, cap) => c.recover(cap)),
     refresh: (r: Request) => mutate(r, (c, cap) => c.refresh(cap)),

@@ -1,4 +1,4 @@
-import { jwtVerify, type JWTPayload, type JWTVerifyGetKey } from 'jose';
+import { createRemoteJWKSet, jwtVerify, type JWTPayload, type JWTVerifyGetKey } from 'jose';
 import { createClient } from '@supabase/supabase-js';
 
 export class BffError extends Error {
@@ -36,6 +36,12 @@ const nowSeconds = () => Math.floor(Date.now() / 1000);
 const STAGING_SUPABASE_URL = 'https://akhftbbszejafxpoxiem.supabase.co';
 const signedContexts = new WeakSet<object>();
 const onlineContexts = new WeakSet<object>();
+// Public signing keys only: jose retains bounded freshness and rotation handling.
+// Never cache tokens, user responses, verified contexts, or admission decisions.
+let stagingKeyResolver: JWTVerifyGetKey | undefined;
+function remoteStagingKeys(): JWTVerifyGetKey {
+  return stagingKeyResolver ??= createRemoteJWKSet(new URL(`${STAGING_SUPABASE_URL}/auth/v1/.well-known/jwks.json`));
+}
 export function requireSignedContext(context: VerifiedContext): void {
   if (!context || typeof context !== 'object' || !signedContexts.has(context) || context.expiresAt <= nowSeconds()) throw new BffError('UNVERIFIED_AUTH_CONTEXT', 401);
 }
@@ -71,7 +77,7 @@ export async function verifyAccessToken(token: string, issuer: string, keyResolv
   const expectedIssuer = `${project.origin}/auth/v1`;
   let payload: JWTPayload;
   try {
-    const resolver = keyResolver ?? (await import('jose')).createRemoteJWKSet(new URL(`${issuer.replace(/\/$/, '')}/auth/v1/.well-known/jwks.json`));
+    const resolver = keyResolver ?? remoteStagingKeys();
     const result = await jwtVerify(token, resolver, { issuer: expectedIssuer, audience: 'authenticated', algorithms: ['ES256', 'RS256'], clockTolerance: 30, currentDate: new Date(now * 1000) });
     payload = result.payload;
   } catch { throw new BffError('TOKEN_INVALID', 401); }
