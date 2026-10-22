@@ -66,11 +66,11 @@ export function createIntegratedHttp(deps: IntegratedHttpDeps) {
         return response;
       } catch (e) {
         if (phase && (!(e instanceof BffError) || e.status >= 500)) {
-          // Never log the exception, its message/code, or any request/config data.
           const configFailure = e instanceof BffError && [
             'BFF_CONFIG_UNAVAILABLE', 'BFF_CONFIG_INVALID', 'STAGING_RELEASE_NOT_CONFIGURED',
             'AUTH_CONFIG_UNAVAILABLE', 'AUTH_CONFIG_INVALID', 'ADMISSION_VAULT_CONFIG_INVALID',
-            'DATABASE_CONFIG_CHANGED',
+            'DATABASE_CONFIG_CHANGED', 'PRODUCTION_RELEASE_NOT_CONFIGURED',
+            'PRODUCTION_CONFIG_INVALID', 'RELEASE_CONFIG_INVALID',
           ].includes(e.code);
           const category = configFailure ? 'CONFIG_VALIDATION' : phase;
           console.error(`[velarion.auth.begin] ${category}`);
@@ -94,13 +94,11 @@ export function createIntegratedHttp(deps: IntegratedHttpDeps) {
       const rejection = denied(request); if (rejection) return rejection;
       try {
         const input = await readConfirmation(request);
-        // Fixed global budget plus the existing durable email budget; never key on caller IP headers.
         await deps.rateLimit('confirmation');
         await deps.rateLimit(`credentials:${input.email}`);
         await deps.rateLimit(`confirmation-email:${input.email}`);
         if (!deps.confirmEmail) throw new BffError('EMAIL_CONFIRMATION_UNAVAILABLE', 503);
         await deps.confirmEmail(input);
-        // No capability, admission, session cookie, provider token or identity is returned.
         return privateResponse({ success: true, emailConfirmed: true, authenticated: false,
           providerAuthenticated: false, bffAuthorized: false, pendingAccess: true, ...LOCKED });
       } catch (e) { return failure(e); }
@@ -109,8 +107,6 @@ export function createIntegratedHttp(deps: IntegratedHttpDeps) {
       const origin = deps.origin();
       try { if (!origin || new URL(origin).protocol !== 'https:' || new URL(origin).origin !== origin) throw 0; }
       catch { return failure(new BffError('STAGING_AUTH_UNAVAILABLE', 503)); }
-      // Retired PKCE links can never authenticate, admit, or transfer a session.
-      // Do not forward any query values. Old emails require a newly approved signup email.
       const r = NextResponse.redirect(new URL('/auth/confirm', origin), 303);
       r.headers.set('Cache-Control', 'private, no-store, max-age=0'); r.headers.set('Referrer-Policy', 'no-referrer');
       return r;

@@ -1,17 +1,19 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { BffError } from './core';
-export const STAGING_URL = 'https://akhftbbszejafxpoxiem.supabase.co';
+import { releaseProfile, STAGING_SUPABASE_URL } from './release-config';
+export const STAGING_URL = STAGING_SUPABASE_URL;
 export const AUTH_COOKIE = '__Host-velarion-auth';
 export type CookieValue = { name: string; value: string; options?: CookieOptions };
 export type CookiePort = { getAll(): { name: string; value: string }[]; setAll(values: CookieValue[]): void };
 export function validateAuthConfig(env: NodeJS.ProcessEnv = process.env) {
+  const profile = releaseProfile(env);
   const url = env.VELARION_SUPABASE_URL;
   const key = env.VELARION_SUPABASE_PUBLISHABLE_KEY;
   const origin = env.VELARION_APP_ORIGIN;
-  if (url !== STAGING_URL || !key || !origin) throw new BffError('AUTH_CONFIG_UNAVAILABLE', 503);
+  if (url !== profile.supabaseUrl || !key || !origin) throw new BffError('AUTH_CONFIG_UNAVAILABLE', 503);
   let app: URL;
   try { app = new URL(origin); } catch { throw new BffError('AUTH_CONFIG_INVALID', 503); }
-  // This candidate is staging-only. No service-role/secret key is accepted.
+  // Only the selected project's publishable key format; no service-role/secret key.
   if (app.protocol !== 'https:' || app.origin !== origin || app.username || app.password ||
       !/^sb_publishable_[A-Za-z0-9_-]+$/.test(key) || key.length > 4096) throw new BffError('AUTH_CONFIG_INVALID', 503);
   return { url, key, origin };
@@ -22,7 +24,7 @@ export function safeAuthCookie(options: CookieOptions = {}): CookieOptions {
 }
 export function ownsAuthCookie(name: string): boolean {
   return name === AUTH_COOKIE || name === `${AUTH_COOKIE}-code-verifier` ||
-    new RegExp(`^${AUTH_COOKIE}(?:-code-verifier)?\\.\\d+$`).test(name);
+    new RegExp(`^${AUTH_COOKIE}(?:-code-verifier)?\.\d+$`).test(name);
 }
 /** Actual SDK adapter; dependencies are injected only through this local function, never an HTTP/test-mode switch. */
 export function createRequestAuth(port: CookiePort, env: NodeJS.ProcessEnv = process.env, fetcher: typeof fetch = fetch) {

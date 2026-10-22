@@ -1,12 +1,8 @@
 import { createRemoteJWKSet, jwtVerify, type JWTPayload, type JWTVerifyGetKey } from 'jose';
 import { createClient } from '@supabase/supabase-js';
-
-export class BffError extends Error {
-  constructor(public readonly code: string, public readonly status: number, message = code) {
-    super(message);
-    this.name = 'BffError';
-  }
-}
+import { BffError } from './bff-error';
+import { releaseProfile } from './release-config';
+export { BffError } from './bff-error';
 
 export type BffConfig = {
   supabaseUrl: string;
@@ -33,14 +29,16 @@ export type LiveSessionGuard = (context: VerifiedContext) => Promise<void>;
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const nowSeconds = () => Math.floor(Date.now() / 1000);
-const STAGING_SUPABASE_URL = 'https://akhftbbszejafxpoxiem.supabase.co';
 const signedContexts = new WeakSet<object>();
 const onlineContexts = new WeakSet<object>();
 // Public signing keys only: jose retains bounded freshness and rotation handling.
 // Never cache tokens, user responses, verified contexts, or admission decisions.
-let stagingKeyResolver: JWTVerifyGetKey | undefined;
-function remoteStagingKeys(): JWTVerifyGetKey {
-  return stagingKeyResolver ??= createRemoteJWKSet(new URL(`${STAGING_SUPABASE_URL}/auth/v1/.well-known/jwks.json`));
+let warmKeys: { project: string; resolver: JWTVerifyGetKey } | undefined;
+function remoteProjectKeys(project: string): JWTVerifyGetKey {
+  // At most one project's public JWKS per warm instance; never reuse across issuers.
+  if (!warmKeys || warmKeys.project !== project) warmKeys = { project,
+    resolver: createRemoteJWKSet(new URL(`${project}/auth/v1/.well-known/jwks.json`)) };
+  return warmKeys.resolver;
 }
 export function requireSignedContext(context: VerifiedContext): void {
   if (!context || typeof context !== 'object' || !signedContexts.has(context) || context.expiresAt <= nowSeconds()) throw new BffError('UNVERIFIED_AUTH_CONTEXT', 401);
@@ -51,8 +49,8 @@ export function requireVerifiedContext(context: VerifiedContext): void {
   }
 }
 
-
 export function validateConfig(env: NodeJS.ProcessEnv = process.env): BffConfig {
+  const profile = releaseProfile(env);
   const supabaseUrl = env.VELARION_SUPABASE_URL;
   const publishableKey = env.VELARION_SUPABASE_PUBLISHABLE_KEY;
   const databaseUrl = env.VELARION_BFF_DATABASE_URL;
@@ -60,24 +58,26 @@ export function validateConfig(env: NodeJS.ProcessEnv = process.env): BffConfig 
   if (!supabaseUrl || !publishableKey || !databaseUrl || !appOrigin) throw new BffError('BFF_CONFIG_UNAVAILABLE', 503);
   let supabase: URL, app: URL, db: URL;
   try { supabase = new URL(supabaseUrl); app = new URL(appOrigin); db = new URL(databaseUrl); } catch { throw new BffError('BFF_CONFIG_INVALID', 503); }
-  if (supabase.origin !== 'https://akhftbbszejafxpoxiem.supabase.co') throw new BffError('BFF_CONFIG_INVALID', 503);
+  if (supabase.origin !== profile.supabaseUrl) throw new BffError('BFF_CONFIG_INVALID', 503);
   const runtimeUser = decodeURIComponent(db.username);
-  const direct = db.hostname === 'db.akhftbbszejafxpoxiem.supabase.co' && runtimeUser === 'velarion_bff_runtime';
-  const pooled = /^[a-z0-9.-]+\.pooler\.supabase\.com$/.test(db.hostname) && runtimeUser === 'velarion_bff_runtime.akhftbbszejafxpoxiem';
+  const role = profile.mode === 'production' ? 'velarion_bff_runtime_production' : 'velarion_bff_runtime';
+  const direct = db.hostname === `db.${profile.projectRef}.supabase.co` && runtimeUser === role;
+  const pooled = /^[a-z0-9.-]+\.pooler\.supabase\.com$/.test(db.hostname) && runtimeUser === `${role}.${profile.projectRef}`;
   if ((!direct && !pooled) || !/^sb_publishable_[A-Za-z0-9_-]+$/.test(publishableKey)) throw new BffError('BFF_CONFIG_INVALID', 503);
   if (supabase.protocol !== 'https:' || !/^[a-z0-9-]+\.supabase\.co$/i.test(supabase.hostname) || supabase.username || supabase.password || supabase.port || supabase.pathname !== '/' || supabase.search || supabase.hash || app.protocol !== 'https:' || app.origin !== appOrigin || !['postgres:', 'postgresql:'].includes(db.protocol) || !db.hostname || !db.username || !db.password || db.search || db.hash || ['postgres', 'service_role', 'supabase_admin'].includes(decodeURIComponent(db.username).toLowerCase())) throw new BffError('BFF_CONFIG_INVALID', 503);
   return { supabaseUrl: supabase.origin, publishableKey, databaseUrl, appOrigin };
 }
 
-export async function verifyAccessToken(token: string, issuer: string, keyResolver?: JWTVerifyGetKey, now = nowSeconds()): Promise<VerifiedContext> {
+export async function verifyAccessToken(token: string, issuer: string, keyResolver?: JWTVerifyGetKey, now = nowSeconds(), env: NodeJS.ProcessEnv = process.env): Promise<VerifiedContext> {
+  const profile = releaseProfile(env);
   if (typeof token !== 'string' || !token || !issuer) throw new BffError('TOKEN_INVALID', 401);
   let project: URL;
   try { project = new URL(issuer); } catch { throw new BffError('TOKEN_INVALID', 401); }
-  if (project.origin !== STAGING_SUPABASE_URL || project.protocol !== 'https:' || project.pathname !== '/' || project.search || project.hash) throw new BffError('TOKEN_INVALID', 401);
+  if (project.origin !== profile.supabaseUrl || project.protocol !== 'https:' || project.username || project.password || project.port || project.pathname !== '/' || project.search || project.hash) throw new BffError('TOKEN_INVALID', 401);
   const expectedIssuer = `${project.origin}/auth/v1`;
   let payload: JWTPayload;
   try {
-    const resolver = keyResolver ?? remoteStagingKeys();
+    const resolver = keyResolver ?? remoteProjectKeys(profile.supabaseUrl);
     const result = await jwtVerify(token, resolver, { issuer: expectedIssuer, audience: 'authenticated', algorithms: ['ES256', 'RS256'], clockTolerance: 30, currentDate: new Date(now * 1000) });
     payload = result.payload;
   } catch { throw new BffError('TOKEN_INVALID', 401); }
@@ -87,8 +87,9 @@ export async function verifyAccessToken(token: string, issuer: string, keyResolv
   return context;
 }
 
-export async function checkCurrentUser(context: VerifiedContext, config: Pick<BffConfig, 'supabaseUrl' | 'publishableKey'>, fetcher: typeof fetch = fetch): Promise<void> {
-  if (!context || typeof context !== 'object' || !signedContexts.has(context) || config.supabaseUrl !== STAGING_SUPABASE_URL) throw new BffError('UNVERIFIED_AUTH_CONTEXT', 401);
+export async function checkCurrentUser(context: VerifiedContext, config: Pick<BffConfig, 'supabaseUrl' | 'publishableKey'>, fetcher: typeof fetch = fetch, env: NodeJS.ProcessEnv = process.env): Promise<void> {
+  const profile = releaseProfile(env);
+  if (!context || typeof context !== 'object' || !signedContexts.has(context) || config.supabaseUrl !== profile.supabaseUrl || context.issuer !== `${config.supabaseUrl}/auth/v1`) throw new BffError('UNVERIFIED_AUTH_CONTEXT', 401);
   const boundedFetch: typeof fetch = (input, init = {}) => fetcher(input, { ...init, cache: 'no-store', signal: AbortSignal.timeout(5000) });
   const client = createClient(config.supabaseUrl, config.publishableKey, { auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false, storage: undefined }, global: { fetch: boundedFetch } });
   let result: any;
@@ -104,9 +105,9 @@ export async function checkCurrentUser(context: VerifiedContext, config: Pick<Bf
   onlineContexts.add(context);
 }
 
-export async function establishContext(token: string, config: BffConfig, guard: LiveSessionGuard, fetcher: typeof fetch = fetch, keyResolver?: JWTVerifyGetKey): Promise<VerifiedContext> {
-  const context = await verifyAccessToken(token, config.supabaseUrl, keyResolver);
-  await checkCurrentUser(context, config, fetcher);
+export async function establishContext(token: string, config: BffConfig, guard: LiveSessionGuard, fetcher: typeof fetch = fetch, keyResolver?: JWTVerifyGetKey, env: NodeJS.ProcessEnv = process.env): Promise<VerifiedContext> {
+  const context = await verifyAccessToken(token, config.supabaseUrl, keyResolver, nowSeconds(), env);
+  await checkCurrentUser(context, config, fetcher, env);
   await guard(context);
   return context;
 }

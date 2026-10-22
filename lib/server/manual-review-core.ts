@@ -1,7 +1,10 @@
 import { BffError } from './core';
 import { checkMutationOrigin } from './http-policy';
 export const REVIEW_LOCKED = { connected: false, courseDeliveryEnabled: false, automationEligible: false, tradingEnabled: false } as const;
-export function reviewConfigured(env: Record<string, string | undefined>): boolean { return env.VELARION_MANUAL_REVIEW_ENABLED === 'true' && env.VELARION_MANUAL_REVIEW_SCHEMA === 'manual-broker-review-v1'; }
+export function reviewConfigured(env: Record<string, string | undefined>): boolean {
+  if (env.VERCEL_ENV === 'production' || env.VELARION_RELEASE_ENVIRONMENT === 'production') return false;
+  return env.VELARION_MANUAL_REVIEW_ENABLED === 'true' && env.VELARION_MANUAL_REVIEW_SCHEMA === 'manual-broker-review-v1';
+}
 export type ReviewOperation = 'self_read' | 'self_submit' | 'admin_queue' | 'admin_decide';
 export type Submission = { stage: 'demo' | 'live'; brokerEmail: string; mt5Id: string; server: string; evidenceReference: string };
 export type Decision = { reviewId: string; expectedRevision: number; decision: 'verified' | 'needs_evidence' | 'rejected' | 'revoked'; note: string; evidenceReference: string; ownershipConfirmed: boolean; attributionConfirmed: boolean; depositUsdCents: number | null };
@@ -30,7 +33,6 @@ export type ReviewDeps = {
   origin(): string | undefined;
   execute(operation: ReviewOperation, payload: Submission | Decision | Record<string, never>, request: Request): Promise<unknown>;
 };
-/** Strip unexpected SQL columns and keep internal reviewer information out of self-service DTOs. */
 export function projectReviewResponse(value: unknown, operation: ReviewOperation): object {
   const bad = (): never => { throw new BffError('MANUAL_REVIEW_RESPONSE_INVALID', 502); };
   if (!value || typeof value !== 'object' || Array.isArray(value)) return bad();
@@ -68,7 +70,6 @@ export function projectReviewResponse(value: unknown, operation: ReviewOperation
 function response(body: object, status = 200) { return Response.json(body, { status, headers: { 'Cache-Control': 'private, no-store, max-age=0', Pragma: 'no-cache', Vary: 'Cookie, Authorization', 'Referrer-Policy': 'no-referrer', 'X-Content-Type-Options': 'nosniff' } }); }
 async function readBody(request: Request) {
   if (request.headers.get('content-type')?.split(';')[0].trim() !== 'application/json') throw new BffError('REVIEW_JSON_REQUIRED', 415);
-  // Bound the stream, not merely the caller-controlled Content-Length header.
   const reader = request.body?.getReader(); if (!reader) return fail(); let size = 0; const chunks: Uint8Array[] = [];
   try { for (;;) { const { done, value } = await reader.read(); if (done) break; size += value.length; if (size > 4096) { await reader.cancel(); throw new BffError('REVIEW_BODY_TOO_LARGE', 413); } chunks.push(value); } }
   finally { reader.releaseLock(); }
@@ -88,7 +89,6 @@ export function createReviewHttp(deps: ReviewDeps) {
         const body = await readBody(request); payload = operation === 'self_submit' ? parseSubmission(body) : parseDecision(body);
       }
       const raw = projectReviewResponse(await deps.execute(operation, payload, request), operation);
-      // Release/activation flags are never supplied by clients or inferred from verification.
       return response({ ...raw, ...REVIEW_LOCKED });
     } catch (e) {
       return response({ success: false, ...REVIEW_LOCKED, error: e instanceof BffError ? e.code : 'MANUAL_REVIEW_UNAVAILABLE' }, e instanceof BffError ? e.status : 503);

@@ -1,13 +1,8 @@
 import { checkServerIdentity, type ConnectionOptions } from 'node:tls';
 import type { BffConfig } from './core';
+import { BffError } from './bff-error';
+import { releaseProfile } from './release-config';
 
-// Public trust anchor downloaded from the authenticated Velarion Staging Dashboard:
-// https://supabase.com/dashboard/project/akhftbbszejafxpoxiem/database/settings
-// https://supabase-downloads.s3-ap-southeast-1.amazonaws.com/prod/ssl/prod-ca-2021.crt
-// DER SHA-256: 807025ad50d4ed219d2c9c7d299c004f824eb00cf7f65afef607d07b72e6cafa
-// Expires 2031-04-26. Rotate only against independently authenticated provider evidence.
-// Inline public PEM is bundled with Node server code: no runtime file path, network fetch,
-// secret, global trust-store mutation, or Next/Vercel file-tracing configuration needed.
 const STAGING_SUPABASE_CA = `-----BEGIN CERTIFICATE-----
 MIIDxDCCAqygAwIBAgIUbLxMod62P2ktCiAkxnKJwtE9VPYwDQYJKoZIhvcNAQEL
 BQAwazELMAkGA1UEBhMCVVMxEDAOBgNVBAgMB0RlbHdhcmUxEzARBgNVBAcMCk5l
@@ -35,11 +30,17 @@ o/bKiIz+Fq8=
 
 /** Call only after validateConfig: endpoint, project routing user and URL-query guards remain authoritative. */
 export function databaseTls(config: BffConfig, env: NodeJS.ProcessEnv): 'verify-full' | ConnectionOptions {
+  if (env.VELARION_RELEASE_ENVIRONMENT === 'production') {
+    const profile = releaseProfile(env);
+    const production = profile.production!;
+    if (config.supabaseUrl !== profile.supabaseUrl || config.databaseUrl !== env.VELARION_BFF_DATABASE_URL ||
+        config.appOrigin !== production.origin) throw new BffError('PRODUCTION_CONFIG_INVALID', 503);
+    return { ca: production.caPem, rejectUnauthorized: true,
+      servername: production.databaseHost, checkServerIdentity };
+  }
   if (env.VERCEL_ENV !== 'preview' || config.supabaseUrl !== 'https://akhftbbszejafxpoxiem.supabase.co') return 'verify-full';
   const hostname = new URL(config.databaseUrl).hostname;
   if (hostname !== 'aws-0-eu-west-1.pooler.supabase.com') return 'verify-full';
-  // postgres.js merges this object into tls.connect options. Keep verify-full semantics:
-  // trusted chain AND Node's standard hostname verification, with SNI for the actual DB host.
   return {
     ca: STAGING_SUPABASE_CA,
     rejectUnauthorized: true,
