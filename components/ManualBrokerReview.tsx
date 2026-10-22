@@ -5,8 +5,6 @@ import { useEffect, useState } from 'react';
 type ReviewItem = { id: string; stage: 'demo' | 'live'; brokerEmail: string; mt5Id: string; server: string; referralCode: string; status: string; revision: number; submittedAt: string; evidenceReference: string; latestNote?: string };
 type SelfResponse = { submissions: ReviewItem[]; eligibility: { demoVerified: boolean; liveVerified: boolean; checkpointSatisfied: boolean }; locked?: boolean };
 
-const box: React.CSSProperties = { border: '1px solid rgba(211,174,96,.35)', borderRadius: 12, padding: 20, marginTop: 24, background: 'rgba(14,19,27,.72)' };
-
 export default function ManualBrokerReview() {
   const [data, setData] = useState<SelfResponse | null>(null);
   const [available, setAvailable] = useState(false);
@@ -33,13 +31,13 @@ export default function ManualBrokerReview() {
     } catch (e) { setError(e instanceof Error ? e.message : 'Submission could not be completed.'); }
     finally { setBusy(false); }
   };
-  return <section style={box} aria-labelledby="broker-review-heading">
+  return <section aria-labelledby="broker-review-heading">
     <h2 id="broker-review-heading">Manual broker review</h2>
     <p>Review submissions are separate from your Velarion password. Enter the MT5 trading account ID as a numeric string and the broker server exactly as shown by the broker. Never enter a broker password, PIN, one-time code, or upload a statement or screenshot.</p>
     <p>Evidence reference means an opaque internal case/ticket reference only—not a URL or document. Do not include account credentials or full documents.</p>
     {!available ? <p role="status">{error || 'Checking whether secure review is enabled…'} The form stays unavailable unless the authenticated review service confirms it is configured.</p> : <>
       <p>Eligibility: demo review {data?.eligibility.demoVerified ? 'verified' : 'not verified'}; live review {data?.eligibility.liveVerified ? 'verified' : 'not verified'}; five-lesson funding checkpoint {data?.eligibility.checkpointSatisfied ? 'satisfied' : 'not satisfied'}. This is not graduation or permission to trade.</p>
-      <form onSubmit={submit} style={{ display: 'grid', gap: 12, maxWidth: 560 }}>
+      <form onSubmit={submit}>
         <label>Review stage<select required value={form.stage} onChange={e => setForm({ ...form, stage: e.target.value as 'demo' | 'live' })}><option value="demo">Demo account</option><option value="live">Live account</option></select></label>
         <label>Broker-associated email<input required type="email" autoComplete="email" value={form.brokerEmail} onChange={e => setForm({ ...form, brokerEmail: e.target.value })} /></label>
         <label>MT5 trading account ID<input required inputMode="numeric" autoComplete="off" value={form.mt5Id} onChange={e => setForm({ ...form, mt5Id: e.target.value })} /></label>
