@@ -19,9 +19,9 @@ export default async function Onboarding() {
   return <main className={styles.page}>
     <header className={styles.hero}>
       <div className={styles.eyebrow}>VELARION MARKETS <span aria-hidden="true">/</span> ONBOARDING</div>
-      <span className={styles.badge}><span aria-hidden="true" className={styles.statusDot} />ACCESS PENDING</span>
-      <h1>{authenticated ? 'Signed in — access pending' : 'Sign in to continue'}</h1>
-      <p className={styles.intro}>{authenticated ? admitted ? 'Your current identity and application session were verified. Onboarding is still gated.' : 'Your confirmed provider identity was checked online. Application access is not yet approved or its admission could not be confirmed.' : 'No authenticated application access could be established. Staging configuration or a fresh sign-in is required.'}</p>
+      <span className={styles.badge}><span aria-hidden="true" className={styles.statusDot} />{admitted ? 'APPROVED' : 'AWAITING APPROVAL'}</span>
+      <h1>{authenticated ? (admitted ? 'Account approved' : 'Awaiting approval') : 'Sign in to continue'}</h1>
+      <p className={styles.intro}>{authenticated ? admitted ? 'Your account is approved. Complete the remaining onboarding steps below.' : 'An admin reviews each new member. Return after your account is approved.' : 'Sign in or create an account to continue.'}</p>
     </header>
 
     <div className={styles.layout}>
