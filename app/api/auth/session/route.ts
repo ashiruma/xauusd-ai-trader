@@ -1,4 +1,18 @@
-import { integratedHttp } from '@/lib/server/integrated-runtime';
+import { NextResponse } from 'next/server';
+import { createClient } from '@/lib/supabase/server';
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
-export const GET = integratedHttp.session;
+const reply = (body: object) => NextResponse.json(body, { headers: { 'Cache-Control': 'private, no-store' } });
+
+export async function GET() {
+  try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return reply({ authenticated: false });
+    const { data: profile } = await supabase.from('profiles').select('status, mt5_account_id').eq('id', user.id).maybeSingle();
+    return reply({ authenticated: true, user: {
+      email: user.email, accountId: user.id,
+      mt5Account: profile?.mt5_account_id ?? '', status: profile?.status ?? 'pending',
+    } });
+  } catch { return reply({ authenticated: false }); }
+}

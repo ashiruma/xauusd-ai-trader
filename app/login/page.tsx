@@ -2,32 +2,48 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { DEFAULT_PARTNER_CONFIG } from '@/lib/partner';
+import { createClient } from '@/lib/supabase/client';
 import styles from './login.module.css';
 export default function Page() {
   const [mode, setMode] = useState<'login' | 'signup'>('login');
   const [message, setMessage] = useState('');
   const [busy, setBusy] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  function friendly(message: string) {
+    const m = message.toLowerCase();
+    if (m.includes('invalid login')) return 'Email or password is incorrect.';
+    if (m.includes('already registered')) return 'This email already has an account. Choose Return to sign in.';
+    if (m.includes('not confirmed')) return 'Confirm your email first, then sign in.';
+    if (m.includes('rate limit') || m.includes('too many')) return 'Too many attempts. Wait a few minutes and try again.';
+    if (m.includes('password')) return message;
+    return 'Authentication failed: ' + message;
+  }
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (busy) return;
     setBusy(true); setMessage('');
     const form = new FormData(event.currentTarget);
+    const email = String(form.get('email') ?? '').trim().toLowerCase();
+    const password = String(form.get('password') ?? '');
     try {
-      const preparation = await fetch('/api/auth/begin', { method: 'POST', cache: 'no-store' });
-      if (!preparation.ok) throw new Error('Preparation unavailable');
-      const response = await fetch(`/api/auth/${mode}`, { method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: form.get('email'), password: form.get('password') }), cache: 'no-store' });
-      const data = await response.json();
-      if (response.ok && data.success && mode === 'login') { window.location.assign('/onboarding'); return; }
-      if (response.ok && data.success && mode === 'signup') { window.location.assign('/auth/confirm'); return; }
-      setMessage('Authentication is unavailable or the details could not be verified.');
-    } catch { setMessage('Authentication is unavailable.'); }
+      const supabase = createClient();
+      if (mode === 'signup') {
+        const { data, error } = await supabase.auth.signUp({ email, password,
+          options: { emailRedirectTo: `${window.location.origin}/auth/callback`, data: { justmarkets_email: email } } });
+        if (error) { setMessage(friendly(error.message)); return; }
+        if (data.session) { window.location.assign('/onboarding'); return; }
+        setMessage('Account created. Check your email to confirm, then sign in.');
+        return;
+      }
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) { setMessage(friendly(error.message)); return; }
+      window.location.assign('/onboarding');
+    } catch { setMessage('The server could not be reached. Check your connection and try again.'); }
     finally { setBusy(false); }
   }
   return <main className={styles.page} aria-labelledby="login-title">
     <div className={styles.card}>
-      <span className={styles.eyebrow}>Velarion · Staging Preview</span>
+      <span className={styles.eyebrow}>Velarion</span>
       <h1 id="login-title" className={styles.title}>{mode === 'login' ? 'Sign in' : 'Create account'}</h1>
       <p className={styles.intro}>Your JustMarkets email. Your own Velarion password.</p>
       <form onSubmit={submit} className={styles.form} aria-busy={busy} aria-describedby="credential-help">
@@ -52,7 +68,6 @@ export default function Page() {
         <button className={`btn btn-primary ${styles.action}`} type="submit" disabled={busy}>{busy ? 'Please wait' : mode === 'login' ? 'Sign in' : 'Create account'}</button>
       </form>
       <button className={`btn btn-secondary ${styles.action} ${styles.switchMode}`} type="button" disabled={busy} onClick={() => { setMode(mode === 'login' ? 'signup' : 'login'); setMessage(''); }}>{mode === 'login' ? 'Create account' : 'Return to sign in'}</button>
-      <Link className={styles.detailLink} href="/auth/confirm">Already have an email confirmation code?</Link>
       <p role="status" aria-live="polite" aria-atomic="true" className={styles.message}>{message}</p>
       <div className={styles.referral}>
         <a className={styles.partnerLink} href={DEFAULT_PARTNER_CONFIG.primaryLink} target="_blank" rel="noopener noreferrer sponsored">New here? Join JustMarkets <span aria-hidden="true">↗</span><span className={styles.srOnly}> (opens in a new tab)</span></a>

@@ -1,24 +1,26 @@
 import Link from 'next/link';
-import { currentSession, currentOnboarding } from '@/lib/server/integrated-runtime';
-import StagingSessionActions from '@/components/StagingSessionActions';
+import { createClient } from '@/lib/supabase/server';
+import SignOutButton from '@/components/SignOutButton';
 import ManualBrokerReview from '@/components/ManualBrokerReview';
-import type { OnboardingStatus } from '@/lib/server/onboarding-contract';
 import styles from './onboarding.module.css';
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 export default async function Onboarding() {
-  let authenticated = false, admitted = false, status: OnboardingStatus | null = null;
+  let authenticated = false, admitted = false;
   try {
-    const session = await currentSession();
-    authenticated = session.authenticated === true; admitted = session.bffAuthorized === true;
-    const snapshot = await currentOnboarding();
-    if ('gates' in snapshot) status = snapshot;
-  } catch { /* No cached/provider-only fallback, and no internal diagnostics in page output. */ }
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      authenticated = true;
+      const { data: profile } = await supabase.from('profiles').select('status').eq('id', user.id).maybeSingle();
+      admitted = profile?.status === 'approved';
+    }
+  } catch { /* A failed lookup leaves the visitor signed out. */ }
   return <main className={styles.page}>
     <header className={styles.hero}>
       <div className={styles.eyebrow}>VELARION MARKETS <span aria-hidden="true">/</span> ONBOARDING</div>
-      <span className={styles.badge}><span aria-hidden="true" className={styles.statusDot} />STAGING · ACCESS PENDING</span>
-      <h1>{authenticated ? 'Signed in — access pending' : 'Sign in is not yet available'}</h1>
+      <span className={styles.badge}><span aria-hidden="true" className={styles.statusDot} />ACCESS PENDING</span>
+      <h1>{authenticated ? 'Signed in — access pending' : 'Sign in to continue'}</h1>
       <p className={styles.intro}>{authenticated ? admitted ? 'Your current identity and application session were verified. Onboarding is still gated.' : 'Your confirmed provider identity was checked online. Application access is not yet approved or its admission could not be confirmed.' : 'No authenticated application access could be established. Staging configuration or a fresh sign-in is required.'}</p>
     </header>
 
@@ -38,8 +40,6 @@ export default async function Onboarding() {
           <h2 id="release-title">Not enabled in this review release</h2>
           <p>Protected lessons and assessments remain server-disabled. Broker linking, automation consent, activation and all live trading operations are unavailable in this review release. A manual review form appears only if its authenticated review service confirms it is configured; otherwise submission remains unavailable. Review does not activate lessons or trading.</p>
         </section>
-
-        {status && <section className={styles.card} aria-labelledby="authoritative-title"><div className={styles.eyebrow}>SERVER-REPORTED</div><h2 id="authoritative-title">Authoritative onboarding status</h2><ul className={styles.statusList}>{status.gates.map(g => <li key={g.gate}><span>{g.gate.replaceAll('_', ' ')}</span><strong>{g.status}</strong></li>)}</ul><p>Authoritative lesson completion: {status.progress.coreCompleted} / 30.</p></section>}
 
         <div className={styles.review}><ManualBrokerReview /></div>
       </div>
@@ -68,7 +68,7 @@ export default async function Onboarding() {
       <div className={styles.card}><h2>Access terms &amp; risk</h2><p>Velarion access is 100% free conditional on partner-link registration and verified attribution. Broker fees, deposits and market losses remain your responsibility. <Link href="/legal/ib-disclosure">IB compensation creates a conflict</Link>; no earnings are guaranteed, and Kenya regulatory review remains required before launch.</p></div>
       <div className={styles.card}><h2>Admin priority passes</h2><p>The two approved admin priority passes require separately approved, verified Auth UUIDs; no pass is authorized by email. A pass waives referral, deposit and all-30 completion requirements only. It never creates course completions or grants a general administrator role.</p></div>
     </section>
-    {authenticated && <div className={styles.session}><div className={styles.sessionHeading}><div className={styles.eyebrow}>ACCOUNT SUPPORT</div><h2>Session controls</h2></div><StagingSessionActions /></div>}
+    {authenticated && <div className={styles.session}><div className={styles.sessionHeading}><div className={styles.eyebrow}>ACCOUNT SUPPORT</div><h2>Session controls</h2></div><SignOutButton /></div>}
     {admitted && <div className={styles.bottomLink}><Link href="/login" prefetch={false}>Sign-in options</Link></div>}
   </main>;
 }
