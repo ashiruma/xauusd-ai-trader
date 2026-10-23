@@ -38,7 +38,7 @@ export default function Page() {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) { setMessage(friendly(error.message)); return; }
       window.location.assign('/onboarding');
-    } catch { setMessage('The server could not be reached. Check your connection and try again.'); }
+    } catch (e) { console.error(e); setMessage('Request failed: ' + (e instanceof Error ? e.message : 'unknown error')); }
     finally { setBusy(false); }
   }
   return <main className={styles.page} aria-labelledby="login-title">
