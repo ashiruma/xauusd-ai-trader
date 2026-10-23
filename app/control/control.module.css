@@ -1,0 +1,26 @@
+.page { width: 100%; max-width: 960px; margin: 0 auto; padding: clamp(24px, 5vw, 56px) 20px; color: var(--text-primary); }
+.header { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; margin-bottom: 24px; }
+.header h1 { margin: 6px 0 0; font-family: var(--font-display); font-size: clamp(28px, 5vw, 40px); }
+.eyebrow { color: var(--text-muted); font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.08em; }
+.back { color: var(--text-gold); font-size: 14px; }
+.tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+.tabs a { padding: 8px 14px; border: 1px solid var(--border-default); border-radius: 999px; font-size: 14px; text-transform: capitalize; color: var(--text-secondary); }
+.tabs a span { margin-left: 6px; color: var(--text-muted); }
+.tabs a.active { border-color: var(--accent-gold); color: var(--text-primary); background: var(--bg-surface-2); }
+.search { display: flex; gap: 8px; margin-bottom: 20px; }
+.search input { flex: 1; min-width: 0; padding: 10px 12px; background: var(--bg-input); color: var(--text-primary); border: 1px solid var(--border-default); border-radius: 8px; }
+.search button, .actions button { padding: 8px 14px; border: 1px solid var(--border-default); border-radius: 8px; background: var(--bg-surface-1); color: var(--text-primary); cursor: pointer; font-size: 14px; }
+.actions button.approve { background: var(--accent-gold); border-color: var(--accent-gold); color: #153d2e; font-weight: 600; }
+.list { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+.row { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; padding: 16px; background: var(--bg-card); border: 1px solid var(--border-default); border-radius: 12px; }
+.info { display: grid; gap: 4px; min-width: 0; }
+.info strong { overflow-wrap: anywhere; }
+.info span { color: var(--text-secondary); font-size: 13px; }
+.admin { margin-left: 8px; padding: 2px 8px; border-radius: 999px; background: var(--bg-surface-3); font-size: 11px; font-style: normal; }
+.actions { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+.badge { padding: 4px 10px; border-radius: 999px; border: 1px solid var(--border-default); font-size: 12px; text-transform: capitalize; }
+.approved { border-color: #2e8b57; }
+.rejected { border-color: #b5483a; }
+.pending { border-color: var(--accent-gold); }
+.empty, .error { color: var(--text-secondary); }
+.error { color: #b5483a; }

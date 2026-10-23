@@ -12,6 +12,7 @@ export default function robots(): MetadataRoute.Robots {
         '/admin/*',
         '/admin-secure-x9f8k2',
         '/admin-secure-x9f8k2/*',
+        '/control',
         '/terminal',
         '/terminal/*',
         '/api/*'

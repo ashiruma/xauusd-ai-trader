@@ -26,7 +26,7 @@ export async function proxy(request: NextRequest) {
       await supabase.auth.getUser();
     } catch { /* A failed refresh leaves the visitor signed out. */ }
   }
-  if (path.startsWith('/api/') || path.startsWith('/auth/') || ['/login', '/onboarding'].includes(path)) {
+  if (path.startsWith('/api/') || path.startsWith('/auth/') || ['/login', '/onboarding', '/control'].includes(path)) {
     response.headers.set('Cache-Control', 'private, no-store, max-age=0');
     response.headers.set('Referrer-Policy', 'no-referrer');
   }
