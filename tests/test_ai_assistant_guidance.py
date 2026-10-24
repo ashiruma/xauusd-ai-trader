@@ -74,3 +74,25 @@ def test_assistant_widget_component_compliance():
     assert "Forex School Guidance" in content
     assert "Least-Privilege Account Linking" in content
     assert "Trading Truth & Risk" in content
+    assert "Request Human Support" in content
+
+
+def test_human_support_escalation_system():
+    """Verify human support escalation dispatch and zero-emoji compliance."""
+    with open("lib/support-dispatch.ts", "r", encoding="utf-8") as f:
+        dispatch_code = f.read()
+
+    assert "ADMIN_EMAILS" in dispatch_code
+    assert "TICK-" in dispatch_code
+    assert "HUMAN SUPPORT ESCALATION" in dispatch_code
+
+    emojis_found = EMOJI_PATTERN.findall(dispatch_code)
+    assert len(emojis_found) == 0, f"Found emojis in support-dispatch.ts: {emojis_found}"
+
+    with open("app/api/assistant/support/route.ts", "r", encoding="utf-8") as f:
+        support_route = f.read()
+
+    assert "dispatchHumanSupport" in support_route
+    emojis_found = EMOJI_PATTERN.findall(support_route)
+    assert len(emojis_found) == 0, f"Found emojis in support route: {emojis_found}"
+

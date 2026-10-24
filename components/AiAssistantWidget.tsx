@@ -16,22 +16,26 @@ interface Message {
 const INITIAL_MESSAGE: Message = {
   id: 'welcome',
   role: 'assistant',
-  text: `Welcome to Velarion. This release offers curriculum summaries and pending-access sign-in, not enabled lessons or trading.
-The intended journey is:
-1. Register through this website’s JustMarkets link and create a demo MT5 account there.
-2. Return using the same email and a separate Velarion password. The MT5 trading account ID is mandatory for planned verification; it does not prove ownership or referral attribution alone. Never share broker passwords here.
-3. Complete five lessons, then provide trustworthy live-account evidence of at least USD 50 deposited before lessons 6–30. This checkpoint is planned, not enabled.
-4. Complete all 30 lessons to graduate. Funding and graduation never activate trading.
-5. Automation requires separate account-scoped consent, verified ownership and operational approval. It can lose money; no income while studying is guaranteed.
-Velarion access is 100% free conditional on partner-link registration and verified attribution. Broker fees, deposits and losses remain yours. IB compensation creates a conflict, and Kenya regulatory review remains required before launch.`,
+  text: `Welcome to the Velarion AI Assistant. I am your quantitative trading guide and support copilot.
+
+How can I assist you today?
+1. The 5-Step Member Funnel: Learn how to register, get verified, study, and unlock live execution.
+2. Account Sizing: Choose between the $10 Standard Cent account and the $200 Pro account on JustMarkets.
+3. Forex School Guidance: Navigate the 30-lesson SMC curriculum and pass your comprehension checks.
+4. Least-Privilege Account Linking: Safely connect your MT5 account without sharing master passwords.
+5. Trading Truth & Risk: Understand loss asymmetry, the 160-trade reality check, and Candidate Strategy v2 rules.
+6. Request Human Support: Connect directly with a platform administrator for account or technical assistance.
+
+Select a suggested topic below or type your question.`,
   suggestions: [
-    'How do I start the 5-step funnel?',
-    'What is the five-lesson USD 50 checkpoint?',
-    'Why do I need a separate Velarion password and MT5 ID?',
-    'What are the trading risks and IB conflicts?',
-    'Why are all 30 lessons required?'
+    'The 5-Step Member Funnel',
+    'Account Sizing',
+    'Forex School Guidance',
+    'Least-Privilege Account Linking',
+    'Trading Truth & Risk',
+    'Request Human Support',
   ],
-  timestamp: 'Just now'
+  timestamp: 'Just now',
 };
 
 export default function AiAssistantWidget() {
@@ -39,9 +43,15 @@ export default function AiAssistantWidget() {
   const [messages, setMessages] = useState<Message[]>([INITIAL_MESSAGE]);
   const [inputValue, setInputValue] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showSupportModal, setShowSupportModal] = useState(false);
+  const [supportSubject, setSupportSubject] = useState('');
+  const [supportMessage, setSupportMessage] = useState('');
+  const [supportAccountId, setSupportAccountId] = useState('');
+  const [supportEmail, setSupportEmail] = useState('');
+  const [submittingSupport, setSubmittingSupport] = useState(false);
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Auto-scroll to bottom of messages
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
@@ -60,7 +70,7 @@ export default function AiAssistantWidget() {
       id: `usr_${Date.now()}`,
       role: 'user',
       text,
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     };
 
     setMessages((prev) => [...prev, userMsg]);
@@ -70,7 +80,7 @@ export default function AiAssistantWidget() {
     try {
       const historyPayload = messages.slice(-6).map((m) => ({
         role: m.role,
-        content: m.text
+        content: m.text,
       }));
 
       const res = await fetch('/api/assistant/chat', {
@@ -78,8 +88,8 @@ export default function AiAssistantWidget() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           message: text,
-          history: historyPayload
-        })
+          history: historyPayload,
+        }),
       });
 
       const data = await res.json();
@@ -91,7 +101,7 @@ export default function AiAssistantWidget() {
           category: data.category,
           suggestions: data.suggestions || [],
           referenceLinks: data.referenceLinks || [],
-          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         };
         setMessages((prev) => [...prev, assistantMsg]);
       } else {
@@ -100,11 +110,11 @@ export default function AiAssistantWidget() {
           role: 'assistant',
           text: data.message || 'I encountered an issue retrieving that guidance. Please try again or select one of the suggested prompts below.',
           suggestions: [
-            'How do I start the 5-step funnel?',
-            'What is the five-lesson USD 50 checkpoint?',
-            'Why do I need a separate Velarion password and MT5 ID?'
+            'The 5-Step Member Funnel',
+            'Account Sizing',
+            'Request Human Support',
           ],
-          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         };
         setMessages((prev) => [...prev, errorMsg]);
       }
@@ -113,12 +123,57 @@ export default function AiAssistantWidget() {
         id: `net_${Date.now()}`,
         role: 'assistant',
         text: 'Network connection error. Please ensure you are connected and try again.',
-        suggestions: ['How do I start the 5-step funnel?'],
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        suggestions: ['The 5-Step Member Funnel', 'Request Human Support'],
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       };
       setMessages((prev) => [...prev, networkErrorMsg]);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSupportSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!supportMessage.trim() || submittingSupport) return;
+
+    setSubmittingSupport(true);
+    try {
+      const res = await fetch('/api/assistant/support', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          subject: supportSubject.trim() || 'General Human Support Assistance',
+          message: supportMessage.trim(),
+          accountId: supportAccountId.trim() || undefined,
+          userEmail: supportEmail.trim() || undefined,
+        }),
+      });
+
+      const data = await res.json();
+      if (res.ok && data.success) {
+        const confirmationMsg: Message = {
+          id: `support_${Date.now()}`,
+          role: 'assistant',
+          text: `Support Request Logged [Ref: #${data.ticketId}]:\n\nYour message has been dispatched to the Velarion Administrative Team. An email alert has been sent to our platform coordinators.\n\nSummary of your request:\n- Subject: ${supportSubject.trim() || 'General Inquiry'}\n- Message: ${supportMessage.trim()}\n\nAn administrator will review your inquiry directly.`,
+          category: 'Support Ticket Dispatched',
+          suggestions: [
+            'The 5-Step Member Funnel',
+            'Forex School Guidance',
+            'Least-Privilege Account Linking',
+          ],
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        };
+        setMessages((prev) => [...prev, confirmationMsg]);
+        setShowSupportModal(false);
+        setSupportSubject('');
+        setSupportMessage('');
+      } else {
+        alert(data.message || 'Failed to dispatch support request. Please retry.');
+      }
+    } catch {
+      alert('Network error submitting support request. Please retry.');
+    } finally {
+      setSubmittingSupport(false);
     }
   };
 
@@ -145,7 +200,7 @@ export default function AiAssistantWidget() {
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'flex-end',
-          gap: '8px'
+          gap: '8px',
         }}
       >
         {!isOpen && (
@@ -165,11 +220,10 @@ export default function AiAssistantWidget() {
               fontWeight: 600,
               fontSize: '12px',
               letterSpacing: '0.02em',
-              transition: 'all 0.2s ease'
+              transition: 'all 0.2s ease',
             }}
             aria-label="Open Velarion AI Assistant"
           >
-            {/* SVG Robot/Assistant Icon */}
             <span
               style={{
                 display: 'inline-flex',
@@ -180,7 +234,7 @@ export default function AiAssistantWidget() {
                 borderRadius: '2px',
                 backgroundColor: 'rgba(216, 184, 108, 0.15)',
                 border: '1px solid #d8b86c',
-                color: '#e1c47c'
+                color: '#e1c47c',
               }}
             >
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -201,7 +255,7 @@ export default function AiAssistantWidget() {
                 borderRadius: '4px',
                 border: '1px solid rgba(4, 120, 87, 0.4)',
                 fontWeight: 700,
-                letterSpacing: '0.05em'
+                letterSpacing: '0.05em',
               }}
             >
               GUIDE
@@ -213,29 +267,29 @@ export default function AiAssistantWidget() {
         {isOpen && (
           <div
             style={{
-              width: '420px',
+              width: '430px',
               maxWidth: 'calc(100vw - 32px)',
               height: '620px',
               maxHeight: 'calc(100vh - 100px)',
               backgroundColor: 'var(--bg-card, #FFFFFF)',
               border: '1px solid var(--border-default, #CBD5E1)',
               borderRadius: '2px',
-              boxShadow: '0 16px 36px rgba(0, 0, 0, 0.2)',
+              boxShadow: '0 16px 36px rgba(0, 0, 0, 0.25)',
               display: 'flex',
               flexDirection: 'column',
               overflow: 'hidden',
-              animation: 'fadeInUp 0.2s ease-out'
+              animation: 'fadeInUp 0.2s ease-out',
             }}
           >
             {/* Header */}
             <div
               style={{
-                padding: '16px 20px',
+                padding: '14px 18px',
                 borderBottom: '1px solid var(--border-subtle, #E2E8F0)',
                 backgroundColor: 'var(--bg-surface-1, #F8FAFC)',
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'space-between'
+                justifyContent: 'space-between',
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -249,7 +303,7 @@ export default function AiAssistantWidget() {
                     borderRadius: '2px',
                     backgroundColor: 'rgba(20, 84, 55, 0.12)',
                     border: '1px solid var(--border-default)',
-                    color: 'var(--accent-gold)'
+                    color: 'var(--accent-gold)',
                   }}
                 >
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -272,19 +326,39 @@ export default function AiAssistantWidget() {
                         backgroundColor: 'rgba(4, 120, 87, 0.15)',
                         color: 'var(--accent-green, #047857)',
                         borderRadius: '3px',
-                        fontWeight: 700
+                        fontWeight: 700,
                       }}
                     >
                       ONLINE
                     </span>
                   </div>
                   <div style={{ fontSize: '11px', color: 'var(--text-muted, #64748B)' }}>
-                    System Guide & Education Copilot
+                    System Guide &amp; Support Escalation
                   </div>
                 </div>
               </div>
 
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <button
+                  type="button"
+                  onClick={() => setShowSupportModal(true)}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    padding: '4px 8px',
+                    backgroundColor: 'var(--accent-gold-subtle, rgba(212, 175, 55, 0.15))',
+                    color: 'var(--accent-gold, #D4AF37)',
+                    border: '1px solid var(--border-accent, rgba(212, 175, 55, 0.4))',
+                    borderRadius: '2px',
+                    fontSize: '11px',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                  }}
+                  title="Request Human Support"
+                >
+                  Human Support
+                </button>
                 <button
                   onClick={handleClearHistory}
                   title="Reset conversation"
@@ -296,7 +370,7 @@ export default function AiAssistantWidget() {
                     padding: '6px',
                     borderRadius: '4px',
                     display: 'flex',
-                    alignItems: 'center'
+                    alignItems: 'center',
                   }}
                 >
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -315,7 +389,7 @@ export default function AiAssistantWidget() {
                     padding: '6px',
                     borderRadius: '4px',
                     display: 'flex',
-                    alignItems: 'center'
+                    alignItems: 'center',
                   }}
                 >
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -326,6 +400,84 @@ export default function AiAssistantWidget() {
               </div>
             </div>
 
+            {/* Human Support Modal / Inline Panel */}
+            {showSupportModal && (
+              <div
+                style={{
+                  backgroundColor: 'var(--bg-surface-1, #F8FAFC)',
+                  borderBottom: '2px solid var(--accent-gold, #D4AF37)',
+                  padding: '16px',
+                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                  <div style={{ fontSize: '13px', fontWeight: 800, color: 'var(--accent-gold, #D4AF37)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                    Request Human Support
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowSupportModal(false)}
+                    style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '16px' }}
+                  >
+                    &times;
+                  </button>
+                </div>
+                <p style={{ fontSize: '12px', color: 'var(--text-secondary)', margin: '0 0 10px', lineHeight: 1.45 }}>
+                  Submitting will dispatch an alert and email notification directly to our administrative team.
+                </p>
+                <form onSubmit={handleSupportSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <input
+                    type="text"
+                    placeholder="Subject (e.g. Deposit confirmation, MT5 linking)"
+                    value={supportSubject}
+                    onChange={(e) => setSupportSubject(e.target.value)}
+                    required
+                    style={{ padding: '6px 10px', fontSize: '12px', borderRadius: '2px', border: '1px solid var(--border-default)', background: 'var(--bg-base)', color: 'var(--text-primary)' }}
+                  />
+                  <textarea
+                    placeholder="Describe your issue or request in detail..."
+                    value={supportMessage}
+                    onChange={(e) => setSupportMessage(e.target.value)}
+                    rows={3}
+                    required
+                    style={{ padding: '6px 10px', fontSize: '12px', borderRadius: '2px', border: '1px solid var(--border-default)', background: 'var(--bg-base)', color: 'var(--text-primary)', resize: 'vertical' }}
+                  />
+                  <div style={{ display: 'flex', gap: '6px' }}>
+                    <input
+                      type="text"
+                      placeholder="MT5 Account ID (Optional)"
+                      value={supportAccountId}
+                      onChange={(e) => setSupportAccountId(e.target.value)}
+                      style={{ flex: 1, padding: '6px 10px', fontSize: '12px', borderRadius: '2px', border: '1px solid var(--border-default)', background: 'var(--bg-base)', color: 'var(--text-primary)' }}
+                    />
+                    <input
+                      type="email"
+                      placeholder="Contact Email (Optional)"
+                      value={supportEmail}
+                      onChange={(e) => setSupportEmail(e.target.value)}
+                      style={{ flex: 1, padding: '6px 10px', fontSize: '12px', borderRadius: '2px', border: '1px solid var(--border-default)', background: 'var(--bg-base)', color: 'var(--text-primary)' }}
+                    />
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '4px' }}>
+                    <button
+                      type="button"
+                      onClick={() => setShowSupportModal(false)}
+                      style={{ padding: '6px 12px', fontSize: '11px', background: 'transparent', border: '1px solid var(--border-default)', color: 'var(--text-secondary)', borderRadius: '2px', cursor: 'pointer' }}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={submittingSupport}
+                      style={{ padding: '6px 14px', fontSize: '11px', fontWeight: 700, background: '#145437', color: '#f7f7f0', border: 'none', borderRadius: '2px', cursor: submittingSupport ? 'not-allowed' : 'pointer' }}
+                    >
+                      {submittingSupport ? 'Dispatching...' : 'Send to Admins'} &rarr;
+                    </button>
+                  </div>
+                </form>
+              </div>
+            )}
+
             {/* Message Stream */}
             <div
               style={{
@@ -335,7 +487,7 @@ export default function AiAssistantWidget() {
                 display: 'flex',
                 flexDirection: 'column',
                 gap: '16px',
-                backgroundColor: 'var(--bg-base, #FFFFFF)'
+                backgroundColor: 'var(--bg-base, #FFFFFF)',
               }}
             >
               {messages.map((m) => (
@@ -345,7 +497,7 @@ export default function AiAssistantWidget() {
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: m.role === 'user' ? 'flex-end' : 'flex-start',
-                    maxWidth: '100%'
+                    maxWidth: '100%',
                   }}
                 >
                   <div
@@ -368,12 +520,11 @@ export default function AiAssistantWidget() {
                       fontSize: '13px',
                       lineHeight: '1.55',
                       whiteSpace: 'pre-wrap',
-                      wordBreak: 'break-word'
+                      wordBreak: 'break-word',
                     }}
                   >
                     {m.text}
 
-                    {/* Reference Links if provided */}
                     {m.referenceLinks && m.referenceLinks.length > 0 && (
                       <div
                         style={{
@@ -382,7 +533,7 @@ export default function AiAssistantWidget() {
                           borderTop: '1px solid var(--border-subtle, #E2E8F0)',
                           display: 'flex',
                           flexWrap: 'wrap',
-                          gap: '8px'
+                          gap: '8px',
                         }}
                       >
                         {m.referenceLinks.map((link, idx) => (
@@ -401,7 +552,7 @@ export default function AiAssistantWidget() {
                               border: '1px solid rgba(180, 83, 9, 0.25)',
                               display: 'inline-flex',
                               alignItems: 'center',
-                              gap: '4px'
+                              gap: '4px',
                             }}
                           >
                             <span>{link.label}</span>
@@ -419,13 +570,12 @@ export default function AiAssistantWidget() {
                       fontSize: '10px',
                       color: 'var(--text-muted, #64748B)',
                       marginTop: '4px',
-                      padding: '0 4px'
+                      padding: '0 4px',
                     }}
                   >
                     {m.timestamp}
                   </div>
 
-                  {/* Suggestion Chips after Assistant reply */}
                   {m.suggestions && m.suggestions.length > 0 && (
                     <div
                       style={{
@@ -433,7 +583,7 @@ export default function AiAssistantWidget() {
                         flexWrap: 'wrap',
                         gap: '6px',
                         marginTop: '8px',
-                        maxWidth: '95%'
+                        maxWidth: '95%',
                       }}
                     >
                       {m.suggestions.map((sug, sIdx) => (
@@ -450,7 +600,7 @@ export default function AiAssistantWidget() {
                             borderRadius: '9999px',
                             cursor: 'pointer',
                             textAlign: 'left',
-                            transition: 'all 0.15s ease'
+                            transition: 'all 0.15s ease',
                           }}
                         >
                           {sug}
@@ -482,7 +632,7 @@ export default function AiAssistantWidget() {
                 backgroundColor: 'var(--bg-surface-1, #F8FAFC)',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '8px'
+                gap: '8px',
               }}
             >
               <input
@@ -490,7 +640,7 @@ export default function AiAssistantWidget() {
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder="Ask how to start, account tiers, school..."
+                placeholder="Ask about funnel, tiers, school, or human support..."
                 disabled={loading}
                 style={{
                   flex: 1,
@@ -500,7 +650,7 @@ export default function AiAssistantWidget() {
                   border: '1px solid var(--border-default, #CBD5E1)',
                   borderRadius: '2px',
                   fontSize: '13px',
-                  outline: 'none'
+                  outline: 'none',
                 }}
               />
               <button
@@ -516,7 +666,7 @@ export default function AiAssistantWidget() {
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  transition: 'background-color 0.15s ease'
+                  transition: 'background-color 0.15s ease',
                 }}
                 aria-label="Send message"
               >

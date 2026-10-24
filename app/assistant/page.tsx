@@ -34,7 +34,8 @@ Select one of the quick topics below or enter your question.`,
       'Explain $10 Cent vs Standard Account',
       'What is an Investor Password?',
       'Why did the 160-trade test lose money?',
-      'How do I pass School quizzes?'
+      'How do I pass School quizzes?',
+      'Request Human Support'
     ],
     timestamp: 'Initial session'
   }

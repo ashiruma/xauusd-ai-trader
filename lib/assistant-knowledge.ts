@@ -341,6 +341,48 @@ When you register and fund your account on JustMarkets, attribution is verified 
 - London Session (07:00 - 16:00 UTC): High institutional volume, clean breakout structures, and typical tight spreads (18 - 25 points on standard accounts).
 - New York Overlap (12:00 - 16:00 UTC): Maximum daily liquidity as US economic data (CPI, Non-Farm Payrolls, FOMC) is released. Spreads are tightest, but slippage risk increases around red-folder news.
 - Asian Session (22:00 - 06:00 UTC): Generally range-bound with lower liquidity. Spreads can widen to 30 - 45 points; break-even targets are harder to reach.`
+  },
+  {
+    id: 'human_support',
+    triggers: [
+      'human support',
+      'speak to human',
+      'talk to human',
+      'human agent',
+      'talk to person',
+      'real person',
+      'contact support',
+      'talk to admin',
+      'speak to admin',
+      'admin support',
+      'support ticket',
+      'live agent',
+      'help from human',
+      'request human support'
+    ],
+    title: 'Human Support and Administrative Escalation',
+    category: 'Human Support Desk',
+    links: [
+      { label: 'Accounts Desk', href: '/accounts' },
+      { label: 'How It Works', href: '/how-it-works' }
+    ],
+    suggestions: [
+      'What is the partner referral code?',
+      'How to link an account?',
+      'How does the Forex School work?'
+    ],
+    generateAnswer: () => `Human Support and Administrative Escalation at Velarion:
+
+1. Platform Administrator Escalation:
+If you need direct human assistance regarding broker attribution, account linking, or membership review, you can request an escalation directly through this assistant or email our administrative coordinator at ashirumaabala@gmail.com.
+
+2. What to Include in Your Support Request:
+- Your JustMarkets MT5 Account ID (for attribution or deposit review).
+- A clear description of the inquiry or technical question.
+- Never include your master trading password, credit card numbers, or personal phone numbers. Velarion operates strictly on non-custodial least-privilege principles.
+
+3. SLA and Turnaround Time:
+Administrative support reviews tickets continuously during active trading sessions (London and New York overlaps). Urgent verification requests are typically addressed promptly.`
   }
 ];
 
@@ -365,6 +407,15 @@ export function queryKnowledgeBase(userQuery: string): AssistantResponse {
   }
 
   // 2. Keyword fallback matching
+  if (query.includes('human') || query.includes('support') || query.includes('admin') || query.includes('ticket')) {
+    const topic = KNOWLEDGE_TOPICS.find(t => t.id === 'human_support')!;
+    return {
+      reply: topic.generateAnswer(),
+      suggestions: topic.suggestions,
+      category: topic.category,
+      referenceLinks: topic.links
+    };
+  }
   if (query.includes('deposit') || query.includes('money') || query.includes('fund')) {
     const topic = KNOWLEDGE_TOPICS.find(t => t.id === 'account_types')!;
     return {
