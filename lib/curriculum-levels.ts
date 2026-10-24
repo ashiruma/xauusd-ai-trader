@@ -29,7 +29,7 @@ export const CURRICULUM_LEVELS: Record<string, LevelDefinition> = {
       'Leverage Multipliers & Margin Stop-Out Dynamics',
       'Algorithmic Risk Governance & Affirmative Automation Consent'
     ],
-    nextActionText: 'Activate Live Trading Floor &rarr;',
+    nextActionText: 'Activate Live Trading Floor →',
     nextActionHref: '/overview',
     depositPrompt: true,
   },
@@ -48,7 +48,7 @@ export const CURRICULUM_LEVELS: Record<string, LevelDefinition> = {
       'Order Types, Slippage Mitigation & Stop Placement',
       'Volatility Sizing (ATR) & Execution Asymmetry'
     ],
-    nextActionText: 'Advance to Intermediate Tier (Lesson 13) &rarr;',
+    nextActionText: 'Advance to Intermediate Tier (Lesson 13) →',
     nextActionHref: '/academy/lesson-13',
   },
   intermediate: {
@@ -66,7 +66,7 @@ export const CURRICULUM_LEVELS: Record<string, LevelDefinition> = {
       'Statistical Win/Loss Expectancy Modeling',
       'Maximum Drawdown Control & Position Scaling Governors'
     ],
-    nextActionText: 'Advance to Advanced Tier (Lesson 23) &rarr;',
+    nextActionText: 'Advance to Advanced Tier (Lesson 23) →',
     nextActionHref: '/academy/lesson-23',
   },
   advanced: {
@@ -84,7 +84,7 @@ export const CURRICULUM_LEVELS: Record<string, LevelDefinition> = {
       'Monte Carlo Backtest Verification & Out-of-Sample Testing',
       'Capital Preservation Governors & Prop Firm Discipline'
     ],
-    nextActionText: 'Launch Autonomous Live Trading Desk &rarr;',
+    nextActionText: 'Launch Autonomous Live Trading Desk →',
     nextActionHref: '/overview',
   },
 };

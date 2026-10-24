@@ -72,7 +72,7 @@ export default async function TerminalPage() {
     accountId: legacySession?.accountId,
     isAdmin: isOwner,
   });
-  const accountId = resolved.accountNumber || (isOwner ? '1200533810 (ADMIN)' : '1200533810');
+  const accountId = resolved.accountNumber || (isOwner ? '1200533810' : '1200533810');
 
   // =========================================================================
   // GATED VIEW: FUNDING CHECKPOINT (Requires min $50 deposit on live account)

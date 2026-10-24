@@ -7,13 +7,15 @@ import LevelCelebrationModal from './LevelCelebrationModal';
 interface CelebrationTriggerButtonProps {
   levelKey: 'foundation' | 'beginner' | 'intermediate' | 'advanced';
   label?: string;
+  autoOpen?: boolean;
 }
 
 export default function CelebrationTriggerButton({
   levelKey,
   label = 'View Level Honors & Credential',
+  autoOpen = false,
 }: CelebrationTriggerButtonProps) {
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(autoOpen);
   const level: LevelDefinition = CURRICULUM_LEVELS[levelKey] || CURRICULUM_LEVELS.foundation;
 
   return (

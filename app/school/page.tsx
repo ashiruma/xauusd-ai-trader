@@ -17,7 +17,13 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-export default async function MemberSchoolPage() {
+export default async function MemberSchoolPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ celebrate?: string }>;
+}) {
+  const params = searchParams ? await searchParams : {};
+  const autoCelebrateKey = (params.celebrate as 'foundation' | 'beginner' | 'intermediate' | 'advanced') || undefined;
   const cookieStore = await cookies();
   // 1. Check Supabase Auth
   let supabaseUser: { id: string; email?: string } | null = null;
@@ -70,7 +76,7 @@ export default async function MemberSchoolPage() {
     accountId: session?.accountId,
     isAdmin: isOwner,
   });
-  const accountId = resolved.accountNumber || (isOwner ? '1200533810 (ADMIN)' : 'UNLINKED');
+  const accountId = resolved.accountNumber || (isOwner ? '1200533810' : 'UNLINKED');
 
   // Authoritative server-side progress directly from session cookie
   const completedCookie = cookieStore.get('velarion_completed_lessons')?.value;
@@ -93,6 +99,18 @@ export default async function MemberSchoolPage() {
     else break;
   }
   const isSchoolComplete = sequentialCount >= 5;
+
+  const foundationCount = [1, 2, 3, 4, 5].filter((n) => completedLessons.includes(n)).length;
+  const isFoundationPassed = foundationCount === 5;
+
+  const beginnerCount = Array.from({ length: 12 }, (_, i) => i + 1).filter((n) => completedLessons.includes(n)).length;
+  const isBeginnerPassed = beginnerCount === 12;
+
+  const intermediateCount = Array.from({ length: 10 }, (_, i) => i + 13).filter((n) => completedLessons.includes(n)).length;
+  const isIntermediatePassed = isBeginnerPassed && intermediateCount === 10;
+
+  const advancedCount = Array.from({ length: 8 }, (_, i) => i + 23).filter((n) => completedLessons.includes(n)).length;
+  const isMasterPassed = isIntermediatePassed && advancedCount === 8;
 
   const essentialCheckpoints = [
     {
@@ -183,7 +201,11 @@ export default async function MemberSchoolPage() {
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
               {isSchoolComplete && (
-                <CelebrationTriggerButton levelKey="foundation" label="View Level 1 Honors" />
+                <CelebrationTriggerButton
+                  levelKey="foundation"
+                  label="View Level 1 Honors"
+                  autoOpen={autoCelebrateKey === 'foundation'}
+                />
               )}
               <span
                 style={{
@@ -317,6 +339,207 @@ export default async function MemberSchoolPage() {
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+
+        {/* Institutional Level Credentials & Tier Honors */}
+        <div style={{ marginBottom: '48px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: '12px', marginBottom: '18px' }}>
+            <div>
+              <span style={{ fontSize: '11px', fontFamily: 'var(--font-mono, monospace)', color: 'var(--accent-gold)', fontWeight: 700, textTransform: 'uppercase' }}>
+                ACCREDITATION MATRIX
+              </span>
+              <h2 style={{ fontSize: '20px', fontWeight: 800, color: 'var(--text-primary)', marginTop: '2px' }}>
+                Curriculum Level Honors &amp; Tier Credentials
+              </h2>
+            </div>
+            <span style={{ fontSize: '12px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono, monospace)' }}>
+              Pass level capstone assessments to unlock verifiable certifications.
+            </span>
+          </div>
+
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+              gap: '16px',
+            }}
+          >
+            {/* Level 1: Foundation */}
+            <div
+              style={{
+                background: 'var(--bg-card)',
+                border: `1px solid ${isFoundationPassed ? 'var(--accent-green-border)' : 'var(--border-default)'}`,
+                borderRadius: '8px',
+                padding: '20px',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+                gap: '16px',
+              }}
+            >
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                  <span style={{ fontSize: '10px', fontFamily: 'var(--font-mono, monospace)', fontWeight: 800, color: 'var(--accent-gold)', textTransform: 'uppercase' }}>
+                    LEVEL 1 / FOUNDATION
+                  </span>
+                  <span style={{ fontSize: '10px', fontFamily: 'var(--font-mono, monospace)', fontWeight: 700, padding: '2px 6px', borderRadius: '4px', backgroundColor: isFoundationPassed ? 'var(--accent-green-subtle)' : 'var(--bg-surface-2)', color: isFoundationPassed ? 'var(--accent-green)' : 'var(--text-muted)' }}>
+                    {isFoundationPassed ? 'PASSED (5/5)' : `${foundationCount}/5 Lessons`}
+                  </span>
+                </div>
+                <h3 style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '6px' }}>
+                  Foundation Risk &amp; Execution
+                </h3>
+                <p style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: 1.5, margin: 0 }}>
+                  Currency mechanics, spread costs, lot sizing, margin dynamics, and automation consent.
+                </p>
+              </div>
+              <div>
+                {isFoundationPassed ? (
+                  <CelebrationTriggerButton
+                    levelKey="foundation"
+                    label="View Level 1 Honors"
+                    autoOpen={autoCelebrateKey === 'foundation'}
+                  />
+                ) : (
+                  <span style={{ fontSize: '11.5px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono, monospace)' }}>
+                    Complete Checkpoint 5 to unlock
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* Level 2: Beginner */}
+            <div
+              style={{
+                background: 'var(--bg-card)',
+                border: `1px solid ${isBeginnerPassed ? 'var(--accent-green-border)' : 'var(--border-default)'}`,
+                borderRadius: '8px',
+                padding: '20px',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+                gap: '16px',
+              }}
+            >
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                  <span style={{ fontSize: '10px', fontFamily: 'var(--font-mono, monospace)', fontWeight: 800, color: 'var(--accent-gold)', textTransform: 'uppercase' }}>
+                    LEVEL 2 / BEGINNER FOLIO
+                  </span>
+                  <span style={{ fontSize: '10px', fontFamily: 'var(--font-mono, monospace)', fontWeight: 700, padding: '2px 6px', borderRadius: '4px', backgroundColor: isBeginnerPassed ? 'var(--accent-green-subtle)' : 'var(--bg-surface-2)', color: isBeginnerPassed ? 'var(--accent-green)' : 'var(--text-muted)' }}>
+                    {isBeginnerPassed ? 'PASSED (12/12)' : `${beginnerCount}/12 Lessons`}
+                  </span>
+                </div>
+                <h3 style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '6px' }}>
+                  Quantitative Market Mechanics
+                </h3>
+                <p style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: 1.5, margin: 0 }}>
+                  Multi-session liquidity clocks, trend continuation, volatility sizing, and execution asymmetry.
+                </p>
+              </div>
+              <div>
+                {isBeginnerPassed ? (
+                  <CelebrationTriggerButton
+                    levelKey="beginner"
+                    label="View Level 2 Honors"
+                    autoOpen={autoCelebrateKey === 'beginner'}
+                  />
+                ) : (
+                  <span style={{ fontSize: '11.5px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono, monospace)' }}>
+                    Complete Lesson 12 to unlock
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* Level 3: Intermediate */}
+            <div
+              style={{
+                background: 'var(--bg-card)',
+                border: `1px solid ${isIntermediatePassed ? 'var(--accent-green-border)' : 'var(--border-default)'}`,
+                borderRadius: '8px',
+                padding: '20px',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+                gap: '16px',
+              }}
+            >
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                  <span style={{ fontSize: '10px', fontFamily: 'var(--font-mono, monospace)', fontWeight: 800, color: 'var(--accent-gold)', textTransform: 'uppercase' }}>
+                    LEVEL 3 / INTERMEDIATE
+                  </span>
+                  <span style={{ fontSize: '10px', fontFamily: 'var(--font-mono, monospace)', fontWeight: 700, padding: '2px 6px', borderRadius: '4px', backgroundColor: isIntermediatePassed ? 'var(--accent-green-subtle)' : 'var(--bg-surface-2)', color: isIntermediatePassed ? 'var(--accent-green)' : 'var(--text-muted)' }}>
+                    {isIntermediatePassed ? 'PASSED (10/10)' : `${intermediateCount}/10 Lessons`}
+                  </span>
+                </div>
+                <h3 style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '6px' }}>
+                  Institutional Order Flow &amp; Risk
+                </h3>
+                <p style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: 1.5, margin: 0 }}>
+                  Fair Value Gaps, Smart Money sweeps, order blocks, and portfolio variance protection.
+                </p>
+              </div>
+              <div>
+                {isIntermediatePassed ? (
+                  <CelebrationTriggerButton
+                    levelKey="intermediate"
+                    label="View Level 3 Honors"
+                    autoOpen={autoCelebrateKey === 'intermediate'}
+                  />
+                ) : (
+                  <span style={{ fontSize: '11.5px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono, monospace)' }}>
+                    Complete Lesson 22 to unlock
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* Level 4: Master */}
+            <div
+              style={{
+                background: 'var(--bg-card)',
+                border: `1px solid ${isMasterPassed ? 'var(--accent-green-border)' : 'var(--border-default)'}`,
+                borderRadius: '8px',
+                padding: '20px',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+                gap: '16px',
+              }}
+            >
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                  <span style={{ fontSize: '10px', fontFamily: 'var(--font-mono, monospace)', fontWeight: 800, color: 'var(--accent-gold)', textTransform: 'uppercase' }}>
+                    LEVEL 4 / MASTER TIER
+                  </span>
+                  <span style={{ fontSize: '10px', fontFamily: 'var(--font-mono, monospace)', fontWeight: 700, padding: '2px 6px', borderRadius: '4px', backgroundColor: isMasterPassed ? 'var(--accent-green-subtle)' : 'var(--bg-surface-2)', color: isMasterPassed ? 'var(--accent-green)' : 'var(--text-muted)' }}>
+                    {isMasterPassed ? 'PASSED (30/30)' : `${completedLessons.length}/30 Lessons`}
+                  </span>
+                </div>
+                <h3 style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '6px' }}>
+                  Master Quantitative Trader
+                </h3>
+                <p style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: 1.5, margin: 0 }}>
+                  Multi-agent confluence, high-impact macro filtering, Monte Carlo validation, and prop governors.
+                </p>
+              </div>
+              <div>
+                {isMasterPassed ? (
+                  <CelebrationTriggerButton
+                    levelKey="advanced"
+                    label="View Master Honors"
+                    autoOpen={autoCelebrateKey === 'advanced'}
+                  />
+                ) : (
+                  <span style={{ fontSize: '11.5px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono, monospace)' }}>
+                    Complete Lesson 30 to unlock
+                  </span>
+                )}
+              </div>
+            </div>
           </div>
         </div>
 

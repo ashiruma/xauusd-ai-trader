@@ -66,7 +66,7 @@ export default async function OverviewPage() {
     accountId: session?.accountId,
     isAdmin: isOwner,
   });
-  const accountId = resolved.accountNumber || (isOwner ? '1200533810 (ADMIN)' : 'UNLINKED');
+  const accountId = resolved.accountNumber || (isOwner ? '1200533810' : 'UNLINKED');
   // Authoritative server-side progress directly from session cookie
   const completedCookie = cookieStore.get('velarion_completed_lessons')?.value;
   let completedLessons: number[] = [];

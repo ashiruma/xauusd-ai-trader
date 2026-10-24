@@ -29,7 +29,7 @@ export default async function ActivityPage() {
     redirect('/login?redirect=/activity');
   }
 
-  const accountId = session?.mt5Account || session?.accountId || (isOwner ? '1200533810 (ADMIN)' : 'UNLINKED');
+  const accountId = session?.mt5Account || session?.accountId || (isOwner ? '1200533810' : 'UNLINKED');
 
   // Load live trades data
   let positions: any[] = [];

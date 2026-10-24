@@ -464,7 +464,7 @@ export default function LevelCelebrationModal({
                   display: 'block',
                 }}
               >
-                <span dangerouslySetInnerHTML={{ __html: level.nextActionText }} />
+                <span>{level.nextActionText}</span>
               </Link>
 
               <Link

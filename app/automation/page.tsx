@@ -28,7 +28,7 @@ export default async function AutomationPage() {
     redirect('/login?redirect=/automation');
   }
 
-  const accountId = session?.mt5Account || session?.accountId || (isOwner ? '1200533810 (ADMIN)' : 'UNLINKED');
+  const accountId = session?.mt5Account || session?.accountId || (isOwner ? '1200533810' : 'UNLINKED');
   const completedCookie = cookieStore.get('velarion_completed_lessons')?.value;
   let completedLessons: number[] = [];
 
