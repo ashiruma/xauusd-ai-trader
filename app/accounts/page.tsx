@@ -60,7 +60,7 @@ export default async function AccountsPage() {
     profileMt5Id ||
     session?.mt5Account ||
     session?.accountId ||
-    (isOwner ? '1200533810 (ADMIN)' : '');
+    (isOwner ? '1200533810' : '');
 
   const isLinked = Boolean(profileMt5Id || (session?.accountLinked && accountId));
 

@@ -16,7 +16,7 @@ export default function AccountsClientDesk({
   isOwner,
   userEmail,
 }: AccountsClientDeskProps) {
-  const [accountId, setAccountId] = useState(currentAccountId || '');
+  const [accountId, setAccountId] = useState(currentAccountId ? currentAccountId.replace(/\D/g, '') : '');
   const [server, setServer] = useState('JustMarkets-Demo3');
   const [environment, setEnvironment] = useState<'DEMO' | 'LIVE'>('DEMO');
   const [investorPassword, setInvestorPassword] = useState('');
@@ -222,7 +222,7 @@ export default function AccountsClientDesk({
             <div>
               <span style={{ color: 'var(--text-muted)', fontSize: '11px', textTransform: 'uppercase' }}>Permissions Granted</span>
               <div style={{ fontWeight: 700, color: 'var(--text-primary)', marginTop: '2px' }}>
-                Read Telemetry &amp; Demo Order Execution
+                {environment === 'LIVE' ? 'Live Order Execution & Portfolio Monitoring' : 'Demo Order Execution & Portfolio Monitoring'}
               </div>
             </div>
             <div>
@@ -332,8 +332,8 @@ export default function AccountsClientDesk({
                     color: 'var(--text-primary)',
                   }}
                 >
-                  <option value="JustMarkets-Demo3">JustMarkets-Demo3 (Recommended for Testing)</option>
-                  <option value="JustMarkets-Live">JustMarkets-Live (Read-Only Telemetry)</option>
+                  <option value="JustMarkets-Demo3">JustMarkets-Demo3 (Demo Practice Account)</option>
+                  <option value="JustMarkets-Live">JustMarkets-Live (Live Funded Account)</option>
                 </select>
               </div>
 
@@ -354,8 +354,8 @@ export default function AccountsClientDesk({
                     color: 'var(--text-primary)',
                   }}
                 >
-                  <option value="DEMO">Demo Environment (Supported in Initial Release)</option>
-                  <option value="LIVE">Live Account (Read-Only Monitoring - Orders Gated)</option>
+                  <option value="DEMO">Demo Environment (Virtual Capital)</option>
+                  <option value="LIVE">Live Account (Automated Trading & Real Execution)</option>
                 </select>
               </div>
             </div>
@@ -366,7 +366,7 @@ export default function AccountsClientDesk({
                 Investor Password (Optional, Read-Only)
               </label>
               <span style={{ display: 'block', fontSize: '11.5px', color: 'var(--text-muted)', marginBottom: '6px' }}>
-                Used strictly for read-only equity and balance telemetry. Cannot place or close orders.
+                Optional: Enter your read-only investor password if you want to verify balance and equity before arming live execution.
               </span>
               <input
                 type="password"
