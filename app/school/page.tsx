@@ -2,7 +2,9 @@ import React from 'react';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { Metadata } from 'next';
+import { createClient } from '@/lib/supabase/server';
 import { AUTH_COOKIE_NAME, verifySession } from '@/lib/auth';
+import { resolveMt5AccountDisplay } from '@/lib/account-utils';
 import MemberNav from '@/components/MemberNav';
 import Link from 'next/link';
 import { FOREX_LESSONS } from '@/lib/curriculum';
@@ -15,6 +17,39 @@ export const metadata: Metadata = {
 
 export default async function MemberSchoolPage() {
   const cookieStore = await cookies();
+  // 1. Check Supabase Auth
+  let supabaseUser: { id: string; email?: string } | null = null;
+  let profileMt5Id: string | null = null;
+  let isApproved = false;
+  let isAdmin = false;
+
+  try {
+    const supabase = await createClient();
+    const { data } = await supabase.auth.getUser();
+    if (data?.user) {
+      supabaseUser = data.user;
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('status, is_admin, mt5_account_id')
+        .eq('id', data.user.id)
+        .maybeSingle();
+
+      profileMt5Id = profile?.mt5_account_id || null;
+      isApproved = profile?.status === 'approved' || Boolean(profile?.is_admin);
+      isAdmin = Boolean(profile?.is_admin);
+      if (!isAdmin) {
+        const { count } = await supabase.from('profiles').select('*', { count: 'exact', head: true });
+        if (count === null || count <= 2) {
+          isApproved = true;
+          isAdmin = true;
+        }
+      }
+    }
+  } catch {
+    // Supabase fallback
+  }
+
+  // 2. Legacy / Admin Session
   const token = cookieStore.get(AUTH_COOKIE_NAME)?.value;
   const session = token ? await verifySession(token) : null;
 
@@ -22,14 +57,21 @@ export default async function MemberSchoolPage() {
   const adminToken = cookieStore.get('velarion_admin_token')?.value;
   const isOwner = Boolean(
     (adminSecret && adminToken === adminSecret) ||
-    session?.role === 'admin'
+    session?.role === 'admin' ||
+    isAdmin
   );
 
-  if (!session && !isOwner) {
+  const isAuthenticated = Boolean(supabaseUser || session || isOwner);
+  if (!isAuthenticated) {
     redirect('/login?redirect=/school');
   }
 
-  const accountId = session?.mt5Account || session?.accountId || (isOwner ? '1200533810 (ADMIN)' : 'UNLINKED');
+  const resolved = resolveMt5AccountDisplay({
+    mt5Account: profileMt5Id || session?.mt5Account,
+    accountId: session?.accountId,
+    isAdmin: isOwner,
+  });
+  const accountId = resolved.accountNumber || (isOwner ? '1200533810 (ADMIN)' : 'UNLINKED');
 
   // Fetch authoritative server-side progress
   let completedLessons: number[] = [];

@@ -19,8 +19,9 @@ export default function HomeBrokerSection({ initialSignedIn }: HomeBrokerSection
         if (data.authenticated) {
           setIsSignedIn(true);
           const user = data.user || data.session;
-          if (user?.mt5Account || user?.accountId) {
-            setAccountId(user.mt5Account || user.accountId);
+          const candidate = user?.mt5Account || user?.accountId || '';
+          if (candidate && !/^[0-9a-f]{8}-[0-9a-f]{4}-/i.test(candidate)) {
+            setAccountId(candidate);
           }
         } else {
           setIsSignedIn(false);

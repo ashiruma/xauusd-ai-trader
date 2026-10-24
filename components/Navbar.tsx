@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import AuthModal from './AuthModal';
 import TerminalAccountStatus from './TerminalAccountStatus';
+import { resolveMt5AccountDisplay } from '@/lib/account-utils';
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -100,17 +101,18 @@ export default function Navbar() {
   };
 
   const isAuthenticated = Boolean(session?.verified);
-  const displayAccountId = session?.mt5Account || session?.accountId || '';
+  const mt5Info = resolveMt5AccountDisplay({
+    mt5Account: session?.mt5Account,
+    accountId: session?.accountId,
+    isAdmin: session?.isAdmin,
+  });
 
   const navLinks = isAuthenticated
     ? [
-        { href: '/overview', label: 'Overview' },
+        { href: '/overview', label: 'Dashboard' },
         { href: '/school', label: 'School' },
         { href: '/accounts', label: 'Accounts' },
-        { href: '/automation', label: 'Automation' },
-        { href: '/activity', label: 'Activity' },
         { href: '/assistant', label: 'AI Assistant' },
-        { href: '/settings', label: 'Settings / Help' },
         ...(session?.isAdmin ? [{ href: '/control', label: 'Admin' }] : []),
       ]
     : [
@@ -260,20 +262,41 @@ export default function Navbar() {
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 {isTerminalPage && <TerminalAccountStatus />}
 
-                <span
-                  style={{
-                    fontSize: '11px',
-                    fontFamily: 'var(--font-mono, monospace)',
-                    color: 'var(--text-secondary)',
-                    padding: '4px 10px',
-                    borderRadius: '5px',
-                    border: '1px solid var(--border-default)',
-                    background: 'var(--bg-surface-1)',
-                    fontWeight: 600,
-                  }}
-                >
-                  MT5: #{displayAccountId}
-                </span>
+                {mt5Info.isLinked ? (
+                  <span
+                    style={{
+                      fontSize: '11px',
+                      fontFamily: 'var(--font-mono, monospace)',
+                      color: 'var(--text-secondary)',
+                      padding: '4px 10px',
+                      borderRadius: '5px',
+                      border: '1px solid var(--border-default)',
+                      background: 'var(--bg-surface-1)',
+                      fontWeight: 600,
+                    }}
+                    title="Linked JustMarkets MT5 Account"
+                  >
+                    MT5: {mt5Info.display}
+                  </span>
+                ) : (
+                  <Link
+                    href="/accounts"
+                    style={{
+                      fontSize: '11px',
+                      fontFamily: 'var(--font-mono, monospace)',
+                      color: 'var(--accent-gold, #D4AF37)',
+                      padding: '4px 10px',
+                      borderRadius: '5px',
+                      border: '1px solid rgba(212, 175, 55, 0.4)',
+                      background: 'rgba(212, 175, 55, 0.08)',
+                      fontWeight: 600,
+                      textDecoration: 'none',
+                    }}
+                    title="Click to link your JustMarkets MT5 Account"
+                  >
+                    MT5: UNLINKED
+                  </Link>
+                )}
 
                 {!isTerminalPage && (
                   <Link
@@ -284,23 +307,6 @@ export default function Navbar() {
                     Open Terminal &rarr;
                   </Link>
                 )}
-
-                <Link
-                  href="/control"
-                  style={{
-                    padding: '6px 11px',
-                    fontSize: '11.5px',
-                    color: 'var(--accent-gold, #D4AF37)',
-                    border: '1px solid rgba(212, 175, 55, 0.4)',
-                    borderRadius: '5px',
-                    background: 'rgba(212, 175, 55, 0.08)',
-                    textDecoration: 'none',
-                    fontWeight: 600,
-                  }}
-                  title="Admin Control Dashboard"
-                >
-                  Admin
-                </Link>
 
                 <button
                   onClick={handleLogout}
@@ -505,15 +511,30 @@ export default function Navbar() {
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span
-                      style={{
-                        fontFamily: 'monospace',
-                        fontSize: '12px',
-                        color: 'var(--accent-gold, #C5A059)',
-                      }}
-                    >
-                      MT5: #{displayAccountId}
-                    </span>
+                    {mt5Info.isLinked ? (
+                      <span
+                        style={{
+                          fontFamily: 'monospace',
+                          fontSize: '12px',
+                          color: 'var(--accent-gold, #C5A059)',
+                        }}
+                      >
+                        MT5: {mt5Info.display}
+                      </span>
+                    ) : (
+                      <Link
+                        href="/accounts"
+                        onClick={() => setMobileMenuOpen(false)}
+                        style={{
+                          fontFamily: 'monospace',
+                          fontSize: '12px',
+                          color: 'var(--accent-gold, #C5A059)',
+                          textDecoration: 'none',
+                        }}
+                      >
+                        MT5: UNLINKED
+                      </Link>
+                    )}
                     <button
                       onClick={handleLogout}
                       className="btn btn-secondary"

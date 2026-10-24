@@ -3,23 +3,27 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { resolveMt5AccountDisplay } from '@/lib/account-utils';
 
 interface MemberNavProps {
   accountId?: string;
   environment?: string;
   lastSyncTime?: string;
   automationStatus?: string;
+  isAdmin?: boolean;
 }
 
 export default function MemberNav({
-  accountId = 'UNLINKED',
+  accountId = '',
   environment = 'DEMO',
   lastSyncTime = '',
   automationStatus = 'OFF',
+  isAdmin: propIsAdmin,
 }: MemberNavProps) {
   const pathname = usePathname();
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isAdmin, setIsAdmin] = useState<boolean>(Boolean(propIsAdmin));
+  const [resolvedAccount, setResolvedAccount] = useState<string>(accountId);
 
   useEffect(() => {
     try {
@@ -37,6 +41,19 @@ export default function MemberNav({
     }
   }, []);
 
+  useEffect(() => {
+    fetch('/api/auth/session')
+      .then((res) => res.json())
+      .then((data) => {
+        const u = data.user || data.session;
+        if (u?.isAdmin) setIsAdmin(true);
+        if (u?.mt5Account || u?.accountId) {
+          setResolvedAccount(u.mt5Account || u.accountId);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
   const toggleTheme = () => {
     const next = theme === 'light' ? 'dark' : 'light';
     setTheme(next);
@@ -52,14 +69,17 @@ export default function MemberNav({
     }
   };
 
+  const mt5Info = resolveMt5AccountDisplay({
+    mt5Account: resolvedAccount || accountId,
+    isAdmin,
+  });
+
   const navItems = [
-    { href: '/overview', label: 'Overview' },
+    { href: '/overview', label: 'Dashboard' },
     { href: '/school', label: 'School' },
     { href: '/accounts', label: 'Accounts' },
-    { href: '/automation', label: 'Automation' },
-    { href: '/activity', label: 'Activity' },
     { href: '/assistant', label: 'AI Assistant' },
-    { href: '/settings', label: 'Settings / Help' },
+    ...(isAdmin ? [{ href: '/control', label: 'Admin' }] : []),
   ];
 
   const handleLogout = async () => {
@@ -127,12 +147,12 @@ export default function MemberNav({
                   key={item.href}
                   href={item.href}
                   style={{
-                    padding: '8px 10px',
-                    fontSize: '11px',
-                    fontWeight: isActive ? 600 : 500,
+                    padding: '8px 12px',
+                    fontSize: '12px',
+                    fontWeight: isActive ? 700 : 500,
                     color: isActive ? 'var(--text-primary)' : 'var(--text-secondary)',
                     borderRadius: '2px',
-                    borderBottom: isActive ? '1px solid var(--accent-gold)' : '1px solid transparent',
+                    borderBottom: isActive ? '2px solid var(--accent-gold)' : '2px solid transparent',
                     transition: 'all 0.15s ease',
                   }}
                 >
@@ -145,54 +165,58 @@ export default function MemberNav({
 
         {/* Right Status Indicators & Tools */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          {/* Environment Status Badge */}
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              fontSize: '10px',
-              fontFamily: 'var(--font-mono, monospace)',
-              fontWeight: 700,
-              padding: '3px 8px',
-              borderRadius: '2px',
-              backgroundColor: environment === 'DEMO' ? 'rgba(20, 84, 55, 0.1)' : 'var(--accent-green-subtle)',
-              color: environment === 'DEMO' ? 'var(--accent-gold)' : 'var(--accent-green)',
-              border: '1px solid var(--border-default)',
-            }}
-            title="Current trading execution stage: DEMO-FIRST validation"
-          >
-            <span>STAGE: {environment}</span>
-          </div>
+          {/* MT5 Status Badge */}
+          {mt5Info.isLinked ? (
+            <span
+              style={{
+                fontSize: '11px',
+                fontFamily: 'var(--font-mono, monospace)',
+                color: 'var(--text-secondary)',
+                padding: '4px 10px',
+                borderRadius: '5px',
+                border: '1px solid var(--border-default)',
+                background: 'var(--bg-surface-1)',
+                fontWeight: 600,
+              }}
+              title="Linked JustMarkets MT5 Account"
+            >
+              MT5: {mt5Info.display}
+            </span>
+          ) : (
+            <Link
+              href="/accounts"
+              style={{
+                fontSize: '11px',
+                fontFamily: 'var(--font-mono, monospace)',
+                color: 'var(--accent-gold, #D4AF37)',
+                padding: '4px 10px',
+                borderRadius: '5px',
+                border: '1px solid rgba(212, 175, 55, 0.4)',
+                background: 'rgba(212, 175, 55, 0.08)',
+                fontWeight: 600,
+                textDecoration: 'none',
+              }}
+              title="Click to link your JustMarkets MT5 Account"
+            >
+              MT5: UNLINKED
+            </Link>
+          )}
 
-          {/* Automation Status Badge */}
-          <div
+          {/* Live Terminal Quick Action */}
+          <Link
+            href="/terminal"
+            className="btn btn-secondary"
             style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              fontSize: '10px',
-              fontFamily: 'var(--font-mono, monospace)',
-              fontWeight: 700,
-              padding: '3px 8px',
-              borderRadius: '2px',
-              backgroundColor:
-                automationStatus === 'ACTIVE_DEMO'
-                  ? 'var(--accent-green-subtle)'
-                  : automationStatus === 'PAUSED'
-                  ? 'var(--accent-gold-subtle)'
-                  : 'var(--bg-surface-2)',
-              color:
-                automationStatus === 'ACTIVE_DEMO'
-                  ? 'var(--accent-green)'
-                  : automationStatus === 'PAUSED'
-                  ? 'var(--accent-gold)'
-                  : 'var(--text-muted)',
-              border: '1px solid var(--border-default)',
+              padding: '7px 14px',
+              fontSize: '12px',
+              background: 'var(--text-primary)',
+              color: 'var(--bg-base)',
+              border: 'none',
+              fontWeight: 600,
             }}
           >
-            <span>AUTO: {automationStatus}</span>
-          </div>
+            Open Terminal &rarr;
+          </Link>
 
           {/* Theme Toggle Button */}
           <button

@@ -722,10 +722,10 @@ async def login_trader(req: TraderLoginRequest):
 async def get_auth_session(account_id: Optional[str] = None):
     """Verifies whether an active JustMarkets account session is verified under recommended partner."""
     if not account_id:
-        return {"authenticated": False, "verified": False, "message": "No session active"}
+        return {"authenticated": False, "verified": False, "access_granted": False, "message": "No session active"}
     user = db.get_user_by_account_id(account_id.strip())
     if not user:
-        return {"authenticated": False, "verified": False, "message": "Account not found"}
+        return {"authenticated": False, "verified": False, "access_granted": False, "message": "Account not found"}
     user_ref = str(user.get("referral_code", "")).strip().lower()
     is_kicked = (user.get("status") == "KICKED_INACTIVE")
     is_verified = (

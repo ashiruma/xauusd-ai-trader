@@ -5,6 +5,7 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 import { AUTH_COOKIE_NAME, verifySession } from '@/lib/auth';
+import { resolveMt5AccountDisplay } from '@/lib/account-utils';
 import TradingViewTerminal from '@/components/terminal/TradingViewTerminal';
 
 export const metadata: Metadata = {
@@ -74,13 +75,13 @@ export default async function TerminalPage() {
 
   const isTerminalUnlocked = isOwner || isFunded;
 
-  // Determine active MT5 account identifier
-  const accountId =
-    mt5AccountFromProfile ||
-    legacySession?.mt5Account ||
-    legacySession?.accountId ||
-    cookieStore.get('velarion_mt5_account')?.value ||
-    (isOwner ? '1200533810 (ADMIN)' : '1200533810');
+  // Determine active MT5 account identifier safely (never UUID)
+  const resolved = resolveMt5AccountDisplay({
+    mt5Account: mt5AccountFromProfile || legacySession?.mt5Account || cookieStore.get('velarion_mt5_account')?.value,
+    accountId: legacySession?.accountId,
+    isAdmin: isOwner,
+  });
+  const accountId = resolved.accountNumber || (isOwner ? '1200533810 (ADMIN)' : '1200533810');
 
   // =========================================================================
   // GATED VIEW: FUNDING CHECKPOINT (Requires min $50 deposit on live account)

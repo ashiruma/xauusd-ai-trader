@@ -52,8 +52,8 @@ export default function AssistantPage() {
     fetch('/api/auth/session')
       .then((res) => res.json())
       .then((data) => {
-        if (data?.authenticated && data?.session) {
-          setSessionUser(data.session);
+        if (data?.authenticated && (data?.session || data?.user)) {
+          setSessionUser(data.session || data.user);
         }
       })
       .catch(() => {});

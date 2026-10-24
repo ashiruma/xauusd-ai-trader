@@ -90,7 +90,7 @@ export default async function Control({ searchParams }: { searchParams: Promise<
         </div>
         <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
           <Link href="/terminal" className={styles.back}>Trading Floor</Link>
-          <Link href="/onboarding" className={styles.back}>Back to site</Link>
+          <Link href="/overview" className={styles.back}>Dashboard</Link>
         </div>
       </header>
 
