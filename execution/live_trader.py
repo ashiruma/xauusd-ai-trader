@@ -238,3 +238,8 @@ class LiveTrader:
 
 # Global LiveTrader singleton instance
 live_trader = LiveTrader()
+
+
+if __name__ == "__main__":
+    live_trader.start(background=False)
+
