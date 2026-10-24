@@ -176,11 +176,12 @@ Because only read-only access is established, neither Velarion nor any third par
 - Checkpoint 5: Position Sizing and Capital Preservation (strict single-ticket 1% risk limit).
 - Checkpoint 6: Demo Validation and Automation Consent (understanding candidate strategy rules and fail-safe stop controls).
 
-2. Quiz Grading and Anti-Guessing Rules:
-To graduate and unlock subsequent modules, every question in a checkpoint quiz must be answered correctly. If an incorrect answer is selected:
-- The server records a failed attempt.
-- The system wipes progress back to the beginning of that module for re-study.
-- Correct answers are not leaked or highlighted in order to prevent mechanical guessing.
+2. Quiz Grading, Retry Policy and Timed Study Lockout:
+To graduate and unlock subsequent modules, every question in a checkpoint quiz must be answered correctly:
+- Exactly 1 Retry Allowed: If you fail on your first attempt, you are granted exactly 1 retry.
+- Mandatory 10-Minute Study Lock: If you fail twice, the assessment is locked and you must re-read the entire lesson for at least 10 minutes (timed with a live countdown).
+- Timeout Reversal: If the session times out before passing, your progress is reversed by two previous lessons (max(1, current - 2)) to enforce thorough comprehension.
+- Anti-Guessing: Correct answers are never highlighted or leaked on failure to prevent mechanical brute-forcing.
 
 Take time to read each lesson thoroughly before taking the assessment.`
   },

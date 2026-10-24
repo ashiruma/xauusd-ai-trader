@@ -1,6 +1,13 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { getQuizForLesson } from '@/lib/quizData';
+import {
+  MANDATORY_STUDY_MS,
+  TOTAL_TIMEOUT_MS,
+  LOCKOUT_COOKIE_PREFIX,
+  ATTEMPTS_COOKIE_PREFIX,
+  reverseCompletedLessons,
+} from '@/lib/school-lockout';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -28,26 +35,6 @@ export async function POST(request: Request) {
       );
     }
 
-    // Authoritative server-side grading
-    let allCorrect = true;
-    for (let i = 0; i < questions.length; i++) {
-      const q = questions[i];
-      const submitted = typeof answers === 'object' && answers !== null ? (answers[i] ?? answers[String(i)]) : undefined;
-      if (submitted === undefined || Number(submitted) !== q.correct) {
-        allCorrect = false;
-        break;
-      }
-    }
-
-    if (!allCorrect) {
-      return NextResponse.json({
-        success: false,
-        passed: false,
-        message: 'Assessment did not meet the 100% threshold. Review the lesson material and retry.',
-      });
-    }
-
-    // Read current completed lessons from cookie
     const cookieStore = await cookies();
     const existingCookie = cookieStore.get('velarion_completed_lessons')?.value;
     let completedLessons: number[] = [];
@@ -62,6 +49,146 @@ export async function POST(request: Request) {
         // ignore
       }
     }
+
+    // 1. Check existing lockout & timeout status
+    const lockoutCookie = cookieStore.get(`${LOCKOUT_COOKIE_PREFIX}${cleanNum}`)?.value;
+    let lockedUntil: number | null = null;
+    let timeoutAt: number | null = null;
+
+    if (lockoutCookie) {
+      try {
+        const parsed = JSON.parse(lockoutCookie);
+        lockedUntil = parsed.lockedUntil ?? null;
+        timeoutAt = parsed.timeoutAt ?? null;
+      } catch {
+        // ignore
+      }
+    }
+
+    const now = Date.now();
+
+    // If active 10-minute study lockout is still in effect
+    if (lockedUntil && now < lockedUntil) {
+      const remainingSec = Math.ceil((lockedUntil - now) / 1000);
+      return NextResponse.json(
+        {
+          success: false,
+          passed: false,
+          locked: true,
+          remainingSeconds: remainingSec,
+          message: `Mandatory study lock active. You must review the lesson material for at least ${Math.ceil(remainingSec / 60)} more minute(s) before submitting.`,
+        },
+        { status: 423 }
+      );
+    }
+
+    // If timeout limit has been exceeded
+    if (timeoutAt && now >= timeoutAt) {
+      const { targetLesson, updatedCompleted } = reverseCompletedLessons(completedLessons, cleanNum);
+
+      cookieStore.set({
+        name: 'velarion_completed_lessons',
+        value: JSON.stringify(updatedCompleted),
+        httpOnly: false,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: 60 * 60 * 24 * 365,
+        path: '/',
+      });
+
+      cookieStore.delete(`${LOCKOUT_COOKIE_PREFIX}${cleanNum}`);
+      cookieStore.delete(`${ATTEMPTS_COOKIE_PREFIX}${cleanNum}`);
+
+      return NextResponse.json({
+        success: false,
+        passed: false,
+        timedOut: true,
+        targetLesson,
+        completedLessons: updatedCompleted,
+        message: `Timeout exceeded on Lesson ${cleanNum}. Progress has been reversed to Lesson ${targetLesson}.`,
+      });
+    }
+
+    // 2. Authoritative server-side grading
+    let allCorrect = true;
+    for (let i = 0; i < questions.length; i++) {
+      const q = questions[i];
+      const submitted = typeof answers === 'object' && answers !== null ? (answers[i] ?? answers[String(i)]) : undefined;
+      if (submitted === undefined || Number(submitted) !== q.correct) {
+        allCorrect = false;
+        break;
+      }
+    }
+
+    // Read previous failure count for this lesson
+    const attemptsCookie = cookieStore.get(`${ATTEMPTS_COOKIE_PREFIX}${cleanNum}`)?.value;
+    const previousFails = attemptsCookie ? parseInt(attemptsCookie, 10) || 0 : 0;
+
+    if (!allCorrect) {
+      const newFails = previousFails + 1;
+
+      if (newFails === 1) {
+        // 1 retry remaining
+        cookieStore.set({
+          name: `${ATTEMPTS_COOKIE_PREFIX}${cleanNum}`,
+          value: '1',
+          httpOnly: false,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'lax',
+          maxAge: 60 * 60 * 24, // 24 hours
+          path: '/',
+        });
+
+        return NextResponse.json({
+          success: false,
+          passed: false,
+          fails: 1,
+          retriesRemaining: 1,
+          message: 'Assessment did not meet the 100% threshold. You have 1 retry remaining.',
+        });
+      } else {
+        // Failed twice: trigger mandatory 10-minute study lock & set timeout window
+        const newLockedUntil = now + MANDATORY_STUDY_MS;
+        const newTimeoutAt = now + TOTAL_TIMEOUT_MS;
+
+        cookieStore.set({
+          name: `${ATTEMPTS_COOKIE_PREFIX}${cleanNum}`,
+          value: String(newFails),
+          httpOnly: false,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'lax',
+          maxAge: 60 * 60 * 24,
+          path: '/',
+        });
+
+        cookieStore.set({
+          name: `${LOCKOUT_COOKIE_PREFIX}${cleanNum}`,
+          value: JSON.stringify({ lockedUntil: newLockedUntil, timeoutAt: newTimeoutAt }),
+          httpOnly: false,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'lax',
+          maxAge: 60 * 60 * 24,
+          path: '/',
+        });
+
+        return NextResponse.json({
+          success: false,
+          passed: false,
+          fails: newFails,
+          retriesRemaining: 0,
+          locked: true,
+          lockedUntil: newLockedUntil,
+          timeoutAt: newTimeoutAt,
+          remainingSeconds: Math.ceil(MANDATORY_STUDY_MS / 1000),
+          message: 'Failed twice. Institutional protocol requires you to re-read the entire lesson for at least 10 minutes before retrying.',
+        });
+      }
+    }
+
+    // 3. Quiz PASSED
+    // Clear lockouts & failures for this lesson
+    cookieStore.delete(`${LOCKOUT_COOKIE_PREFIX}${cleanNum}`);
+    cookieStore.delete(`${ATTEMPTS_COOKIE_PREFIX}${cleanNum}`);
 
     if (!completedLessons.includes(cleanNum)) {
       completedLessons.push(cleanNum);

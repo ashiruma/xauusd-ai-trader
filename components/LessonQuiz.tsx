@@ -8,12 +8,24 @@ import {
   parseCourseProgress,
   saveCourseProgress,
 } from '@/lib/courseProgress';
+import {
+  MANDATORY_STUDY_MS,
+  TOTAL_TIMEOUT_MS,
+  calculateReversalLesson,
+  reverseCompletedLessons,
+} from '@/lib/school-lockout';
 
 interface LessonQuizProps {
   lessonId: string;
   globalNum: number;
   quiz: QuizQuestion | QuizQuestion[];
   nextLessonNum?: number | null;
+}
+
+function formatTimer(totalSec: number): string {
+  const m = Math.floor(Math.max(0, totalSec) / 60);
+  const s = Math.max(0, totalSec) % 60;
+  return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
 }
 
 export default function LessonQuiz({
@@ -31,6 +43,16 @@ export default function LessonQuiz({
   const [submitting, setSubmitting] = useState(false);
   const [isPassed, setIsPassed] = useState(false);
 
+  // Retry, 10-minute study lock & timeout reversal state
+  const [fails, setFails] = useState<number>(0);
+  const [isStudyLocked, setIsStudyLocked] = useState<boolean>(false);
+  const [lockedUntil, setLockedUntil] = useState<number | null>(null);
+  const [timeoutAt, setTimeoutAt] = useState<number | null>(null);
+  const [studyRemainingSec, setStudyRemainingSec] = useState<number>(0);
+  const [timeoutRemainingSec, setTimeoutRemainingSec] = useState<number>(0);
+  const [showTimeoutModal, setShowTimeoutModal] = useState<boolean>(false);
+  const [reversedTargetLesson, setReversedTargetLesson] = useState<number | null>(null);
+
   // Load completion state from server API & fallback to local storage
   useEffect(() => {
     let mounted = true;
@@ -41,6 +63,31 @@ export default function LessonQuiz({
         setCompletedLessons(local);
         if (local.includes(globalNum)) {
           setIsPassed(true);
+        }
+      }
+
+      // Check saved failures and study lockout state
+      const savedAttempts = localStorage.getItem(`velarion_quiz_attempts_${globalNum}`);
+      if (savedAttempts && mounted) {
+        setFails(parseInt(savedAttempts, 10) || 0);
+      }
+
+      const savedLockout = localStorage.getItem(`velarion_quiz_lockout_${globalNum}`);
+      if (savedLockout && mounted) {
+        const parsed = JSON.parse(savedLockout);
+        const now = Date.now();
+        if (parsed.lockedUntil) setLockedUntil(parsed.lockedUntil);
+        if (parsed.timeoutAt) setTimeoutAt(parsed.timeoutAt);
+
+        if (parsed.lockedUntil && now < parsed.lockedUntil) {
+          setIsStudyLocked(true);
+          setStudyRemainingSec(Math.ceil((parsed.lockedUntil - now) / 1000));
+        } else if (parsed.timeoutAt && now >= parsed.timeoutAt) {
+          // Timeout exceeded while away
+          setTimeout(() => handleTimeoutReversal(), 100);
+        } else if (parsed.timeoutAt && now < parsed.timeoutAt) {
+          setIsStudyLocked(false);
+          setTimeoutRemainingSec(Math.ceil((parsed.timeoutAt - now) / 1000));
         }
       }
     } catch {
@@ -67,6 +114,66 @@ export default function LessonQuiz({
     };
   }, [globalNum]);
 
+  // Real-time ticker for 10-minute study lockout and session timeout
+  useEffect(() => {
+    if (!lockedUntil && !timeoutAt) return;
+
+    const timer = setInterval(() => {
+      const now = Date.now();
+
+      // Mandatory 10-minute study period
+      if (lockedUntil) {
+        if (now < lockedUntil) {
+          setIsStudyLocked(true);
+          setStudyRemainingSec(Math.max(0, Math.ceil((lockedUntil - now) / 1000)));
+        } else {
+          setIsStudyLocked(false);
+          setStudyRemainingSec(0);
+        }
+      }
+
+      // Session timeout deadline
+      if (timeoutAt) {
+        if (now < timeoutAt) {
+          setTimeoutRemainingSec(Math.max(0, Math.ceil((timeoutAt - now) / 1000)));
+        } else if (!isPassed && !showTimeoutModal) {
+          setTimeoutRemainingSec(0);
+          clearInterval(timer);
+          handleTimeoutReversal();
+        }
+      }
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [lockedUntil, timeoutAt, isPassed, showTimeoutModal]);
+
+  const handleTimeoutReversal = async () => {
+    try {
+      const res = await fetch('/api/school/quiz/timeout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ lessonId: globalNum }),
+      });
+      const data = await res.json().catch(() => ({}));
+      const target = data.targetLesson || calculateReversalLesson(globalNum);
+      const updated = data.completedLessons || reverseCompletedLessons(completedLessons, globalNum).updatedCompleted;
+
+      localStorage.removeItem(`velarion_quiz_lockout_${globalNum}`);
+      localStorage.removeItem(`velarion_quiz_attempts_${globalNum}`);
+      saveCourseProgress(updated);
+      setCompletedLessons(updated);
+      setReversedTargetLesson(target);
+      setShowTimeoutModal(true);
+    } catch {
+      const target = calculateReversalLesson(globalNum);
+      const { updatedCompleted } = reverseCompletedLessons(completedLessons, globalNum);
+      saveCourseProgress(updatedCompleted);
+      setCompletedLessons(updatedCompleted);
+      setReversedTargetLesson(target);
+      setShowTimeoutModal(true);
+    }
+  };
+
   if (quizList.length === 0) {
     return null;
   }
@@ -75,7 +182,7 @@ export default function LessonQuiz({
   const foundationCompletedCount = [1, 2, 3, 4, 5].filter((num) => completedLessons.includes(num)).length;
 
   const handleSelect = async (qIdx: number, optIdx: number) => {
-    if (assessmentFailed || isPassed || submitting) return;
+    if (isStudyLocked || assessmentFailed || isPassed || submitting) return;
 
     const updated = { ...selectedAnswers, [qIdx]: optIdx };
     setSelectedAnswers(updated);
@@ -97,6 +204,13 @@ export default function LessonQuiz({
 
         if (res.ok && data.passed) {
           setIsPassed(true);
+          setFails(0);
+          setIsStudyLocked(false);
+          setLockedUntil(null);
+          setTimeoutAt(null);
+          localStorage.removeItem(`velarion_quiz_lockout_${globalNum}`);
+          localStorage.removeItem(`velarion_quiz_attempts_${globalNum}`);
+
           const nextCompleted = Array.from(new Set([...completedLessons, globalNum, ...(data.completedLessons || [])])).sort((a, b) => a - b);
           setCompletedLessons(nextCompleted);
           saveCourseProgress(nextCompleted);
@@ -106,7 +220,25 @@ export default function LessonQuiz({
           } else if (globalNum === 5) {
             setTimeout(() => setShowGraduationModal(true), 600);
           }
+        } else if (data.timedOut) {
+          handleTimeoutReversal();
+        } else if (data.locked || data.fails >= 2) {
+          // Failed twice: activate mandatory 10-minute study lock & timeout
+          const newLocked = data.lockedUntil || (Date.now() + MANDATORY_STUDY_MS);
+          const newTimeout = data.timeoutAt || (Date.now() + TOTAL_TIMEOUT_MS);
+          setFails(data.fails || 2);
+          setIsStudyLocked(true);
+          setLockedUntil(newLocked);
+          setTimeoutAt(newTimeout);
+          setStudyRemainingSec(Math.ceil((newLocked - Date.now()) / 1000));
+          setTimeoutRemainingSec(Math.ceil((newTimeout - Date.now()) / 1000));
+          localStorage.setItem(`velarion_quiz_attempts_${globalNum}`, String(data.fails || 2));
+          localStorage.setItem(`velarion_quiz_lockout_${globalNum}`, JSON.stringify({ lockedUntil: newLocked, timeoutAt: newTimeout }));
+          setAssessmentFailed(true);
         } else {
+          // Failed attempt 1: 1 retry remaining
+          setFails(1);
+          localStorage.setItem(`velarion_quiz_attempts_${globalNum}`, '1');
           setAssessmentFailed(true);
         }
       } catch {
@@ -118,8 +250,15 @@ export default function LessonQuiz({
   };
 
   const handleRetry = () => {
+    if (isStudyLocked) return;
     setSelectedAnswers({});
     setAssessmentFailed(false);
+  };
+
+  const scrollToLessonTop = () => {
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
   };
 
   const answeredCount = Object.keys(selectedAnswers).length;
@@ -189,7 +328,7 @@ export default function LessonQuiz({
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <span style={{ fontSize: '12px', fontFamily: 'var(--font-mono, monospace)', color: 'var(--text-muted)' }}>
-              {assessmentFailed ? 'Requires review' : isPassed ? `Score: ${correctCount} / ${quizList.length}` : `Answered: ${answeredCount} / ${quizList.length}`}
+              {isStudyLocked ? 'Study Lock Active' : assessmentFailed ? 'Requires Review' : isPassed ? `Score: ${correctCount} / ${quizList.length}` : `Answered: ${answeredCount} / ${quizList.length}`}
             </span>
             {isPassed && (
               <span className="status-badge status-completed">
@@ -203,7 +342,104 @@ export default function LessonQuiz({
           Pass all comprehension questions to verify your understanding and log this lesson in your curriculum tracker.
         </p>
 
-        {assessmentFailed ? (
+        {/* ============================================================== */}
+        {/* CASE 1: MANDATORY 10-MINUTE STUDY LOCK (FAILED TWICE)           */}
+        {/* ============================================================== */}
+        {isStudyLocked ? (
+          <div className="course-lockout-notice" role="alert" style={{
+            background: 'linear-gradient(180deg, rgba(239, 68, 68, 0.08) 0%, rgba(15, 23, 42, 0.95) 100%)',
+            border: '1px solid rgba(239, 68, 68, 0.5)',
+            borderRadius: 'var(--radius-xs, 2px)',
+            padding: '24px 22px',
+            marginBottom: '24px'
+          }}>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '4px 10px', background: 'rgba(239, 68, 68, 0.15)', border: '1px solid rgba(239, 68, 68, 0.4)', borderRadius: '2px', marginBottom: '12px' }}>
+              <span style={{ fontSize: '11px', fontWeight: 800, color: '#ef4444', fontFamily: 'var(--font-mono, monospace)', textTransform: 'uppercase', letterSpacing: '0.6px' }}>
+                MANDATORY STUDY LOCK ACTIVE &bull; FAILED 2 OF 2 ATTEMPTS
+              </span>
+            </div>
+
+            <h4 style={{ fontSize: '17px', fontWeight: 800, color: '#f8fafc', margin: '0 0 8px' }}>
+              10-Minute Mandatory Lesson Review Required
+            </h4>
+
+            <p style={{ margin: '0 0 16px', fontSize: '13.5px', color: 'var(--text-secondary)', lineHeight: 1.6 }}>
+              You have failed twice. Institutional regulations require you to re-read the entire lesson for <strong>at least 10 minutes</strong> before the assessment will unlock.
+            </p>
+
+            {/* Timers Grid */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '12px', marginBottom: '18px' }}>
+              <div style={{ background: 'var(--bg-surface-2)', border: '1px solid var(--border-default)', borderRadius: '2px', padding: '14px 16px', textAlign: 'center' }}>
+                <span style={{ fontSize: '11px', fontFamily: 'var(--font-mono, monospace)', color: 'var(--text-muted)', display: 'block', textTransform: 'uppercase', marginBottom: '4px' }}>
+                  Study Review Time Remaining
+                </span>
+                <span className="mono-nums" style={{ fontSize: '26px', fontWeight: 800, color: '#ef4444', letterSpacing: '1px' }}>
+                  {formatTimer(studyRemainingSec)}
+                </span>
+                <span style={{ fontSize: '11px', color: 'var(--text-muted)', display: 'block', marginTop: '2px' }}>
+                  Quiz unlocked at 00:00
+                </span>
+              </div>
+
+              <div style={{ background: 'var(--bg-surface-2)', border: '1px solid var(--border-default)', borderRadius: '2px', padding: '14px 16px', textAlign: 'center' }}>
+                <span style={{ fontSize: '11px', fontFamily: 'var(--font-mono, monospace)', color: 'var(--text-muted)', display: 'block', textTransform: 'uppercase', marginBottom: '4px' }}>
+                  Session Timeout Limit
+                </span>
+                <span className="mono-nums" style={{ fontSize: '26px', fontWeight: 800, color: 'var(--accent-gold)', letterSpacing: '1px' }}>
+                  {formatTimer(timeoutRemainingSec)}
+                </span>
+                <span style={{ fontSize: '11px', color: '#f87171', display: 'block', marginTop: '2px' }}>
+                  Reverses 2 lessons if timeout occurs
+                </span>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={scrollToLessonTop}
+              style={{ fontSize: '13px', padding: '10px 20px', width: '100%', justifyContent: 'center' }}
+            >
+              Re-Read Lesson Content Above &uarr;
+            </button>
+          </div>
+        ) : fails >= 2 && !isPassed ? (
+          /* ============================================================== */
+          /* CASE 2: STUDY COMPLETE &bull; UNLOCKED RETAKE WINDOW           */
+          /* ============================================================== */
+          <div className="course-retake-notice" role="alert" style={{
+            background: 'var(--bg-surface-2)',
+            border: '1px solid var(--border-accent, rgba(212, 175, 55, 0.5))',
+            borderRadius: 'var(--radius-xs, 2px)',
+            padding: '20px',
+            marginBottom: '20px'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px', marginBottom: '10px' }}>
+              <strong style={{ color: 'var(--accent-gold)', fontSize: '14px' }}>
+                10-Minute Study Completed &bull; Final Assessment Unlocked
+              </strong>
+              <span className="mono-nums" style={{ fontSize: '12px', fontWeight: 700, padding: '3px 8px', background: 'rgba(239, 68, 68, 0.12)', border: '1px solid rgba(239, 68, 68, 0.35)', color: '#ef4444', borderRadius: '2px' }}>
+                Timeout Remaining: {formatTimer(timeoutRemainingSec)}
+              </span>
+            </div>
+            <p style={{ margin: '0 0 14px', fontSize: '13.5px', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+              You have completed the required study period. Answer all questions correctly to complete Lesson {globalNum}. If the timeout expires or you fail again, you will be reversed by two previous lessons.
+            </p>
+            {assessmentFailed && (
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={handleRetry}
+                style={{ fontSize: '13px', padding: '8px 18px' }}
+              >
+                Reset Assessment Answers &rarr;
+              </button>
+            )}
+          </div>
+        ) : assessmentFailed && fails === 1 ? (
+          /* ============================================================== */
+          /* CASE 3: FIRST FAILURE (EXACTLY 1 RETRY REMAINING)             */
+          /* ============================================================== */
           <div className="course-reset-notice" role="status" style={{
             background: 'var(--bg-surface-2)',
             border: '1px solid var(--accent-red-border, rgba(239, 68, 68, 0.4))',
@@ -211,11 +447,13 @@ export default function LessonQuiz({
             padding: '20px',
             marginBottom: '20px'
           }}>
-            <strong style={{ color: 'var(--accent-red, #ef4444)', display: 'block', marginBottom: '6px' }}>
-              Assessment Incomplete &bull; 100% Mastery Required
-            </strong>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '3px 8px', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '2px', marginBottom: '8px' }}>
+              <span style={{ fontSize: '11px', fontWeight: 700, color: '#ef4444', fontFamily: 'var(--font-mono, monospace)', textTransform: 'uppercase' }}>
+                ATTEMPT 1 OF 2 FAILED &bull; 1 RETRY REMAINING
+              </span>
+            </div>
             <p style={{ margin: '0 0 16px', fontSize: '13.5px', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
-              One or more answers did not meet the institutional comprehension threshold. Review the lesson concepts above and retry the assessment.
+              One or more answers did not meet the 100% threshold. You are allowed <strong>exactly 1 retry</strong>. If you fail twice, you will be locked out for a mandatory 10-minute lesson review, and any timeout will reverse your curriculum progress by two previous lessons.
             </p>
             <button
               type="button"
@@ -223,205 +461,220 @@ export default function LessonQuiz({
               onClick={handleRetry}
               style={{ fontSize: '13px', padding: '8px 18px' }}
             >
-              Retry Assessment &rarr;
+              Use Final Retry (1 Remaining) &rarr;
             </button>
           </div>
-        ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '22px' }}>
-            {quizList.map((q, qIdx) => {
-              const selectedOpt = selectedAnswers[qIdx];
-              const hasAnswered = selectedOpt !== undefined;
+        ) : null}
 
-              return (
-                <div
-                  key={qIdx}
-                  className="lesson-quiz-question"
-                  style={{
-                    background: 'var(--bg-surface-2)',
-                    border: isPassed ? '1px solid var(--accent-green-border)' : hasAnswered ? '1px solid var(--border-accent)' : '1px solid var(--border-default)',
-                    borderRadius: 'var(--radius-xs, 2px)',
-                    padding: '18px 20px',
-                    transition: 'border-color 0.2s ease'
-                  }}
-                >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '10px', marginBottom: '14px' }}>
-                    <div className="lesson-quiz-prompt" style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1.45 }}>
-                      <span className="lesson-quiz-question-number" style={{ color: 'var(--accent-gold)', fontFamily: 'var(--font-mono, monospace)', marginRight: '6px' }}>
-                        0{qIdx + 1}.
-                      </span>
-                      {q.question}
-                    </div>
+        {/* Questions List */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '22px' }}>
+          {quizList.map((q, qIdx) => {
+            const selectedOpt = selectedAnswers[qIdx];
+            const hasAnswered = selectedOpt !== undefined;
 
-                    {isPassed && (
-                      <span
-                        style={{
-                          fontSize: '11px',
-                          fontFamily: 'var(--font-mono, monospace)',
-                          fontWeight: 700,
-                          padding: '2px 8px',
-                          borderRadius: 'var(--radius-xs, 2px)',
-                          flexShrink: 0,
-                          background: 'var(--accent-green-subtle)',
-                          color: 'var(--accent-green)',
-                          border: '1px solid var(--accent-green-border)'
-                        }}
-                      >
-                        VERIFIED
-                      </span>
-                    )}
+            return (
+              <div
+                key={qIdx}
+                className="lesson-quiz-question"
+                style={{
+                  background: 'var(--bg-surface-2)',
+                  border: isPassed ? '1px solid var(--accent-green-border)' : hasAnswered ? '1px solid var(--border-accent)' : '1px solid var(--border-default)',
+                  borderRadius: 'var(--radius-xs, 2px)',
+                  padding: '18px 20px',
+                  transition: 'border-color 0.2s ease',
+                  opacity: isStudyLocked ? 0.65 : 1,
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '10px', marginBottom: '14px' }}>
+                  <div className="lesson-quiz-prompt" style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1.45 }}>
+                    <span className="lesson-quiz-question-number" style={{ color: 'var(--accent-gold)', fontFamily: 'var(--font-mono, monospace)', marginRight: '6px' }}>
+                      0{qIdx + 1}.
+                    </span>
+                    {q.question}
                   </div>
 
-                  {/* Options */}
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    {q.options.map((opt, optIdx) => {
-                      const isSelected = selectedOpt === optIdx;
-
-                      let bg = 'var(--bg-surface-1)';
-                      let border = 'var(--border-default)';
-                      let color = 'var(--text-secondary)';
-                      let markerBg = 'var(--bg-surface-3)';
-                      let markerColor = 'var(--text-muted)';
-
-                      if (isPassed && isSelected) {
-                        bg = 'var(--accent-green-subtle)';
-                        border = 'var(--accent-green)';
-                        color = 'var(--text-primary)';
-                        markerBg = 'var(--accent-green)';
-                        markerColor = '#ffffff';
-                      } else if (hasAnswered && isSelected) {
-                        bg = 'var(--accent-gold-subtle)';
-                        border = 'var(--border-accent)';
-                        color = 'var(--text-primary)';
-                        markerBg = 'var(--accent-gold)';
-                        markerColor = '#0c241a';
-                      }
-
-                      return (
-                        <button
-                          key={optIdx}
-                          type="button"
-                          className={`lesson-quiz-option ${isPassed && isSelected ? 'correct' : hasAnswered && isSelected ? 'selected' : ''}`}
-                          onClick={() => handleSelect(qIdx, optIdx)}
-                          disabled={hasAnswered || assessmentFailed || isPassed}
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '12px',
-                            padding: '11px 14px',
-                            borderRadius: 'var(--radius-xs, 2px)',
-                            background: bg,
-                            border: `1px solid ${border}`,
-                            color,
-                            textAlign: 'left',
-                            cursor: hasAnswered || assessmentFailed || isPassed ? 'default' : 'pointer',
-                            fontSize: '13px',
-                            transition: 'all 0.15s ease',
-                            width: '100%'
-                          }}
-                        >
-                          <span className="lesson-quiz-option-marker"
-                            style={{
-                              width: '22px',
-                              height: '22px',
-                              borderRadius: 'var(--radius-xs, 2px)',
-                              background: markerBg,
-                              color: markerColor,
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              fontSize: '11px',
-                              fontWeight: 700,
-                              fontFamily: 'var(--font-mono, monospace)',
-                              flexShrink: 0
-                            }}
-                          >
-                            {String.fromCharCode(65 + optIdx)}
-                          </span>
-                          <span style={{ lineHeight: 1.45, flex: 1 }}>{opt}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-
-                  {/* Institutional Explanation */}
-                  {isPassed && q.explanation && (
-                    <div
-                      className="lesson-quiz-explanation"
+                  {isPassed && (
+                    <span
                       style={{
-                        marginTop: '12px',
-                        padding: '10px 14px',
+                        fontSize: '11px',
+                        fontFamily: 'var(--font-mono, monospace)',
+                        fontWeight: 700,
+                        padding: '2px 8px',
                         borderRadius: 'var(--radius-xs, 2px)',
-                        fontSize: '12px',
-                        lineHeight: 1.5,
+                        flexShrink: 0,
                         background: 'var(--accent-green-subtle)',
-                        borderLeft: '3px solid var(--accent-green)',
-                        color: 'var(--text-primary)'
+                        color: 'var(--accent-green)',
+                        border: '1px solid var(--accent-green-border)'
                       }}
                     >
-                      <strong style={{ color: 'var(--accent-green)', marginRight: '6px' }}>
-                        Institutional Context:
-                      </strong>
-                      {q.explanation}
-                    </div>
+                      VERIFIED
+                    </span>
                   )}
                 </div>
-              );
-            })}
-          </div>
-        )}
 
-        {/* Controls */}
-        <div className="lesson-quiz-controls" style={{ marginTop: '28px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px', borderTop: '1px solid var(--border-default)', paddingTop: '18px' }}>
-          <div>
-            {!isComplete ? (
-              <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
-                Select answers for all {quizList.length} questions to complete Lesson {globalNum}.
-              </span>
-            ) : isPassed ? (
-              <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--accent-green)' }}>
-                Comprehension verified. Lesson {globalNum} logged in curriculum tracker.
-              </span>
-            ) : null}
-          </div>
+                {/* Options */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  {q.options.map((opt, optIdx) => {
+                    const isSelected = selectedOpt === optIdx;
 
-          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-            {isPassed && globalNum === 2 && (
-              <button
-                type="button"
-                onClick={() => setShowLinkModal(true)}
-                className="btn btn-primary"
-                style={{ fontSize: '12.5px', padding: '9px 20px' }}
-              >
-                Milestone 1: Link Account &rarr;
-              </button>
-            )}
+                    let bg = 'var(--bg-surface-1)';
+                    let border = 'var(--border-default)';
+                    let color = 'var(--text-secondary)';
+                    let markerBg = 'var(--bg-surface-3)';
+                    let markerColor = 'var(--text-muted)';
 
-            {isPassed && globalNum === 5 && (
-              <button
-                type="button"
-                onClick={() => setShowGraduationModal(true)}
-                className="btn btn-primary"
-                style={{ fontSize: '12.5px', padding: '9px 20px' }}
-              >
-                Milestone 2: Activate Live Account &rarr;
-              </button>
-            )}
+                    if (isPassed && isSelected) {
+                      bg = 'var(--accent-green-subtle)';
+                      border = 'var(--accent-green)';
+                      color = 'var(--text-primary)';
+                      markerBg = 'var(--accent-green)';
+                      markerColor = '#ffffff';
+                    } else if (hasAnswered && isSelected) {
+                      bg = 'var(--accent-gold-subtle)';
+                      border = 'var(--border-accent)';
+                      color = 'var(--text-primary)';
+                      markerBg = 'var(--accent-gold)';
+                      markerColor = '#0c241a';
+                    }
 
-            {isPassed && globalNum !== 2 && globalNum !== 5 && nextLessonNum && (
-              <Link
-                href={`/academy/lesson-${nextLessonNum}`}
-                className="btn btn-primary"
-                style={{ fontSize: '12.5px', padding: '9px 20px' }}
-              >
-                Proceed to Lesson {nextLessonNum} &rarr;
-              </Link>
-            )}
-          </div>
+                    return (
+                      <button
+                        key={optIdx}
+                        type="button"
+                        className={`lesson-quiz-option ${isPassed && isSelected ? 'correct' : hasAnswered && isSelected ? 'selected' : ''}`}
+                        onClick={() => handleSelect(qIdx, optIdx)}
+                        disabled={hasAnswered || assessmentFailed || isPassed || isStudyLocked}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '12px',
+                          padding: '11px 14px',
+                          borderRadius: 'var(--radius-xs, 2px)',
+                          background: bg,
+                          border: `1px solid ${border}`,
+                          color,
+                          textAlign: 'left',
+                          cursor: hasAnswered || assessmentFailed || isPassed || isStudyLocked ? 'default' : 'pointer',
+                          fontSize: '13px',
+                          transition: 'all 0.15s ease',
+                          width: '100%'
+                        }}
+                      >
+                        <span className="lesson-quiz-option-marker"
+                          style={{
+                            width: '22px',
+                            height: '22px',
+                            borderRadius: 'var(--radius-xs, 2px)',
+                            background: markerBg,
+                            color: markerColor,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '11px',
+                            fontWeight: 700,
+                            fontFamily: 'var(--font-mono, monospace)',
+                            flexShrink: 0
+                          }}
+                        >
+                          {String.fromCharCode(65 + optIdx)}
+                        </span>
+                        <span style={{ lineHeight: 1.45, flex: 1 }}>{opt}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Institutional Explanation */}
+                {isPassed && q.explanation && (
+                  <div
+                    className="lesson-quiz-explanation"
+                    style={{
+                      marginTop: '14px',
+                      padding: '12px 14px',
+                      borderRadius: 'var(--radius-xs, 2px)',
+                      background: 'var(--bg-surface-1)',
+                      borderLeft: '3px solid var(--accent-green)',
+                      fontSize: '12.5px',
+                      color: 'var(--text-secondary)',
+                      lineHeight: 1.55
+                    }}
+                  >
+                    <strong style={{ color: 'var(--text-primary)', display: 'block', marginBottom: '3px' }}>Institutional Takeaway:</strong>
+                    {q.explanation}
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       </div>
 
       {/* ============================================================== */}
-      {/* MILESTONE 1 MODAL (AFTER LESSON 2: LINK JUSTMARKETS ACCOUNT)   */}
+      {/* TIMEOUT REVERSAL MODAL (REVERSES TWO PREVIOUS LESSONS)         */}
+      {/* ============================================================== */}
+      {showTimeoutModal && (
+        <div
+          className="modal-overlay"
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(4, 7, 13, 0.88)',
+            backdropFilter: 'blur(8px)',
+            zIndex: 9999,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '20px'
+          }}
+        >
+          <div
+            className="modal-card"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="timeout-penalty-title"
+            style={{
+              maxWidth: '560px',
+              width: '100%',
+              background: 'var(--bg-card)',
+              border: '1px solid rgba(239, 68, 68, 0.5)',
+              borderRadius: 'var(--radius-xs, 2px)',
+              padding: '36px 30px',
+              textAlign: 'center',
+              boxShadow: '0 24px 60px rgba(0, 0, 0, 0.85)'
+            }}
+          >
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '6px 14px', background: 'rgba(239, 68, 68, 0.12)', border: '1px solid rgba(239, 68, 68, 0.35)', borderRadius: 'var(--radius-xs, 2px)', marginBottom: '18px' }}>
+              <span style={{ fontSize: '11px', fontWeight: 800, color: '#ef4444', fontFamily: 'var(--font-mono, monospace)', textTransform: 'uppercase', letterSpacing: '0.6px' }}>
+                CURRICULUM PENALTY / TIMEOUT EXCEEDED
+              </span>
+            </div>
+
+            <h2 id="timeout-penalty-title" style={{ fontSize: '23px', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '14px', letterSpacing: '-0.3px', lineHeight: 1.3 }}>
+              Lesson {globalNum} Timed Out: Reversed to Lesson {reversedTargetLesson}
+            </h2>
+
+            <p style={{ fontSize: '14px', color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: '24px' }}>
+              You exceeded the allowed review and assessment window for Lesson {globalNum}. In accordance with institutional school governance, your curriculum progress has been reversed by two previous lessons to <strong>Lesson {reversedTargetLesson}</strong>. Complete foundational modules sequentially before advancing.
+            </p>
+
+            <button
+              type="button"
+              className="btn btn-primary"
+              onClick={() => {
+                if (typeof window !== 'undefined') {
+                  window.location.href = `/academy/lesson-${reversedTargetLesson}`;
+                }
+              }}
+              style={{ width: '100%', padding: '13px 20px', fontSize: '14px', fontWeight: 700 }}
+            >
+              Proceed to Lesson {reversedTargetLesson} &rarr;
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ============================================================== */}
+      {/* MILESTONE 1 MODAL (AFTER LESSON 2: JUSTMARKETS ACCOUNT LINK)    */}
       {/* ============================================================== */}
       {showLinkModal && (
         <div
@@ -446,7 +699,7 @@ export default function LessonQuiz({
             aria-labelledby="milestone-1-title"
             onClick={(e) => e.stopPropagation()}
             style={{
-              maxWidth: '580px',
+              maxWidth: '600px',
               width: '100%',
               background: 'var(--bg-card)',
               border: '1px solid var(--border-accent, #e1c47c)',
