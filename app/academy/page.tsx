@@ -6,6 +6,7 @@ import CourseSchema from '@/components/CourseSchema';
 import { getAllLessons } from '@/lib/curriculum';
 import { COURSE_PROGRESS_CHANGED_EVENT, COURSE_PROGRESS_STORAGE_KEY, nextCourseLesson, parseCourseProgress } from '@/lib/courseProgress';
 import { DEFAULT_PARTNER_CONFIG } from '@/lib/partner';
+import CelebrationTriggerButton from '@/components/celebration/CelebrationTriggerButton';
 
 export default function AcademyPage() {
   const [selectedLevel, setSelectedLevel] = useState<'all' | 'beginner' | 'intermediate' | 'advanced'>('all');
@@ -97,7 +98,13 @@ export default function AcademyPage() {
               </div>
             </div>
 
-            <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap', alignItems: 'center' }}>
+              {passedCount >= 5 && (
+                <CelebrationTriggerButton
+                  levelKey={passedCount >= 30 ? 'advanced' : passedCount >= 22 ? 'intermediate' : passedCount >= 12 ? 'beginner' : 'foundation'}
+                  label={passedCount >= 30 ? 'Master Credential' : passedCount >= 22 ? 'Level 3 Honors' : passedCount >= 12 ? 'Level 2 Honors' : 'Level 1 Honors'}
+                />
+              )}
               <Link
                 href={courseComplete ? '/academy' : `/academy/lesson-${firstIncompleteLesson}`}
                 className="herbaria-btn-citron"

@@ -8,6 +8,7 @@ import { resolveMt5AccountDisplay } from '@/lib/account-utils';
 import MemberNav from '@/components/MemberNav';
 import Link from 'next/link';
 import { FOREX_LESSONS } from '@/lib/curriculum';
+import CelebrationTriggerButton from '@/components/celebration/CelebrationTriggerButton';
 
 export const metadata: Metadata = {
   title: 'Forex School | Systematic Curriculum & Checkpoints',
@@ -182,20 +183,25 @@ export default async function MemberSchoolPage() {
               </div>
             </div>
 
-            <span
-              style={{
-                fontSize: '11px',
-                fontWeight: 700,
-                fontFamily: 'var(--font-mono, monospace)',
-                padding: '4px 10px',
-                borderRadius: '5px',
-                backgroundColor: isSchoolComplete ? 'var(--accent-green-subtle)' : 'var(--accent-gold-subtle)',
-                color: isSchoolComplete ? 'var(--accent-green)' : 'var(--accent-gold)',
-                border: `1px solid ${isSchoolComplete ? 'var(--accent-green-border)' : 'var(--border-accent)'}`,
-              }}
-            >
-              {isSchoolComplete ? 'AUTOMATION QUALIFIED' : 'PREREQUISITE IN PROGRESS'}
-            </span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+              {isSchoolComplete && (
+                <CelebrationTriggerButton levelKey="foundation" label="View Level 1 Honors" />
+              )}
+              <span
+                style={{
+                  fontSize: '11px',
+                  fontWeight: 700,
+                  fontFamily: 'var(--font-mono, monospace)',
+                  padding: '4px 10px',
+                  borderRadius: '5px',
+                  backgroundColor: isSchoolComplete ? 'var(--accent-green-subtle)' : 'var(--accent-gold-subtle)',
+                  color: isSchoolComplete ? 'var(--accent-green)' : 'var(--accent-gold)',
+                  border: `1px solid ${isSchoolComplete ? 'var(--accent-green-border)' : 'var(--border-accent)'}`,
+                }}
+              >
+                {isSchoolComplete ? 'AUTOMATION QUALIFIED' : 'PREREQUISITE IN PROGRESS'}
+              </span>
+            </div>
           </div>
 
           {/* Progress Bar */}

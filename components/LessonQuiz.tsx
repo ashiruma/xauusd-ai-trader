@@ -14,6 +14,8 @@ import {
   calculateReversalLesson,
   reverseCompletedLessons,
 } from '@/lib/school-lockout';
+import LevelCelebrationModal from '@/components/celebration/LevelCelebrationModal';
+import { evaluateLevelCompletion, LevelDefinition } from '@/lib/curriculum-levels';
 
 interface LessonQuizProps {
   lessonId: string;
@@ -42,6 +44,7 @@ export default function LessonQuiz({
   const [showGraduationModal, setShowGraduationModal] = useState<boolean>(false);
   const [submitting, setSubmitting] = useState(false);
   const [isPassed, setIsPassed] = useState(false);
+  const [celebratedLevel, setCelebratedLevel] = useState<LevelDefinition | null>(null);
 
   // Retry, 10-minute study lock & timeout reversal state
   const [fails, setFails] = useState<number>(0);
@@ -215,7 +218,10 @@ export default function LessonQuiz({
           setCompletedLessons(nextCompleted);
           saveCourseProgress(nextCompleted);
 
-          if (globalNum === 2) {
+          const completedLevel = evaluateLevelCompletion(nextCompleted, globalNum);
+          if (completedLevel) {
+            setTimeout(() => setCelebratedLevel(completedLevel), 400);
+          } else if (globalNum === 2) {
             setTimeout(() => setShowLinkModal(true), 600);
           } else if (globalNum === 5) {
             setTimeout(() => setShowGraduationModal(true), 600);
@@ -911,6 +917,16 @@ export default function LessonQuiz({
             </div>
           </div>
         </div>
+      )}
+      {/* ============================================================== */}
+      {/* LEVEL PASSED CELEBRATION MODAL (CANVAS PARTICLES & CHIME)      */}
+      {/* ============================================================== */}
+      {celebratedLevel && (
+        <LevelCelebrationModal
+          level={celebratedLevel}
+          onClose={() => setCelebratedLevel(null)}
+          passedLessonNum={globalNum}
+        />
       )}
     </>
   );
