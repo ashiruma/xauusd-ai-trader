@@ -358,6 +358,107 @@ export default async function LessonPage({ params }: LessonPageProps) {
           </>
         )}
 
+        {/* Milestone 1 Checkpoint: After Finishing Lesson 2 */}
+        {lesson.globalNum === 2 && (
+          <section
+            style={{
+              marginTop: '36px',
+              background: 'linear-gradient(135deg, rgba(212, 175, 55, 0.08) 0%, rgba(15, 23, 42, 0.7) 100%)',
+              border: '1px solid var(--accent-gold, #D4AF37)',
+              borderRadius: '8px',
+              padding: '28px',
+            }}
+          >
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '4px 10px', background: 'rgba(212, 175, 55, 0.15)', borderRadius: '4px', marginBottom: '12px' }}>
+              <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--accent-gold, #D4AF37)', textTransform: 'uppercase', letterSpacing: '0.8px', fontFamily: 'monospace' }}>
+                MILESTONE 1 / ACCOUNT CONFIGURATION
+              </span>
+            </div>
+            <h3 style={{ fontSize: '20px', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '8px' }}>
+              Step 1 Complete: Link Your JustMarkets Trading Account
+            </h3>
+            <p style={{ fontSize: '14px', color: 'var(--text-secondary)', lineHeight: 1.6, maxWidth: '680px', marginBottom: '20px' }}>
+              Great job completing the first two foundation lessons on market structure and liquidity. Before proceeding through Lessons 3, 4, and 5, link your JustMarkets MT5 trading account so your telemetry and blotter are configured.
+            </p>
+            <div style={{ display: 'flex', gap: '14px', alignItems: 'center', flexWrap: 'wrap' }}>
+              <Link
+                href="/accounts"
+                className="btn btn-primary"
+                style={{ padding: '10px 20px', fontSize: '13.5px', textDecoration: 'none', background: 'var(--accent-gold)', color: '#030712', fontWeight: 700 }}
+              >
+                Link JustMarkets Account &rarr;
+              </Link>
+              <Link
+                href="/academy/lesson-3"
+                className="btn btn-secondary"
+                style={{ padding: '10px 20px', fontSize: '13.5px', textDecoration: 'none' }}
+              >
+                Proceed to Lesson 3 &rarr;
+              </Link>
+            </div>
+          </section>
+        )}
+
+        {/* Milestone 2 Checkpoint: After Finishing Lesson 5 */}
+        {lesson.globalNum === 5 && (
+          <section
+            style={{
+              marginTop: '36px',
+              background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(15, 23, 42, 0.8) 100%)',
+              border: '1px solid rgba(16, 185, 129, 0.4)',
+              borderRadius: '8px',
+              padding: '32px 28px',
+            }}
+          >
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '4px 10px', background: 'rgba(16, 185, 129, 0.15)', borderRadius: '4px', marginBottom: '12px' }}>
+              <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--accent-green, #10B981)', textTransform: 'uppercase', letterSpacing: '0.8px', fontFamily: 'monospace' }}>
+                MILESTONE 2 / LIVE TRADING FLOOR ACTIVATION
+              </span>
+            </div>
+            <h3 style={{ fontSize: '22px', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '8px' }}>
+              Core Foundations Mastered: Activate the Live Trading Floor
+            </h3>
+            <p style={{ fontSize: '14.5px', color: 'var(--text-secondary)', lineHeight: 1.6, maxWidth: '720px', marginBottom: '16px' }}>
+              Congratulations on completing Lessons 1 through 5. You have mastered session timing, liquidity mechanics, and risk ratios. You are now eligible to activate the <strong>Live Trading Terminal</strong> and continue learning through advanced Lessons 6 to 30.
+            </p>
+
+            <div style={{ background: 'var(--bg-surface-1)', border: '1px solid var(--border-default)', borderRadius: '6px', padding: '16px 20px', marginBottom: '22px' }}>
+              <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--accent-gold)', marginBottom: '6px' }}>
+                Requirement: Minimum USD 50 Deposit on Live MT5 Account
+              </div>
+              <p style={{ fontSize: '13.5px', color: 'var(--text-secondary)', margin: 0, lineHeight: 1.5 }}>
+                Fund at least USD 50 directly in your own regulated JustMarkets live account (Partner code: <code>tohstb0d83</code>). 100% Capital Custody: your capital remains under your complete control with the broker at all times.
+              </p>
+            </div>
+
+            <div style={{ display: 'flex', gap: '14px', alignItems: 'center', flexWrap: 'wrap' }}>
+              <a
+                href="https://one.justmarkets.link/a/tohstb0d83"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn btn-primary"
+                style={{ padding: '11px 22px', fontSize: '13.5px', background: 'var(--accent-gold)', color: '#030712', fontWeight: 700, textDecoration: 'none' }}
+              >
+                Deposit on JustMarkets (Min $50) &rarr;
+              </a>
+              <Link
+                href="/terminal"
+                className="btn btn-secondary"
+                style={{ padding: '11px 22px', fontSize: '13.5px', textDecoration: 'none', background: 'var(--bg-surface-2)', color: 'var(--text-primary)', border: '1px solid var(--border-default)' }}
+              >
+                Open Live Trading Terminal &rarr;
+              </Link>
+              <Link
+                href="/academy/lesson-6"
+                className="btn btn-ghost"
+                style={{ padding: '11px 18px', fontSize: '13.5px', color: 'var(--text-muted)' }}
+              >
+                Proceed to Lesson 6 &rarr;
+              </Link>
+            </div>
+          </section>
+        )}
+
         {/* Prev / Next Navigation Controls */}
         <div style={{
           marginTop: '40px',

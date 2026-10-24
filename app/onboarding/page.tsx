@@ -36,9 +36,9 @@ export default async function Onboarding() {
         }
       }
 
-      // Verified members directly access the trading terminal dashboard
+      // Verified members directly onboard to the Forex School (Academy)
       if (isVerified) {
-        redirect('/terminal');
+        redirect('/academy');
       }
     }
   } catch (err) {

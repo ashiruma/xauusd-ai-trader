@@ -105,7 +105,7 @@ export default function AcademyPage() {
                 {courseComplete ? 'Curriculum Complete' : passedCount > 0 ? `Resume Lesson ${String(firstIncompleteLesson).padStart(2, '0')}` : 'Begin Lesson 01 (Public)'} &rarr;
               </Link>
               <Link
-                href="/onboarding"
+                href="/accounts"
                 className="herbaria-btn-secondary"
               >
                 Unlock Gated Modules &rarr;
@@ -430,7 +430,7 @@ export default function AcademyPage() {
 
           <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap' }}>
             <Link
-              href="/onboarding"
+              href="/accounts"
               className="herbaria-btn-citron"
             >
               Unlock Full Curriculum &rarr;

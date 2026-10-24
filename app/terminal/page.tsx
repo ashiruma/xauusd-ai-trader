@@ -121,7 +121,26 @@ export default async function TerminalPage() {
             </span>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+            <a
+              href="/academy"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '4px 10px',
+                background: 'rgba(255, 255, 255, 0.05)',
+                color: 'var(--text-secondary, #94A3B8)',
+                border: '1px solid var(--border-default, #1E293B)',
+                borderRadius: '4px',
+                fontSize: '11px',
+                fontWeight: 600,
+                textDecoration: 'none',
+                fontFamily: 'JetBrains Mono, monospace',
+              }}
+            >
+              Forex School (30 Lessons) &rarr;
+            </a>
             <a
               href="/control"
               style={{
