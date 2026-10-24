@@ -383,7 +383,8 @@ class TradingCoordinator:
                     market_state=self.latest_market_state,
                     account_equity=equity,
                     open_positions_count=len(open_positions),
-                    is_broker_connected=adapter.is_connected()
+                    is_broker_connected=adapter.is_connected(),
+                    account_id=primary_acc_id
                 )
 
                 if risk_decision.approved and risk_decision.lot_size > 0:
@@ -420,7 +421,8 @@ class TradingCoordinator:
                             market_state=self.latest_market_state,
                             account_equity=t_equity,
                             open_positions_count=0,
-                            is_broker_connected=True
+                            is_broker_connected=True,
+                            account_id=t_acc_id
                         )
                         if t_decision.approved and t_decision.lot_size > 0:
                             t_order = Order(

@@ -19,6 +19,7 @@ class PositionSizer:
         stop_loss: float,
         risk_pct: float = 2.0,
         risk_ceiling_pct: Optional[float] = None,
+        max_risk_usd: Optional[float] = None,
         contract_size: float = 100.0,
         point_size: float = 0.01,
         min_lot: float = 0.01,
@@ -49,6 +50,11 @@ class PositionSizer:
         effective_risk_pct = min(risk_pct, ceiling_pct)
         risk_budget_usd = account_equity * (effective_risk_pct / 100.0)
         hard_risk_cap_usd = account_equity * (ceiling_pct / 100.0)
+
+        # Apply absolute dollar cap (e.g. profit cushion allocation cap) if specified
+        if max_risk_usd is not None and max_risk_usd > 0:
+            risk_budget_usd = min(risk_budget_usd, max_risk_usd)
+            hard_risk_cap_usd = min(hard_risk_cap_usd, max_risk_usd)
 
         # Loss per 1.00 lot includes price stop loss, plus any spread, commission, and slippage buffer
         price_loss_per_lot = stop_distance_dollars * contract_size

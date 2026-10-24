@@ -1321,6 +1321,13 @@ async def get_active_traders_status():
         "success": True,
         "max_daily_profitable_trades": getattr(settings.risk, "max_daily_profitable_trades", 5),
         "enforce_positive_daily_closing_balance": getattr(settings.risk, "enforce_positive_daily_closing_balance", True),
+        "profit_cushion_accelerator": {
+            "enabled": getattr(settings.risk, "enable_profit_cushion_accelerator", True),
+            "trigger_growth_pct": getattr(settings.risk, "cushion_trigger_growth_pct", 30.0),
+            "parachute_floor_pct": getattr(settings.risk, "cushion_parachute_floor_pct", 15.0),
+            "accelerated_risk_pct": getattr(settings.risk, "cushion_accelerated_risk_pct", 2.75),
+            "max_cushion_allocation_pct": getattr(settings.risk, "max_cushion_risk_allocation_pct", 10.0),
+        },
         "active_traders_count": len(summaries),
         "accounts": summaries
     }

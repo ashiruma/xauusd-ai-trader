@@ -116,7 +116,8 @@ class RiskEngine:
         account_equity: float,
         open_positions_count: int,
         is_broker_connected: bool = True,
-        symbol_specs: Optional[Any] = None
+        symbol_specs: Optional[Any] = None,
+        account_id: Optional[str] = None
     ) -> RiskDecision:
         """
         Deterministic pre-trade risk evaluation.
@@ -253,8 +254,18 @@ class RiskEngine:
         if news_status == NewsImpactStatus.NEWS_LOCKOUT:
             return reject("REJECT_NEWS_LOCKOUT", news_reason)
 
-        # 15. Deterministic Position Sizing Calculation
-        effective_risk_pct = getattr(self, "max_risk_per_trade_pct", settings.risk.max_risk_per_trade_pct)
+        # 15. Dynamic Risk Tiering & Profit Cushion Compounding (Model 2)
+        from risk.multi_account_governor import multi_account_governor
+
+        target_acc_id = account_id or getattr(signal, "account_id", None) or "1200533810"
+        regime_val = market_state.regime.value if (market_state and market_state.regime) else None
+        dyn_risk_pct, cushion_dollar_cap, acc_state, cushion_reason = multi_account_governor.get_account_risk_tier(
+            target_acc_id,
+            account_equity,
+            market_regime=regime_val
+        )
+
+        effective_risk_pct = dyn_risk_pct
         if account_equity >= 1000.0 and effective_risk_pct > 2.0:
             effective_risk_pct = 1.0
 
@@ -274,6 +285,7 @@ class RiskEngine:
             stop_loss=signal.stop_loss,
             risk_pct=effective_risk_pct,
             risk_ceiling_pct=hard_cap,
+            max_risk_usd=cushion_dollar_cap,
             contract_size=contract_sz,
             point_size=pt_sz,
             min_lot=min_v,
@@ -297,12 +309,13 @@ class RiskEngine:
 
         # Trade Approved
         self._recent_signals[signal.strategy_id] = now
+        tier_label = f" [{acc_state}]" if acc_state == "ACCELERATED" else ""
         approval = RiskDecision(
             signal_id=signal.signal_id,
             timestamp=now,
             approved=True,
             rejection_code=None,
-            reason=f"Approved {signal.side.value} {lot_size:.2f} lots at ${signal.entry:.2f} (Risk: ${risk_usd:.2f}, R:R: {signal.risk_reward:.2f})",
+            reason=f"Approved {signal.side.value} {lot_size:.2f} lots at ${signal.entry:.2f} (Risk: ${risk_usd:.2f}, R:R: {signal.risk_reward:.2f}){tier_label}",
             lot_size=lot_size,
             risk_amount_usd=risk_usd,
             stop_distance_points=stop_pts,
