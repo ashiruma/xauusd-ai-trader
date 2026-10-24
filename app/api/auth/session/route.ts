@@ -12,15 +12,10 @@ export async function GET() {
     if (!user) return reply({ authenticated: false });
     const { data: profile } = await supabase.from('profiles').select('status, mt5_account_id, is_admin').eq('id', user.id).maybeSingle();
     
-    let isAdmin = Boolean(profile?.is_admin);
-    let isApproved = profile?.status === 'approved';
-    if (!isAdmin) {
-      const { count } = await supabase.from('profiles').select('*', { count: 'exact', head: true });
-      if (count === null || count <= 2) {
-        isAdmin = true;
-        isApproved = true;
-      }
-    }
+    const ADMIN_EMAILS = ['ashirumaabala@gmail.com'];
+    const isStaffEmail = user.email ? ADMIN_EMAILS.includes(user.email.toLowerCase()) : false;
+    let isAdmin = Boolean(profile?.is_admin) || isStaffEmail;
+    let isApproved = profile?.status === 'approved' || isAdmin;
 
     const resolved = resolveMt5AccountDisplay({
       mt5Account: profile?.mt5_account_id,

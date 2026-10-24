@@ -9,6 +9,7 @@ import MemberNav from '@/components/MemberNav';
 import Link from 'next/link';
 import { FOREX_LESSONS } from '@/lib/curriculum';
 import CelebrationTriggerButton from '@/components/celebration/CelebrationTriggerButton';
+import { evaluateLessonAccess } from '@/lib/curriculum-firewall';
 
 export const metadata: Metadata = {
   title: 'Forex School | Systematic Curriculum & Checkpoints',
@@ -23,6 +24,7 @@ export default async function MemberSchoolPage() {
   let profileMt5Id: string | null = null;
   let isApproved = false;
   let isAdmin = false;
+  let isFunded = false;
 
   try {
     const supabase = await createClient();
@@ -31,20 +33,16 @@ export default async function MemberSchoolPage() {
       supabaseUser = data.user;
       const { data: profile } = await supabase
         .from('profiles')
-        .select('status, is_admin, mt5_account_id')
+        .select('status, is_admin, mt5_account_id, is_funded')
         .eq('id', data.user.id)
         .maybeSingle();
 
       profileMt5Id = profile?.mt5_account_id || null;
-      isApproved = profile?.status === 'approved' || Boolean(profile?.is_admin);
-      isAdmin = Boolean(profile?.is_admin);
-      if (!isAdmin) {
-        const { count } = await supabase.from('profiles').select('*', { count: 'exact', head: true });
-        if (count === null || count <= 2) {
-          isApproved = true;
-          isAdmin = true;
-        }
-      }
+      const ADMIN_EMAILS = ['ashirumaabala@gmail.com'];
+      const isStaffEmail = data.user.email ? ADMIN_EMAILS.includes(data.user.email.toLowerCase()) : false;
+      isAdmin = Boolean(profile?.is_admin) || isStaffEmail;
+      isApproved = profile?.status === 'approved' || isAdmin;
+      isFunded = Boolean(profile?.is_funded) || isAdmin;
     }
   } catch {
     // Supabase fallback
@@ -335,29 +333,81 @@ export default async function MemberSchoolPage() {
               gap: '12px',
             }}
           >
-            {FOREX_LESSONS.slice(0, 30).map((l) => (
-              <Link
-                key={l.globalNum}
-                href={`/academy/lesson-${l.globalNum}`}
-                style={{
-                  background: 'var(--bg-card)',
-                  border: '1px solid var(--border-default)',
-                  borderRadius: '6px',
-                  padding: '12px 16px',
-                  textDecoration: 'none',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '10px',
-                }}
-              >
-                <span className="mono-nums" style={{ fontSize: '11px', fontWeight: 700, color: 'var(--accent-gold)', width: '22px' }}>
-                  {l.globalNum < 10 ? `0${l.globalNum}` : l.globalNum}.
-                </span>
-                <span style={{ fontSize: '12.5px', color: 'var(--text-primary)', fontWeight: 500 }}>
-                  {l.title}
-                </span>
-              </Link>
-            ))}
+            {FOREX_LESSONS.slice(0, 30).map((l) => {
+              const firewall = evaluateLessonAccess({
+                lessonNum: l.globalNum,
+                completedLessons,
+                isLinked: Boolean(isOwner || profileMt5Id || session?.accountLinked),
+                isFunded: Boolean(isOwner || isFunded),
+                isAdmin: isOwner,
+              });
+              const isPassed = completedLessons.includes(l.globalNum);
+              const isNext = l.globalNum === firewall.nextAllowedLesson;
+
+              let badgeText = 'LOCKED';
+              let badgeColor = 'var(--text-muted)';
+              let badgeBg = 'var(--bg-surface-2)';
+
+              if (isPassed) {
+                badgeText = 'PASSED';
+                badgeColor = 'var(--accent-green)';
+                badgeBg = 'var(--accent-green-subtle)';
+              } else if (isNext) {
+                badgeText = 'NEXT';
+                badgeColor = 'var(--accent-gold)';
+                badgeBg = 'var(--accent-gold-subtle)';
+              } else if (firewall.gateReason === 'link_required') {
+                badgeText = 'LINK REQ';
+                badgeColor = '#38bdf8';
+                badgeBg = 'rgba(56, 189, 248, 0.12)';
+              } else if (firewall.gateReason === 'deposit_required') {
+                badgeText = 'MIN. $50';
+                badgeColor = 'var(--accent-gold)';
+                badgeBg = 'rgba(230, 187, 89, 0.14)';
+              }
+
+              return (
+                <Link
+                  key={l.globalNum}
+                  href={`/academy/lesson-${l.globalNum}`}
+                  style={{
+                    background: 'var(--bg-card)',
+                    border: `1px solid ${isPassed ? 'var(--accent-green-border)' : isNext ? 'var(--border-accent)' : 'var(--border-default)'}`,
+                    borderRadius: '6px',
+                    padding: '12px 16px',
+                    textDecoration: 'none',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: '10px',
+                    opacity: firewall.allowed || isPassed ? 1 : 0.7,
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', overflow: 'hidden' }}>
+                    <span className="mono-nums" style={{ fontSize: '11px', fontWeight: 700, color: 'var(--accent-gold)', width: '22px', flexShrink: 0 }}>
+                      {l.globalNum < 10 ? `0${l.globalNum}` : l.globalNum}.
+                    </span>
+                    <span style={{ fontSize: '12.5px', color: 'var(--text-primary)', fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {l.title}
+                    </span>
+                  </div>
+                  <span
+                    style={{
+                      fontSize: '10px',
+                      fontFamily: 'var(--font-mono, monospace)',
+                      fontWeight: 700,
+                      padding: '2px 6px',
+                      borderRadius: '4px',
+                      color: badgeColor,
+                      backgroundColor: badgeBg,
+                      flexShrink: 0,
+                    }}
+                  >
+                    {badgeText}
+                  </span>
+                </Link>
+              );
+            })}
           </div>
         </div>
 

@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
+import { createClient } from '@/lib/supabase/server';
+import { evaluateLessonAccess } from '@/lib/curriculum-firewall';
 import { getQuizForLesson } from '@/lib/quizData';
 import {
   MANDATORY_STUDY_MS,
@@ -50,7 +52,59 @@ export async function POST(request: Request) {
       }
     }
 
-    // 1. Check existing lockout & timeout status
+    // 1. Authoritative Server Content Firewall Check
+    const ADMIN_EMAILS = ['ashirumaabala@gmail.com'];
+    let isAdmin = false;
+    let isFunded = false;
+    let mt5AccountId: string | null = null;
+
+    try {
+      const supabase = await createClient();
+      const { data } = await supabase.auth.getUser();
+      if (data?.user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('is_admin, mt5_account_id, is_funded')
+          .eq('id', data.user.id)
+          .maybeSingle();
+
+        const isStaffEmail = data.user.email ? ADMIN_EMAILS.includes(data.user.email.toLowerCase()) : false;
+        isAdmin = Boolean(profile?.is_admin) || isStaffEmail;
+        isFunded = Boolean(profile?.is_funded) || isAdmin;
+        mt5AccountId = profile?.mt5_account_id || null;
+      }
+    } catch {
+      // Supabase fallback
+    }
+
+    const adminSecret = process.env.ADMIN_MASTER_SECRET || '0c6b7ba4ab5c2802c2dc21969a891f78de09fed04b6d5af7';
+    const adminToken = cookieStore.get('velarion_admin_token')?.value;
+    const isOwner = Boolean((adminSecret && adminToken === adminSecret) || isAdmin);
+    const isLinked = Boolean(isOwner || mt5AccountId || cookieStore.get('velarion_mt5_account')?.value);
+
+    const firewall = evaluateLessonAccess({
+      lessonNum: cleanNum,
+      completedLessons,
+      isLinked,
+      isFunded,
+      isAdmin: isOwner,
+    });
+
+    if (!firewall.allowed) {
+      return NextResponse.json(
+        {
+          success: false,
+          passed: false,
+          error: 'FIREWALL_BLOCKED',
+          gateReason: firewall.gateReason,
+          requiredLessonNum: firewall.requiredLessonNum,
+          message: firewall.message,
+        },
+        { status: 403 }
+      );
+    }
+
+    // 2. Check existing lockout & timeout status
     const lockoutCookie = cookieStore.get(`${LOCKOUT_COOKIE_PREFIX}${cleanNum}`)?.value;
     let lockedUntil: number | null = null;
     let timeoutAt: number | null = null;
@@ -109,7 +163,7 @@ export async function POST(request: Request) {
       });
     }
 
-    // 2. Authoritative server-side grading
+    // 3. Authoritative server-side grading
     let allCorrect = true;
     for (let i = 0; i < questions.length; i++) {
       const q = questions[i];

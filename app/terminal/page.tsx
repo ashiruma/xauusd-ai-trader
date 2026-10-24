@@ -35,20 +35,11 @@ export default async function TerminalPage() {
         .eq('id', data.user.id)
         .maybeSingle();
 
-      let isApprovedProfile = profile?.status === 'approved' || Boolean(profile?.is_admin);
-      let isAdminProfile = Boolean(profile?.is_admin);
-
-      if (!isAdminProfile) {
-        const { count } = await supabase.from('profiles').select('*', { count: 'exact', head: true });
-        if (count === null || count <= 2) {
-          isApprovedProfile = true;
-          isAdminProfile = true;
-        }
-      }
-
-      isApproved = isApprovedProfile;
-      isAdmin = isAdminProfile;
-      isFunded = Boolean(profile?.is_funded) || isAdminProfile;
+      const ADMIN_EMAILS = ['ashirumaabala@gmail.com'];
+      const isStaffEmail = data.user.email ? ADMIN_EMAILS.includes(data.user.email.toLowerCase()) : false;
+      isAdmin = Boolean(profile?.is_admin) || isStaffEmail;
+      isApproved = profile?.status === 'approved' || isAdmin;
+      isFunded = Boolean(profile?.is_funded) || isAdmin;
       mt5AccountFromProfile = profile?.mt5_account_id || null;
     }
   } catch {

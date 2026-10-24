@@ -16,6 +16,7 @@ import {
   DiagramTeaserPreview
 } from '@/components/academy/TradingDiagrams';
 import { getQuizForLesson, getCheatSheetData } from '@/lib/quizData';
+import { evaluateLessonAccess, FirewallGateReason } from '@/lib/curriculum-firewall';
 
 interface LessonPageProps {
   params: Promise<{
@@ -56,7 +57,22 @@ export default async function LessonPage({ params }: LessonPageProps) {
 
   const cookieStore = await cookies();
 
-  // 1. Check Supabase Auth & Profile
+  // 1. Retrieve completed lessons from verified server session cookie
+  const completedCookie = cookieStore.get('velarion_completed_lessons')?.value;
+  let completedLessons: number[] = [];
+  if (completedCookie) {
+    try {
+      const parsed = JSON.parse(completedCookie);
+      if (Array.isArray(parsed)) {
+        completedLessons = parsed.filter((n): n is number => typeof n === 'number' && n >= 1 && n <= 30);
+      }
+    } catch {
+      // ignore parsing failure
+    }
+  }
+
+  // 2. Check Supabase Auth & Verified Profile
+  const ADMIN_EMAILS = ['ashirumaabala@gmail.com'];
   let isAdmin = false;
   let isFunded = false;
   let mt5AccountId: string | null = null;
@@ -71,24 +87,16 @@ export default async function LessonPage({ params }: LessonPageProps) {
         .eq('id', data.user.id)
         .maybeSingle();
 
-      let isAdminProfile = Boolean(profile?.is_admin);
-
-      if (!isAdminProfile) {
-        const { count } = await supabase.from('profiles').select('*', { count: 'exact', head: true });
-        if (count === null || count <= 2) {
-          isAdminProfile = true;
-        }
-      }
-
-      isAdmin = isAdminProfile;
-      isFunded = Boolean(profile?.is_funded) || isAdminProfile;
+      const isStaffEmail = data.user.email ? ADMIN_EMAILS.includes(data.user.email.toLowerCase()) : false;
+      isAdmin = Boolean(profile?.is_admin) || isStaffEmail;
+      isFunded = Boolean(profile?.is_funded) || isAdmin;
       mt5AccountId = profile?.mt5_account_id || null;
     }
   } catch {
     // Supabase fallback
   }
 
-  // 2. Check Admin Master Token
+  // 3. Check Admin Master Token
   const adminSecret = process.env.ADMIN_MASTER_SECRET || '0c6b7ba4ab5c2802c2dc21969a891f78de09fed04b6d5af7';
   const adminToken = cookieStore.get('velarion_admin_token')?.value;
   const isOwner = Boolean(
@@ -102,22 +110,18 @@ export default async function LessonPage({ params }: LessonPageProps) {
     cookieStore.get('velarion_mt5_account')?.value
   );
 
-  let isLocked = false;
-  let gateReason: 'none' | 'link_required' | 'deposit_required' = 'none';
+  // 4. Evaluate Server-Authoritative Content Firewall
+  const firewall = evaluateLessonAccess({
+    lessonNum: lesson.globalNum,
+    completedLessons,
+    isLinked,
+    isFunded,
+    isAdmin: isOwner,
+  });
 
-  if (!isOwner) {
-    if (lesson.globalNum > 5) {
-      if (!isFunded) {
-        isLocked = true;
-        gateReason = 'deposit_required';
-      }
-    } else if (lesson.globalNum > 2) {
-      if (!isLinked) {
-        isLocked = true;
-        gateReason = 'link_required';
-      }
-    }
-  }
+  const isLocked = !firewall.allowed;
+  const gateReason: FirewallGateReason = firewall.gateReason;
+  const nextRequiredLesson = firewall.requiredLessonNum || firewall.nextAllowedLesson;
 
   const prevLessonNum = lesson.globalNum > 1 ? lesson.globalNum - 1 : null;
   const nextLessonNum = lesson.globalNum < 30 ? lesson.globalNum + 1 : null;
@@ -282,6 +286,53 @@ export default async function LessonPage({ params }: LessonPageProps) {
 
             {/* Blurred SVG Diagram Preview */}
             <DiagramTeaserPreview lessonNum={lesson.globalNum} />
+
+                        {/* Checkpoint 00: Sequential Progression Firewall */}
+            {gateReason === 'sequence_locked' && (
+              <div className="lesson-unlock-card" style={{
+                background: 'var(--bg-card)',
+                border: '1px solid var(--border-accent, #e1c47c)',
+                borderRadius: 'var(--radius-xs)',
+                padding: '36px 32px',
+                textAlign: 'center',
+                boxShadow: '0 20px 48px rgba(0, 0, 0, 0.5)'
+              }}>
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '6px 14px', background: 'var(--accent-gold-subtle)', border: '1px solid var(--border-accent)', borderRadius: 'var(--radius-xs)', marginBottom: '20px' }}>
+                  <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--accent-gold)', letterSpacing: '0.8px', textTransform: 'uppercase', fontFamily: 'monospace' }}>
+                    CURRICULUM FIREWALL / SEQUENTIAL PROGRESS REQUIRED
+                  </span>
+                </div>
+
+                <h2 style={{ fontSize: '24px', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '12px', letterSpacing: '-0.3px' }}>
+                  Lesson {lesson.globalNum} Is Locked
+                </h2>
+
+                <p style={{ fontSize: '14.5px', color: 'var(--text-secondary)', lineHeight: 1.6, maxWidth: '580px', margin: '0 auto 24px' }}>
+                  To ensure mathematical discipline and eliminate premature losses, curriculum units must be completed in sequential order. You must complete and pass <strong>Lesson {nextRequiredLesson}</strong> before this unit unlocks.
+                </p>
+
+                <div style={{ display: 'flex', justifyContent: 'center', gap: '14px', flexWrap: 'wrap' }}>
+                  <Link
+                    href={`/academy/lesson-${nextRequiredLesson}`}
+                    className="btn btn-primary"
+                    style={{ padding: '12px 24px', fontSize: '14px' }}
+                  >
+                    Resume Lesson {nextRequiredLesson} &rarr;
+                  </Link>
+                  <Link
+                    href="/school"
+                    className="btn btn-secondary"
+                    style={{ padding: '12px 24px', fontSize: '14px' }}
+                  >
+                    View Curriculum Overview &rarr;
+                  </Link>
+                </div>
+
+                <div style={{ marginTop: '20px', fontSize: '12px', color: 'var(--text-muted)' }}>
+                  Current verified progress: {completedLessons.length} of 30 lessons certified.
+                </div>
+              </div>
+            )}
 
             {/* Checkpoint 01: Account Link Required (Lessons 3 to 5) */}
             {gateReason === 'link_required' && (

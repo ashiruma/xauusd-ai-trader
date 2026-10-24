@@ -37,14 +37,10 @@ export default async function Control({ searchParams }: { searchParams: Promise<
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect('/login');
 
+  const ADMIN_EMAILS = ['ashirumaabala@gmail.com'];
   const { data: me } = await supabase.from('profiles').select('is_admin').eq('id', user.id).maybeSingle();
-  let isAdmin = Boolean(me?.is_admin);
-  if (!isAdmin) {
-    const { count } = await supabase.from('profiles').select('*', { count: 'exact', head: true });
-    if (count === null || count <= 2) {
-      isAdmin = true;
-    }
-  }
+  const isStaffEmail = user.email ? ADMIN_EMAILS.includes(user.email.toLowerCase()) : false;
+  const isAdmin = Boolean(me?.is_admin) || isStaffEmail;
   if (!isAdmin) notFound();
 
   const filter = STATUSES.find((s) => s === params.status);

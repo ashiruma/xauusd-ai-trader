@@ -24,17 +24,10 @@ export default async function Onboarding() {
         .eq('id', user.id)
         .maybeSingle();
 
-      isVerified = profile?.status === 'approved' || Boolean(profile?.is_admin);
-      isAdmin = Boolean(profile?.is_admin);
-
-      // Auto-elevate initial existing accounts (<= 2 users)
-      if (!isVerified) {
-        const { count } = await supabase.from('profiles').select('*', { count: 'exact', head: true });
-        if (count === null || count <= 2) {
-          isVerified = true;
-          isAdmin = true;
-        }
-      }
+      const ADMIN_EMAILS = ['ashirumaabala@gmail.com'];
+      const isStaffEmail = user.email ? ADMIN_EMAILS.includes(user.email.toLowerCase()) : false;
+      isAdmin = Boolean(profile?.is_admin) || isStaffEmail;
+      isVerified = profile?.status === 'approved' || isAdmin;
 
       // Verified members directly onboard to the Forex School (Academy)
       if (isVerified) {

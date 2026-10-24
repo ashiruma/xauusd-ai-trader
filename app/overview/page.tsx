@@ -35,15 +35,10 @@ export default async function OverviewPage() {
         .maybeSingle();
 
       profileMt5Id = profile?.mt5_account_id || null;
-      isApproved = profile?.status === 'approved' || Boolean(profile?.is_admin);
-      isAdmin = Boolean(profile?.is_admin);
-      if (!isAdmin) {
-        const { count } = await supabase.from('profiles').select('*', { count: 'exact', head: true });
-        if (count === null || count <= 2) {
-          isApproved = true;
-          isAdmin = true;
-        }
-      }
+      const ADMIN_EMAILS = ['ashirumaabala@gmail.com'];
+      const isStaffEmail = data.user.email ? ADMIN_EMAILS.includes(data.user.email.toLowerCase()) : false;
+      isAdmin = Boolean(profile?.is_admin) || isStaffEmail;
+      isApproved = profile?.status === 'approved' || isAdmin;
     }
   } catch {
     // Supabase fallback
