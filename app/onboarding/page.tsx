@@ -32,7 +32,8 @@ export default async function Onboarding() {
           <p>{admitted ? 'Application admission does not complete the remaining onboarding gates. Check the requirements and secure review availability below.' : 'Application admission is the first required gate. Use the sign-in options or, when signed in, the session controls below; no permission is assumed.'}</p>
           <div className={styles.actions}>
             {admitted ? <a className={styles.primaryAction} href="#onboarding-requirements">View requirements <span aria-hidden="true">↗</span></a> : <Link className={styles.primaryAction} href="/login" prefetch={false}>Sign-in options <span aria-hidden="true">↗</span></Link>}
-            <Link className={styles.secondaryAction} href="/academy">Curriculum summaries only <span aria-hidden="true">↗</span></Link>
+            <Link className={styles.secondaryAction} href="/academy">Curriculum summaries only <span aria-hidden="true">&rarr;</span></Link>
+            <Link className={styles.secondaryAction} href="/control">Admin Dashboard <span aria-hidden="true">&rarr;</span></Link>
           </div>
         </section>
 
@@ -68,7 +69,20 @@ export default async function Onboarding() {
       <div className={styles.card}><h2>Access terms &amp; risk</h2><p>Velarion access is 100% free conditional on partner-link registration and verified attribution. Broker fees, deposits and market losses remain your responsibility. <Link href="/legal/ib-disclosure">IB compensation creates a conflict</Link>; no earnings are guaranteed, and Kenya regulatory review remains required before launch.</p></div>
       <div className={styles.card}><h2>Admin priority passes</h2><p>The two approved admin priority passes require separately approved, verified Auth UUIDs; no pass is authorized by email. A pass waives referral, deposit and all-30 completion requirements only. It never creates course completions or grants a general administrator role.</p></div>
     </section>
-    {authenticated && <div className={styles.session}><div className={styles.sessionHeading}><div className={styles.eyebrow}>ACCOUNT SUPPORT</div><h2>Session controls</h2></div><SignOutButton /></div>}
+    {authenticated && (
+      <div className={styles.session}>
+        <div className={styles.sessionHeading}>
+          <div className={styles.eyebrow}>ACCOUNT SUPPORT</div>
+          <h2>Session controls</h2>
+        </div>
+        <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
+          <Link href="/control" className={styles.secondaryAction} style={{ textDecoration: 'none', padding: '8px 16px', display: 'inline-block' }}>
+            Admin Dashboard &rarr;
+          </Link>
+          <SignOutButton />
+        </div>
+      </div>
+    )}
     {admitted && <div className={styles.bottomLink}><Link href="/login" prefetch={false}>Sign-in options</Link></div>}
   </main>;
 }

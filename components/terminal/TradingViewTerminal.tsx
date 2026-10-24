@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 
 interface PositionItem {
   ticket: number;
@@ -47,7 +47,7 @@ export default function TradingViewTerminal({ accountId = '1200533810' }: { acco
   const [positions, setPositions] = useState<PositionItem[]>([]);
   const [closedTrades, setClosedTrades] = useState<ClosedTradeItem[]>([]);
   const [lastSyncTime, setLastSyncTime] = useState<string>('');
-  const [theme, setTheme] = useState<'light' | 'dark'>('light');
+  const [theme, setTheme] = useState<'light' | 'dark'>('dark');
 
   // Track global theme for chart and blotter styling
   useEffect(() => {
@@ -60,8 +60,6 @@ export default function TradingViewTerminal({ accountId = '1200533810' }: { acco
     observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
     return () => observer.disconnect();
   }, []);
-
-  const chartContainerRef = useRef<HTMLDivElement>(null);
 
   // Synchronize Live Broker State
   const syncLiveState = useCallback(async () => {
@@ -126,61 +124,7 @@ export default function TradingViewTerminal({ accountId = '1200533810' }: { acco
     return () => clearInterval(interval);
   }, [syncLiveState]);
 
-  // Embed TradingView Advanced Real-Time Chart
-  useEffect(() => {
-    const container = chartContainerRef.current;
-    if (!container) return;
 
-    container.innerHTML = '';
-
-    const widgetWrapper = document.createElement('div');
-    widgetWrapper.className = 'tradingview-widget-container__widget';
-    widgetWrapper.style.height = '740px';
-    widgetWrapper.style.width = '100%';
-    container.appendChild(widgetWrapper);
-
-    const script = document.createElement('script');
-    script.src = 'https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js';
-    script.type = 'text/javascript';
-    script.async = true;
-    script.innerHTML = JSON.stringify({
-      autosize: true,
-      symbol: activeSymbol,
-      interval: '15',
-      timezone: 'Etc/UTC',
-      theme: theme === 'dark' ? 'dark' : 'light',
-      style: '1',
-      locale: 'en',
-      enable_publishing: false,
-      allow_symbol_change: true,
-      calendar: false,
-      support_host: 'https://www.tradingview.com',
-      backgroundColor: theme === 'dark' ? '#0c241a' : '#f8f8f0',
-      gridColor: theme === 'dark' ? 'rgba(73, 99, 76, 0.35)' : 'rgba(207, 219, 201, 0.65)',
-      hide_top_toolbar: false,
-      hide_legend: false,
-      save_image: true,
-      studies: [
-        'STD;EMA',
-        'STD;RSI',
-        'STD;MACD'
-      ],
-      show_popup_button: true,
-      popup_width: '1200',
-      popup_height: '800',
-      toolbar_bg: theme === 'dark' ? '#0B0F19' : '#F8FAFC',
-      withdateranges: true,
-      hide_side_toolbar: false,
-      details: true,
-      hotlist: false
-    });
-
-    container.appendChild(script);
-
-    return () => {
-      if (container) container.innerHTML = '';
-    };
-  }, [activeSymbol, theme]);
 
   // Handle Immediate Position Close
   const handleClosePosition = async (ticket: number) => {
@@ -438,7 +382,27 @@ export default function TradingViewTerminal({ accountId = '1200533810' }: { acco
         </div>
 
         {/* Embedded TradingView Advanced Container */}
-        <div ref={chartContainerRef} style={{ height: '740px', width: '100%', background: 'var(--bg-base)' }} />
+        <div
+          style={{
+            height: '740px',
+            width: '100%',
+            background: 'var(--bg-base)',
+            position: 'relative',
+          }}
+        >
+          <iframe
+            key={`${activeSymbol}-${theme}`}
+            src={`https://www.tradingview.com/widgetembed/?symbol=${encodeURIComponent(activeSymbol)}&interval=15&theme=${theme}&style=1&locale=en&hide_side_toolbar=0&allow_symbol_change=1&saveimage=1&details=1&calendar=0&hotlist=0`}
+            style={{
+              width: '100%',
+              height: '100%',
+              border: 'none',
+              display: 'block',
+            }}
+            title={`TradingView Advanced Chart - ${activeSymbol}`}
+            allow="fullscreen"
+          />
+        </div>
       </div>
 
       {/* 3. STRUCTURED TRADE BLOTTER (POSITIONS & CLOSED DEALS HISTORY) */}

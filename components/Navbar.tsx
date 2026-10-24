@@ -16,6 +16,7 @@ export default function Navbar() {
     mt5Account?: string;
     accountId?: string;
     role?: string;
+    isAdmin?: boolean;
   } | null>(null);
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
 
@@ -58,7 +59,11 @@ export default function Navbar() {
       .then((data) => {
         const sess = data.session || data.user;
         if (data.authenticated && sess) {
-          setSession(sess);
+          setSession({
+            ...sess,
+            verified: true,
+            isAdmin: Boolean(sess.isAdmin || sess.role === 'admin'),
+          });
         } else if (!isTerminalPage) {
           setSession(null);
         }
@@ -106,6 +111,7 @@ export default function Navbar() {
         { href: '/activity', label: 'Activity' },
         { href: '/assistant', label: 'AI Assistant' },
         { href: '/settings', label: 'Settings / Help' },
+        ...(session?.isAdmin ? [{ href: '/control', label: 'Admin' }] : []),
       ]
     : [
         { href: '/', label: 'Home' },
@@ -279,6 +285,23 @@ export default function Navbar() {
                   </Link>
                 )}
 
+                <Link
+                  href="/control"
+                  style={{
+                    padding: '6px 11px',
+                    fontSize: '11.5px',
+                    color: 'var(--accent-gold, #D4AF37)',
+                    border: '1px solid rgba(212, 175, 55, 0.4)',
+                    borderRadius: '5px',
+                    background: 'rgba(212, 175, 55, 0.08)',
+                    textDecoration: 'none',
+                    fontWeight: 600,
+                  }}
+                  title="Admin Control Dashboard"
+                >
+                  Admin
+                </Link>
+
                 <button
                   onClick={handleLogout}
                   className="btn btn-ghost"
@@ -298,6 +321,19 @@ export default function Navbar() {
               </div>
             ) : (
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <Link
+                  href="/control"
+                  style={{
+                    padding: '6px 10px',
+                    fontSize: '12px',
+                    color: 'var(--text-secondary)',
+                    textDecoration: 'none',
+                    fontWeight: 600,
+                  }}
+                  title="Admin Dashboard"
+                >
+                  Admin
+                </Link>
                 <Link
                   href="/login"
                   className="btn btn-ghost"
@@ -458,25 +494,53 @@ export default function Navbar() {
                   >
                     Sign In
                   </Link>
+                  <Link
+                    href="/control"
+                    onClick={() => setMobileMenuOpen(false)}
+                    style={{ textAlign: 'center', fontSize: '12px', color: 'var(--text-muted)', textDecoration: 'none', padding: '6px' }}
+                  >
+                    Admin Dashboard
+                  </Link>
                 </div>
               ) : (
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span
+                      style={{
+                        fontFamily: 'monospace',
+                        fontSize: '12px',
+                        color: 'var(--accent-gold, #C5A059)',
+                      }}
+                    >
+                      MT5: #{displayAccountId}
+                    </span>
+                    <button
+                      onClick={handleLogout}
+                      className="btn btn-secondary"
+                      style={{ padding: '8px 16px', fontSize: '12px' }}
+                    >
+                      Logout
+                    </button>
+                  </div>
+                  <Link
+                    href="/control"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="btn btn-secondary"
                     style={{
-                      fontFamily: 'monospace',
-                      fontSize: '12px',
-                      color: 'var(--accent-gold, #C5A059)',
+                      width: '100%',
+                      padding: '10px',
+                      fontSize: '13px',
+                      textAlign: 'center',
+                      textDecoration: 'none',
+                      background: 'rgba(212, 175, 55, 0.1)',
+                      color: 'var(--accent-gold, #D4AF37)',
+                      border: '1px solid rgba(212, 175, 55, 0.4)',
+                      borderRadius: '6px',
+                      fontWeight: 600,
                     }}
                   >
-                    MT5: #{displayAccountId}
-                  </span>
-                  <button
-                    onClick={handleLogout}
-                    className="btn btn-secondary"
-                    style={{ padding: '8px 16px', fontSize: '12px' }}
-                  >
-                    Logout
-                  </button>
+                    Admin Dashboard
+                  </Link>
                 </div>
               )}
             </div>

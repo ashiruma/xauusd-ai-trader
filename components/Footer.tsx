@@ -78,6 +78,9 @@ export default function Footer() {
               <li>
                 <Link href="/terminal" style={{ color: 'var(--text-secondary)' }}>Trading Terminal</Link>
               </li>
+              <li>
+                <Link href="/control" style={{ color: 'var(--text-secondary)' }}>Admin Dashboard</Link>
+              </li>
             </ul>
           </div>
 
