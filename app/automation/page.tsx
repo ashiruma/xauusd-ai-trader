@@ -29,7 +29,26 @@ export default async function AutomationPage() {
   }
 
   const accountId = session?.mt5Account || session?.accountId || (isOwner ? '1200533810 (ADMIN)' : 'UNLINKED');
-  const isSchoolComplete = isOwner || Boolean(session?.schoolCompleted);
+  const completedCookie = cookieStore.get('velarion_completed_lessons')?.value;
+  let completedLessons: number[] = [];
+
+  if (completedCookie) {
+    try {
+      const parsed = JSON.parse(completedCookie);
+      if (Array.isArray(parsed)) {
+        completedLessons = parsed.filter((n): n is number => typeof n === 'number' && n >= 1 && n <= 30);
+      }
+    } catch {
+      // ignore parsing failure
+    }
+  }
+
+  let sequentialCount = 0;
+  for (let i = 1; i <= 5; i++) {
+    if (completedLessons.includes(i)) sequentialCount++;
+    else break;
+  }
+  const isSchoolComplete = sequentialCount >= 5;
   const isAccountLinked = isOwner || Boolean(session?.accountLinked && session?.mt5Account);
 
   return (

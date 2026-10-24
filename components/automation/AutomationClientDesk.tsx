@@ -114,7 +114,7 @@ export default function AutomationClientDesk({
     }
   };
 
-  const canActivate = (isSchoolComplete && isAccountLinked) || isOwner;
+  const canActivate = isSchoolComplete && (isAccountLinked || isOwner);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>

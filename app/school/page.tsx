@@ -73,28 +73,27 @@ export default async function MemberSchoolPage() {
   });
   const accountId = resolved.accountNumber || (isOwner ? '1200533810 (ADMIN)' : 'UNLINKED');
 
-  // Fetch authoritative server-side progress
+  // Authoritative server-side progress directly from session cookie
+  const completedCookie = cookieStore.get('velarion_completed_lessons')?.value;
   let completedLessons: number[] = [];
-  let isSchoolComplete = isOwner || Boolean(session?.schoolCompleted);
-  let sequentialCount = isOwner ? 5 : 0;
 
-  try {
-    const res = await fetch(`http://127.0.0.1:8000/api/school/progress?account_id=${encodeURIComponent(accountId)}`, {
-      cache: 'no-store',
-    });
-    if (res.ok) {
-      const data = await res.json();
-      completedLessons = Array.isArray(data.completed_lessons) ? data.completed_lessons : [];
-      sequentialCount = 0;
-      for (let i = 1; i <= 5; i++) {
-        if (completedLessons.includes(i)) sequentialCount++;
-        else break;
+  if (completedCookie) {
+    try {
+      const parsed = JSON.parse(completedCookie);
+      if (Array.isArray(parsed)) {
+        completedLessons = parsed.filter((n): n is number => typeof n === 'number' && n >= 1 && n <= 30);
       }
-      isSchoolComplete = isOwner || Boolean(data.school_completed) || sequentialCount >= 5;
+    } catch {
+      // ignore parsing failure
     }
-  } catch {
-    // Backend fallback
   }
+
+  let sequentialCount = 0;
+  for (let i = 1; i <= 5; i++) {
+    if (completedLessons.includes(i)) sequentialCount++;
+    else break;
+  }
+  const isSchoolComplete = sequentialCount >= 5;
 
   const essentialCheckpoints = [
     {
@@ -103,7 +102,7 @@ export default async function MemberSchoolPage() {
       title: 'Foundation Checkpoint 1: What Is Forex & Currency Pairs',
       coreTopic: 'Market structure, base vs quote currency, spread calculations.',
       unlocked: true,
-      completed: completedLessons.includes(1) || isOwner,
+      completed: completedLessons.includes(1),
     },
     {
       step: 2,
@@ -111,7 +110,7 @@ export default async function MemberSchoolPage() {
       title: 'Foundation Checkpoint 2: Quotes, Bid/Ask & Trading Costs',
       coreTopic: 'Spread markup, commissions, swap, slippage in high-volatility sessions.',
       unlocked: completedLessons.includes(1) || isOwner,
-      completed: completedLessons.includes(2) || isOwner,
+      completed: completedLessons.includes(2),
     },
     {
       step: 3,
@@ -119,7 +118,7 @@ export default async function MemberSchoolPage() {
       title: 'Foundation Checkpoint 3: Pips, Lot Sizes & Contract Specifications',
       coreTopic: 'Standard Cent (1 oz) vs Standard (100 oz) contract risk calculations.',
       unlocked: completedLessons.includes(2) || isOwner,
-      completed: completedLessons.includes(3) || isOwner,
+      completed: completedLessons.includes(3),
     },
     {
       step: 4,
@@ -127,7 +126,7 @@ export default async function MemberSchoolPage() {
       title: 'Foundation Checkpoint 4: Leverage & Margin Mechanics',
       coreTopic: 'Margin calculation, liquidation stop-out triggers, downside exposure.',
       unlocked: completedLessons.includes(3) || isOwner,
-      completed: completedLessons.includes(4) || isOwner,
+      completed: completedLessons.includes(4),
     },
     {
       step: 5,
@@ -135,7 +134,7 @@ export default async function MemberSchoolPage() {
       title: 'Foundation Checkpoint 5: Order Types, Demo Realities & Automation Consent',
       coreTopic: 'Pending orders, stop loss placement, demo vs live differences, automation consent.',
       unlocked: completedLessons.includes(4) || isOwner,
-      completed: completedLessons.includes(5) || isOwner,
+      completed: completedLessons.includes(5),
     },
   ];
 
@@ -255,7 +254,13 @@ export default async function MemberSchoolPage() {
                       color: cp.completed || cp.unlocked ? '#000000' : 'var(--text-muted)',
                     }}
                   >
-                    {cp.completed ? '✓' : cp.step}
+                    {cp.completed ? (
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-label="Passed">
+                        <polyline points="20 6 9 17 4 12" />
+                      </svg>
+                    ) : (
+                      cp.step
+                    )}
                   </span>
 
                   <div>
