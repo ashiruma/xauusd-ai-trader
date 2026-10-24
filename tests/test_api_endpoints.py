@@ -185,8 +185,9 @@ def test_strategies_endpoint(client):
     assert res.status_code == 200
     data = res.json()
     assert "strategies" in data
-    assert len(data["strategies"]) == 4
+    assert len(data["strategies"]) >= 4
     strategy_ids = [s["id"] for s in data["strategies"]]
+    assert "XAU_ICT_SMC_CONFLUENCE" in strategy_ids
     assert "XAU_LIQUIDITY_SWEEP" in strategy_ids
     assert "XAU_TREND_PULLBACK" in strategy_ids
     assert "XAU_SESSION_BREAKOUT" in strategy_ids

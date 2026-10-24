@@ -30,6 +30,10 @@ def test_assistant_knowledge_base_covers_core_topics():
     assert "Candidate Strategy v2" in content
     assert "EMERGENCY STOP" in content and "PAUSE" in content
     assert "ashirumaabala@gmail.com" in content
+    assert "Smart Money Concepts" in content or "SMC" in content
+    assert "Inner Circle Trader" in content or "ICT" in content
+    assert "5 profitable trades" in content
+    assert "Closing Balance > Starting Balance" in content
 
 
 def test_assistant_compliance_zero_emojis_and_no_bullets():

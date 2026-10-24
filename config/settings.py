@@ -53,6 +53,8 @@ class RiskConfig(BaseModel):
     max_daily_loss_pct: float = Field(default=3.0, description="Max daily account loss before trading halts (3.0%)")
     daily_profit_target_pct: float = Field(default=5.0, description="Optional daily profit lock percentage (5.0%)")
     daily_profit_target_usd: Optional[float] = Field(default=20.0, description="Optional fixed daily profit target in USD")
+    max_daily_profitable_trades: int = Field(default=5, description="Maximum profitable trades per account per day (5 wins limit)")
+    enforce_positive_daily_closing_balance: bool = Field(default=True, description="Strict rule ensuring starting balance is lower than closing balance")
     max_drawdown_pct: float = Field(default=8.0, description="Max total drawdown before trading halts (8.0%)")
     max_consecutive_losses: int = Field(default=2, description="Consecutive losses trigger cooldown (2 losses)")
     max_open_positions: int = Field(default=1, description="Max concurrent open positions")

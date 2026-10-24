@@ -1155,11 +1155,28 @@ async def get_loyalty_program_status():
 @app.get("/api/strategies")
 async def get_strategies():
     """
-    Returns specifications, institutional mechanics, and status for the 4 core quantitative XAUUSD strategies
-    and the AI Signal Fusion Consensus Engine.
+    Returns specifications, institutional mechanics, and status for the core quantitative XAUUSD strategies
+    aligned with ICT & SMC (Smart Money Concepts), and the AI Signal Fusion Consensus Engine.
     """
     return {
         "strategies": [
+            {
+                "id": "XAU_ICT_SMC_CONFLUENCE",
+                "name": "XAUUSD ICT/SMC Institutional Confluence",
+                "category": "ICT & Smart Money Concepts (SMC)",
+                "timeframe": "M15 Execution / Killzones",
+                "target_rr": "2.0:1 to 3.5:1",
+                "description": "Inner Circle Trader (ICT) liquidity sweep of Buy-Side (BSL) or Sell-Side (SSL) liquidity, followed by Market Structure Shift (MSS) displacement into Fair Value Gaps (FVG) / Optimal Trade Entry (OTE).",
+                "rules": [
+                    "Execute strictly inside London (07:00-10:00 UTC) and New York (12:00-15:00 UTC) Killzones",
+                    "Sweep external liquidity pools (Asian Range, PDH/PDL, Swing Fractals)",
+                    "Displacement validation leaving 3-candle Fair Value Gap (FVG)",
+                    "Optimal Trade Entry (OTE) 61.8%-78.6% retracement zone entry",
+                    "Max 5 profitable trades per account per day, locking closing balance > starting balance"
+                ],
+                "status": "ACTIVE",
+                "weight": 1.45
+            },
             {
                 "id": "XAU_LIQUIDITY_SWEEP",
                 "name": "XAUUSD Liquidity Sweep Rejection",
@@ -1281,6 +1298,31 @@ async def get_profit_manager_status():
         "trailing_distance_points": settings.risk.trailing_distance_points,
         "trailing_distance_usd": round(settings.risk.trailing_distance_points * point_size, 2),
         "min_guest_deposit_usd": settings.risk.min_guest_deposit_usd,
+    }
+
+
+@app.get("/api/trading/active-traders-status")
+async def get_active_traders_status():
+    """
+    Returns real-time status of all active traders, enforcing:
+    1. Maximum 5 profitable trades per account per day.
+    2. Starting balance lower than closing balance (positive capital growth).
+    """
+    from risk.multi_account_governor import multi_account_governor
+    active_users = db.get_active_traders()
+    for u in active_users:
+        acc_id = str(u.get("justmarkets_account_id") or "").strip()
+        eq = float(u.get("equity") or 100.0)
+        if acc_id:
+            multi_account_governor.get_or_register_account(acc_id, current_balance=eq)
+
+    summaries = multi_account_governor.get_active_trader_summaries()
+    return {
+        "success": True,
+        "max_daily_profitable_trades": getattr(settings.risk, "max_daily_profitable_trades", 5),
+        "enforce_positive_daily_closing_balance": getattr(settings.risk, "enforce_positive_daily_closing_balance", True),
+        "active_traders_count": len(summaries),
+        "accounts": summaries
     }
 
 

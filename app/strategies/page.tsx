@@ -5,7 +5,7 @@ import { DEFAULT_PARTNER_CONFIG } from '@/lib/partner';
 
 export const metadata: Metadata = {
   title: 'Quantitative XAUUSD Trading Models | Velarion Markets',
-  description: 'Detailed specifications for the 4 quantitative algorithmic models executed by Velarion Markets on Spot Gold (XAUUSD): SMC Liquidity Sweep, Dynamic Trend, Session Breakout, and Mean Reversion.',
+  description: 'Detailed specifications for the 5 quantitative algorithmic models executed by Velarion Markets on Spot Gold (XAUUSD): SMC/ICT Institutional Confluence, Liquidity Sweep, Dynamic Trend, Session Breakout, and Mean Reversion.',
   openGraph: {
     title: 'Quantitative XAUUSD Trading Models | Velarion Markets',
     description: 'Systematic algorithmic trading strategies calibrated exclusively for Spot Gold on MT5.',
@@ -32,11 +32,53 @@ export default function StrategiesPage() {
       </h1>
 
       <p style={{ fontSize: '16px', color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: '40px' }}>
-        Every trade recommendation produced by Velarion is derived from mathematical rules rather than emotional discretion. Discover the 4 quantitative models and our multi-agent consensus architecture.
+        Every trade recommendation produced by Velarion is derived from mathematical rules rather than emotional discretion. Discover the 5 quantitative models, our ICT/SMC institutional order flow engine, and our multi-agent consensus architecture.
       </p>
 
       {/* 4 Models Breakdown */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '28px', marginBottom: '48px' }}>
+                {/* Model 05 - ICT & SMC Confluence */}
+        <div className="panel-card" style={{ padding: '28px', border: '1px solid rgba(217, 119, 6, 0.35)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <span className="status-badge" style={{ background: 'rgba(230, 187, 89, 0.16)', color: 'var(--accent-gold)' }}>
+                MODEL 05 &bull; ICT &amp; SMC ORDER FLOW
+              </span>
+              <span className="status-badge status-completed">FLAGSHIP ACTIVE</span>
+            </div>
+            <span className="mono-nums" style={{ fontSize: '12px', color: 'var(--accent-gold)', fontWeight: 700 }}>
+              TARGET: 150 - 350 PIPS &bull; MIN R:R 2.0:1
+            </span>
+          </div>
+
+          <h2 style={{ fontSize: '22px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '10px' }}>
+            Inner Circle Trader (ICT) &amp; Smart Money Concepts (SMC) Confluence
+          </h2>
+
+          <p style={{ fontSize: '14px', color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: '20px' }}>
+            Engineered exclusively for Spot Gold (XAUUSD). The model detects Buy-Side Liquidity (BSL) or Sell-Side Liquidity (SSL) runs during London and New York Killzones, validates Market Structure Shifts (MSS) with displacement, and enters precisely into 3-candle Fair Value Gaps (FVG) or Optimal Trade Entry (OTE 61.8% &ndash; 78.6% Fibonacci retracement).
+          </p>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '14px', background: 'var(--bg-surface-2)', padding: '16px', borderRadius: '6px', fontSize: '12.5px' }}>
+            <div>
+              <strong style={{ color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>Entry Trigger</strong>
+              <span style={{ color: 'var(--text-primary)' }}>BSL/SSL Sweep + MSS Displacement + FVG / OTE Entry</span>
+            </div>
+            <div>
+              <strong style={{ color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>Stop Loss</strong>
+              <span style={{ color: 'var(--accent-red)' }}>Protected swing structural anchor (min $1.50 distance)</span>
+            </div>
+            <div>
+              <strong style={{ color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>Take Profit</strong>
+              <span style={{ color: 'var(--accent-green)' }}>Opposing External Liquidity Pool (2.0:1 &ndash; 3.5:1 R:R)</span>
+            </div>
+            <div>
+              <strong style={{ color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>Killzone Windows</strong>
+              <span style={{ color: 'var(--accent-gold)' }}>London (07:00&ndash;10:00 UTC) &amp; NY (12:00&ndash;15:00 UTC)</span>
+            </div>
+          </div>
+        </div>
+
         {/* Model 01 */}
         <div className="panel-card" style={{ padding: '28px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
@@ -202,6 +244,44 @@ export default function StrategiesPage() {
               <strong style={{ color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>Optimal Window</strong>
               <span style={{ color: 'var(--accent-gold)' }}>Asian Session (21:00 &ndash; 04:00 UTC)</span>
             </div>
+          </div>
+        </div>
+      </div>
+
+            {/* Multi-Trader Capital Preservation Governor */}
+      <div className="panel-card" style={{ padding: '32px', marginBottom: '40px', borderLeft: '4px solid var(--accent-gold)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
+          <span className="status-badge" style={{ background: 'rgba(230, 187, 89, 0.16)', color: 'var(--accent-gold)' }}>
+            GOVERNANCE PROTOCOL
+          </span>
+          <span style={{ fontSize: '12px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono, monospace)' }}>
+            MULTI-ACCOUNT RISK CEILINGS
+          </span>
+        </div>
+        <h2 style={{ fontSize: '22px', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '14px' }}>
+          Active Trader Protection: 5 Daily Profitable Trades Cap &amp; Balance Growth
+        </h2>
+        <p style={{ fontSize: '14px', color: 'var(--text-secondary)', lineHeight: 1.7, marginBottom: '20px' }}>
+          To ensure consistent capital growth across all active verified trader accounts, the execution coordinator enforces mathematical guardrails designed to prevent over-trading and protect accumulated profits:
+        </p>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px', fontSize: '13px' }}>
+          <div style={{ background: 'var(--bg-surface-2)', padding: '18px', borderRadius: '8px' }}>
+            <strong style={{ color: 'var(--accent-gold)', display: 'block', fontSize: '14px', marginBottom: '6px' }}>
+              1. Maximum 5 Profitable Trades Per Day
+            </strong>
+            <p style={{ margin: 0, color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+              Each active account is limited to a maximum of 5 profitable trades per UTC calendar day. Once an account logs its 5th winning trade, the risk engine locks new trade allocation for that account until the next day rollover. This prevents retail give-back behavior and secures daily returns.
+            </p>
+          </div>
+
+          <div style={{ background: 'var(--bg-surface-2)', padding: '18px', borderRadius: '8px' }}>
+            <strong style={{ color: 'var(--accent-green)', display: 'block', fontSize: '14px', marginBottom: '6px' }}>
+              2. Closing Balance &gt; Starting Balance Guarantee
+            </strong>
+            <p style={{ margin: 0, color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+              The system enforces an asymmetric payout ratio (minimum 2.0:1 R:R), algorithmic break-even ratchets (+5 to +25 points once +80 points profit is reached), and a 3.0% maximum daily drawdown circuit breaker. Trading ceases immediately if daily drawdown is threatened, safeguarding net capital gains.
+            </p>
           </div>
         </div>
       </div>

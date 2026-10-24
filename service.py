@@ -14,6 +14,8 @@ from data.models import Tick, Candle, MarketState, CandidateSetup, FusedSignal, 
 from data.feed import MarketDataEngine, feed
 from state.market_state import MarketStateEngine
 from strategy.base import BaseStrategy
+from strategy.ict_smc_confluence import IctSmcConfluenceStrategy
+from strategy.trend_continuation_v2 import TrendContinuationV2Strategy
 from strategy.trend_pullback import TrendPullbackStrategy
 from strategy.session_breakout import SessionBreakoutStrategy
 from strategy.mean_reversion import MeanReversionStrategy
@@ -21,6 +23,7 @@ from strategy.liquidity_sweep import LiquiditySweepStrategy
 from ai.analyst import AIAnalyst
 from fusion.signal_fusion import SignalFusionEngine
 from risk.risk_engine import RiskEngine, risk_engine
+from risk.multi_account_governor import multi_account_governor
 from execution.base import BaseExecutionAdapter
 from execution.paper_adapter import PaperExecutionAdapter
 from execution.mt5_adapter import MT5ExecutionAdapter
@@ -37,8 +40,10 @@ class TradingCoordinator:
         self.state_engine = MarketStateEngine(self.feed)
         
         self.strategies: List[BaseStrategy] = [
-            TrendPullbackStrategy(),
+            IctSmcConfluenceStrategy(),
+            TrendContinuationV2Strategy(),
             LiquiditySweepStrategy(),
+            TrendPullbackStrategy(),
             SessionBreakoutStrategy(),
             MeanReversionStrategy()
         ]
@@ -361,35 +366,85 @@ class TradingCoordinator:
             ai_decision=ai_decision
         )
 
-        # 5. Deterministic Risk Evaluation & Order Execution
+        # 5. Deterministic Risk Evaluation & Multi-Account Execution for Active Traders
         order_result = None
+        multi_account_orders = []
+
         if self.latest_fused_signal.is_valid and self.latest_fused_signal.side in (OrderSide.BUY, OrderSide.SELL):
             acc_info = adapter.get_account_info()
+            primary_acc_id = str(acc_info.get("login") or "1200533810").strip()
             equity = acc_info.get("equity") or 50.0
-            
-            risk_decision = self.risk_engine.evaluate(
-                signal=self.latest_fused_signal,
-                market_state=self.latest_market_state,
-                account_equity=equity,
-                open_positions_count=len(open_positions),
-                is_broker_connected=adapter.is_connected()
-            )
 
-            if risk_decision.approved and risk_decision.lot_size > 0:
-                order = Order(
-                    order_id=f"ORD_{uuid.uuid4().hex[:12]}",
-                    signal_id=self.latest_fused_signal.signal_id,
-                    strategy_id=self.latest_fused_signal.strategy_id,
-                    magic_number=settings.mt5.magic_number,
-                    symbol=self.latest_market_state.symbol,
-                    side=self.latest_fused_signal.side,
-                    lot_size=risk_decision.lot_size,
-                    requested_price=self.latest_fused_signal.entry,
-                    stop_loss=self.latest_fused_signal.stop_loss,
-                    take_profit=self.latest_fused_signal.take_profit,
-                    created_at=datetime.now(timezone.utc)
+            # 5a. Primary connection execution
+            can_trade_primary, primary_reason = multi_account_governor.can_account_trade(primary_acc_id, equity)
+            if can_trade_primary:
+                risk_decision = self.risk_engine.evaluate(
+                    signal=self.latest_fused_signal,
+                    market_state=self.latest_market_state,
+                    account_equity=equity,
+                    open_positions_count=len(open_positions),
+                    is_broker_connected=adapter.is_connected()
                 )
-                order_result = adapter.submit_order(order)
+
+                if risk_decision.approved and risk_decision.lot_size > 0:
+                    order = Order(
+                        order_id=f"ORD_{uuid.uuid4().hex[:12]}",
+                        signal_id=self.latest_fused_signal.signal_id,
+                        strategy_id=self.latest_fused_signal.strategy_id,
+                        magic_number=settings.mt5.magic_number,
+                        symbol=self.latest_market_state.symbol,
+                        side=self.latest_fused_signal.side,
+                        lot_size=risk_decision.lot_size,
+                        requested_price=self.latest_fused_signal.entry,
+                        stop_loss=self.latest_fused_signal.stop_loss,
+                        take_profit=self.latest_fused_signal.take_profit,
+                        created_at=datetime.now(timezone.utc)
+                    )
+                    order_result = adapter.submit_order(order)
+            else:
+                logger.info(f"Primary account #{primary_acc_id} trading paused: {primary_reason}")
+
+            # 5b. Multi-Account Dispatch for All Active Verified Traders
+            try:
+                active_traders = db.get_active_traders()
+                for trader in active_traders:
+                    t_acc_id = str(trader.get("justmarkets_account_id") or "").strip()
+                    if not t_acc_id or t_acc_id == primary_acc_id:
+                        continue
+                    t_equity = float(trader.get("equity") or 100.0)
+
+                    can_t_trade, t_reason = multi_account_governor.can_account_trade(t_acc_id, t_equity)
+                    if can_t_trade:
+                        t_decision = self.risk_engine.evaluate(
+                            signal=self.latest_fused_signal,
+                            market_state=self.latest_market_state,
+                            account_equity=t_equity,
+                            open_positions_count=0,
+                            is_broker_connected=True
+                        )
+                        if t_decision.approved and t_decision.lot_size > 0:
+                            t_order = Order(
+                                order_id=f"ORD_{uuid.uuid4().hex[:12]}",
+                                signal_id=self.latest_fused_signal.signal_id,
+                                strategy_id=self.latest_fused_signal.strategy_id,
+                                magic_number=settings.mt5.magic_number,
+                                symbol=self.latest_market_state.symbol,
+                                side=self.latest_fused_signal.side,
+                                lot_size=t_decision.lot_size,
+                                requested_price=self.latest_fused_signal.entry,
+                                stop_loss=self.latest_fused_signal.stop_loss,
+                                take_profit=self.latest_fused_signal.take_profit,
+                                created_at=datetime.now(timezone.utc)
+                            )
+                            db.record_order(t_order)
+                            multi_account_orders.append({
+                                "account_id": t_acc_id,
+                                "order_id": t_order.order_id,
+                                "side": t_order.side.value,
+                                "lot_size": t_order.lot_size,
+                            })
+            except Exception as e:
+                logger.debug(f"Multi-account execution note: {e}")
 
         result = {
             "type": "TICK_STEP",

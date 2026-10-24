@@ -25,6 +25,8 @@ class RiskEngine:
         self.peak_equity: Optional[float] = initial_equity
         self.daily_starting_equity: Optional[float] = initial_equity
         self.daily_pnl: float = 0.0
+        self.daily_profitable_trades: int = 0
+        self.is_daily_profit_locked: bool = False
         self.consecutive_losses: int = 0
         self.cooldown_until: Optional[datetime] = None
         self.current_day = datetime.now(timezone.utc).date()
@@ -49,6 +51,8 @@ class RiskEngine:
             self.current_day = today
             self.daily_starting_equity = current_equity
             self.daily_pnl = 0.0
+            self.daily_profitable_trades = 0
+            self.is_daily_profit_locked = False
             self.consecutive_losses = 0
             self.cooldown_until = None
 
@@ -62,7 +66,14 @@ class RiskEngine:
 
         if trade_pnl is not None:
             self.daily_pnl += trade_pnl
-            if trade_pnl < 0:
+            if trade_pnl > 0:
+                self.daily_profitable_trades += 1
+                max_winning = getattr(settings.risk, "max_daily_profitable_trades", 5)
+                if self.daily_profitable_trades >= max_winning:
+                    self.is_daily_profit_locked = True
+                self.consecutive_losses = 0
+                self.cooldown_until = None
+            elif trade_pnl < 0:
                 # If already in cooldown, ignore further loss counting
                 now_time = current_time or datetime.now(timezone.utc)
                 if self.cooldown_until and now_time < self.cooldown_until:
@@ -181,6 +192,14 @@ class RiskEngine:
 
         if target_usd is not None and self.daily_pnl >= target_usd:
             return reject("REJECT_DAILY_PROFIT_GOAL_REACHED", f"Daily profit target reached (${self.daily_pnl:.2f} >= ${target_usd:.2f})")
+
+        # 7b. Maximum Profitable Trades per Account per Day (5 Wins Limit)
+        max_winning_trades = getattr(settings.risk, "max_daily_profitable_trades", 5)
+        if self.is_daily_profit_locked or self.daily_profitable_trades >= max_winning_trades:
+            return reject(
+                "REJECT_DAILY_MAX_WINNING_TRADES_REACHED",
+                f"Maximum 5 profitable trades reached for today ({self.daily_profitable_trades} >= {max_winning_trades}). Daily profit locked to ensure closing balance exceeds starting balance."
+            )
 
         # 8. Max Total Drawdown Limit
         drawdown_pct = 0.0

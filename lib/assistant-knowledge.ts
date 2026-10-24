@@ -384,6 +384,62 @@ If you need direct human assistance regarding broker attribution, account linkin
 
 3. SLA and Turnaround Time:
 Administrative support reviews tickets continuously during active trading sessions (London and New York overlaps). Urgent verification requests are typically addressed promptly.`
+  },
+  {
+    id: 'ict_smc_trading_logic',
+    triggers: [
+      'ict',
+      'smc',
+      'smart money concepts',
+      'inner circle trader',
+      'liquidity sweep',
+      'fair value gap',
+      'fvg',
+      'market structure shift',
+      'mss',
+      'optimal trade entry',
+      'ote',
+      'killzone',
+      'killzones',
+      '5 profitable trades',
+      '5 trades',
+      'profitable trades per day',
+      'closing balance',
+      'starting balance'
+    ],
+    title: 'ICT/SMC Institutional Confluence and 5-Win Daily Profit Lock',
+    category: 'Quantitative Strategy & SMC',
+    links: [
+      { label: 'Quantitative Strategies', href: '/strategies' },
+      { label: 'Live Terminal', href: '/terminal' },
+      { label: 'Overview Dashboard', href: '/overview' }
+    ],
+    suggestions: [
+      'What are Candidate Strategy v2 rules?',
+      'Why is automation demo-first?',
+      'Explain $10 Cent vs Standard Account'
+    ],
+    generateAnswer: () => `Velarion XAUUSD trading logic aligns directly with Smart Money Concepts (SMC) and Inner Circle Trader (ICT) principles, governed by strict multi-account capital preservation rules:
+
+1. Institutional Liquidity Sweeps:
+The algorithm monitors retail liquidity resting above the Asian Session High or Previous Day High (Buy-Side Liquidity / BSL) and below the Asian Session Low or Previous Day Low (Sell-Side Liquidity / SSL). It initiates watch state once a false breakout sweep is detected.
+
+2. Market Structure Shift (MSS) Displacement:
+Following a liquidity sweep, the system requires an aggressive displacement candle breaking the opposing fractal swing structure on the 5-minute or 15-minute timeframe.
+
+3. Fair Value Gap (FVG) and Optimal Trade Entry (OTE):
+Displacement must generate a 3-candle Fair Value Gap (BISI for longs, SIBI for shorts). Execution occurs upon retracement into the FVG within the Optimal Trade Entry zone (61.8% to 78.6% Fibonacci retracement).
+
+4. Killzone Time Filters:
+Entries are permitted exclusively within high-volume institutional windows:
+- London Killzone: 07:00 to 10:00 UTC.
+- New York Killzone: 12:00 to 15:00 UTC.
+
+5. Maximum 5 Profitable Trades Per Account Per Day:
+To eliminate over-trading and secure daily gains, every active verified trader account is capped at 5 winning trades per calendar day. Once an account reaches 5 profitable trades, the risk engine locks new trade allocation for that account until the next day rollover.
+
+6. Net Positive Daily Capital Growth (Closing Balance > Starting Balance):
+Every setup requires a minimum 2.0:1 reward-to-risk ratio. The system activates an algorithmic trailing stop ratchet that moves stop loss to profit (+5 to +25 points) once +80 points gain is achieved. Combined with a 3.0% maximum daily drawdown circuit breaker, the risk architecture is designed to ensure the closing balance exceeds the starting balance.`
   }
 ];
 
@@ -405,6 +461,16 @@ export function queryKnowledgeBase(userQuery: string): AssistantResponse {
         };
       }
     }
+  }
+
+  if (query.includes('ict') || query.includes('smc') || query.includes('fvg') || query.includes('killzone') || query.includes('5 profitable') || query.includes('5 trades')) {
+    const topic = KNOWLEDGE_TOPICS.find(t => t.id === 'ict_smc_trading_logic')!;
+    return {
+      reply: topic.generateAnswer(),
+      suggestions: topic.suggestions,
+      category: topic.category,
+      referenceLinks: topic.links
+    };
   }
 
   // 2. Keyword fallback matching

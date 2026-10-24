@@ -639,6 +639,14 @@ class DatabaseStorage:
             cursor.execute("SELECT * FROM users ORDER BY id DESC")
             return [dict(row) for row in cursor.fetchall()]
 
+    def get_active_traders(self) -> List[Dict[str, Any]]:
+        with self.get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                "SELECT * FROM users WHERE status IN ('ACTIVE_VERIFIED', 'ACTIVE_TRADER') AND justmarkets_account_id IS NOT NULL AND justmarkets_account_id != '' ORDER BY id DESC"
+            )
+            return [dict(row) for row in cursor.fetchall()]
+
     def update_user_status(
         self,
         user_id: str,

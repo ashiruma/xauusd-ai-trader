@@ -374,6 +374,14 @@ export default function AutomationClientDesk({
             </div>
             <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Locks until next UTC 00:00</div>
           </div>
+
+          <div>
+            <span style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Daily Profit Lock</span>
+            <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--accent-gold)', marginTop: '2px', fontFamily: 'var(--font-mono, monospace)' }}>
+              Max 5 Wins / Day
+            </div>
+            <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Closing &gt; Starting Balance lock</div>
+          </div>
         </div>
       </div>
 

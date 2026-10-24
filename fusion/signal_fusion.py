@@ -28,7 +28,9 @@ class SignalFusionEngine:
         
         # Strategy reliability weights (calibrated deterministically)
         self.strategy_weights = {
+            "XAU_ICT_SMC_CONFLUENCE": 1.45,
             "XAU_LIQUIDITY_SWEEP": 1.35,
+            "XAU_TREND_CONTINUATION_V2": 1.30,
             "XAU_TREND_PULLBACK": 1.10,
             "XAU_MEAN_REVERSION": 1.05,
             "XAU_SESSION_BREAKOUT": 1.00
