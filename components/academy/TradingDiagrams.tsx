@@ -310,47 +310,47 @@ export function SessionKillzonesDiagram() {
     <div
       style={{
         width: '100%',
-        background: 'var(--bg-surface-1, #0A0F1D)',
-        border: '1px solid var(--border-default, #1E293B)',
-        borderRadius: '12px',
-        padding: '24px 20px',
-        color: 'var(--text-primary, #F8FAFC)',
+        background: 'var(--bg-surface-1)',
+        border: '1px solid var(--border-default)',
+        borderRadius: '8px',
+        padding: '28px 24px',
+        color: 'var(--text-primary)',
       }}
     >
-      {/* Header with human-friendly context */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '22px', flexWrap: 'wrap', gap: '10px' }}>
+      {/* Header */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '12px' }}>
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
             <span
               style={{
                 fontSize: '11px',
                 fontWeight: 700,
-                color: 'var(--accent-gold, #D4AF37)',
-                background: 'rgba(212, 175, 55, 0.12)',
-                border: '1px solid rgba(212, 175, 55, 0.3)',
+                color: 'var(--text-gold, #775e26)',
+                background: 'var(--accent-gold-subtle, rgba(20, 84, 55, 0.08))',
+                border: '1px solid var(--border-accent, rgba(20, 84, 55, 0.25))',
                 padding: '2px 8px',
                 borderRadius: '4px',
-                fontFamily: 'monospace',
+                fontFamily: 'var(--font-mono, monospace)',
                 textTransform: 'uppercase',
                 letterSpacing: '0.6px',
               }}
             >
-              24-Hour Gold Rhythm
+              24-Hour Market Rhythm
             </span>
-            <span style={{ fontSize: '15px', fontWeight: 800, color: '#F8FAFC' }}>
-              How Institutional Banks Trade Gold Each Day
+            <span style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)' }}>
+              How Institutional Desks Trade Gold Across the Day
             </span>
           </div>
-          <p style={{ margin: 0, fontSize: '13.5px', color: '#94A3B8', lineHeight: 1.5 }}>
-            Gold repeats a reliable 3-act daily cycle: <strong>1. Accumulate a calm range</strong> &rarr; <strong>2. Set a fakeout trap</strong> &rarr; <strong>3. Expand in the real trend</strong>.
+          <p style={{ margin: 0, fontSize: '14px', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+            Gold moves in an orderly 3-act sequence: <strong>1. Accumulate calm range</strong> &rarr; <strong>2. Trigger the fakeout trap</strong> &rarr; <strong>3. Expand in the true trend</strong>.
           </p>
         </div>
-        <div style={{ fontSize: '11px', color: '#64748B', fontFamily: 'monospace', background: '#0F172A', padding: '5px 10px', borderRadius: '4px', border: '1px solid #1E293B' }}>
-          Times in Universal Time (UTC)
+        <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono, monospace)', background: 'var(--bg-surface-2)', padding: '5px 10px', borderRadius: '4px', border: '1px solid var(--border-default)' }}>
+          UTC Time Zone
         </div>
       </div>
 
-      {/* 3 Human-Friendly Phase Cards */}
+      {/* 3 Human-Friendly Phase Cards in Native Luxury Theme */}
       <div
         style={{
           display: 'grid',
@@ -362,106 +362,109 @@ export function SessionKillzonesDiagram() {
         {/* Phase 1: Asian Session */}
         <div
           style={{
-            background: 'linear-gradient(180deg, rgba(56, 189, 248, 0.08) 0%, rgba(15, 23, 42, 0.7) 100%)',
-            border: '1px solid rgba(56, 189, 248, 0.3)',
-            borderRadius: '8px',
-            padding: '18px 16px',
+            background: 'var(--bg-card)',
+            border: '1px solid var(--border-default)',
+            borderTop: '3px solid #60a5fa',
+            borderRadius: '6px',
+            padding: '20px 18px',
             display: 'flex',
             flexDirection: 'column',
           }}
         >
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-            <span style={{ fontSize: '10.5px', fontWeight: 700, color: '#38BDF8', letterSpacing: '0.8px', textTransform: 'uppercase', fontFamily: 'monospace' }}>
-              ACT 1: THE CALM
+            <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-secondary)', letterSpacing: '0.6px', textTransform: 'uppercase', fontFamily: 'var(--font-mono, monospace)' }}>
+              Act 1: The Calm
             </span>
-            <span style={{ fontSize: '11px', color: '#BAE6FD', fontWeight: 600, background: 'rgba(56, 189, 248, 0.15)', padding: '2px 8px', borderRadius: '4px' }}>
+            <span style={{ fontSize: '11px', color: 'var(--text-primary)', fontWeight: 600, background: 'var(--bg-surface-2)', padding: '2px 8px', borderRadius: '4px', border: '1px solid var(--border-subtle)' }}>
               00:00 - 06:00 UTC
             </span>
           </div>
 
-          <h4 style={{ fontSize: '16px', fontWeight: 700, color: '#F0F9FF', margin: '0 0 6px' }}>
+          <h4 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 6px' }}>
             Asian Session (Tokyo)
           </h4>
-          <p style={{ fontSize: '12.5px', color: '#94A3B8', margin: '0 0 14px', lineHeight: 1.5, flexGrow: 1 }}>
-            Price moves quietly sideways in a tight range ($8 to $14). Algorithms build up buyer and seller orders without committing to a trend.
+          <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: '0 0 14px', lineHeight: 1.55, flexGrow: 1 }}>
+            Price drifts sideways in a quiet, narrow channel ($8 to $14). Large banks accumulate liquidity above and below the highs without showing their hand.
           </p>
 
-          <div style={{ background: 'rgba(15, 23, 42, 0.6)', border: '1px solid rgba(56, 189, 248, 0.2)', borderRadius: '6px', padding: '10px 12px', fontSize: '12px' }}>
-            <div style={{ fontWeight: 700, color: '#38BDF8', marginBottom: '3px' }}>Your Trader Strategy:</div>
-            <div style={{ color: '#CBD5E1' }}>Observe only. Mark the highest and lowest price points of this session. Do not trade breakouts here.</div>
+          <div style={{ background: 'var(--bg-surface-1)', border: '1px solid var(--border-default)', borderRadius: '6px', padding: '10px 12px', fontSize: '12px' }}>
+            <div style={{ fontWeight: 700, color: 'var(--text-primary)', marginBottom: '3px' }}>Your Strategy:</div>
+            <div style={{ color: 'var(--text-secondary)' }}>Observe only. Mark the highest and lowest price levels. Do not trade breakouts here.</div>
           </div>
         </div>
 
         {/* Phase 2: London Open */}
         <div
           style={{
-            background: 'linear-gradient(180deg, rgba(245, 158, 11, 0.08) 0%, rgba(15, 23, 42, 0.7) 100%)',
-            border: '1px solid rgba(245, 158, 11, 0.35)',
-            borderRadius: '8px',
-            padding: '18px 16px',
+            background: 'var(--bg-card)',
+            border: '1px solid var(--border-default)',
+            borderTop: '3px solid #b45309',
+            borderRadius: '6px',
+            padding: '20px 18px',
             display: 'flex',
             flexDirection: 'column',
           }}
         >
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-            <span style={{ fontSize: '10.5px', fontWeight: 700, color: '#F59E0B', letterSpacing: '0.8px', textTransform: 'uppercase', fontFamily: 'monospace' }}>
-              ACT 2: THE TRAP
+            <span style={{ fontSize: '11px', fontWeight: 700, color: '#b45309', letterSpacing: '0.6px', textTransform: 'uppercase', fontFamily: 'var(--font-mono, monospace)' }}>
+              Act 2: The Trap
             </span>
-            <span style={{ fontSize: '11px', color: '#FDE68A', fontWeight: 600, background: 'rgba(245, 158, 11, 0.15)', padding: '2px 8px', borderRadius: '4px' }}>
+            <span style={{ fontSize: '11px', color: '#b45309', fontWeight: 600, background: 'rgba(180, 83, 9, 0.1)', padding: '2px 8px', borderRadius: '4px', border: '1px solid rgba(180, 83, 9, 0.2)' }}>
               07:00 - 10:00 UTC
             </span>
           </div>
 
-          <h4 style={{ fontSize: '16px', fontWeight: 700, color: '#FEF3C7', margin: '0 0 6px' }}>
+          <h4 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 6px' }}>
             London Open (Europe)
           </h4>
-          <p style={{ fontSize: '12.5px', color: '#94A3B8', margin: '0 0 14px', lineHeight: 1.5, flexGrow: 1 }}>
-            London desks open with heavy volume. Big banks frequently spike price outside the Asian range to trigger retail stop losses before sharply reversing.
+          <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: '0 0 14px', lineHeight: 1.55, flexGrow: 1 }}>
+            European desks open with high volume. Institutional desks frequently spike price outside the Asian range to trip retail stop-losses before reversing.
           </p>
 
-          <div style={{ background: 'rgba(15, 23, 42, 0.6)', border: '1px solid rgba(245, 158, 11, 0.25)', borderRadius: '6px', padding: '10px 12px', fontSize: '12px' }}>
-            <div style={{ fontWeight: 700, color: '#F59E0B', marginBottom: '3px' }}>Your Trader Strategy:</div>
-            <div style={{ color: '#CBD5E1' }}>Watch for the false break. When price sweeps the Asian high or low and rejects, enter with the reversal. 74% of daily turns occur here.</div>
+          <div style={{ background: 'var(--bg-surface-1)', border: '1px solid var(--border-default)', borderRadius: '6px', padding: '10px 12px', fontSize: '12px' }}>
+            <div style={{ fontWeight: 700, color: '#b45309', marginBottom: '3px' }}>Your Strategy:</div>
+            <div style={{ color: 'var(--text-secondary)' }}>Watch for the false break. When price rejects the high/low and snaps back, enter with the reversal. 74% of daily turns occur here.</div>
           </div>
         </div>
 
         {/* Phase 3: New York Overlap */}
         <div
           style={{
-            background: 'linear-gradient(180deg, rgba(16, 185, 129, 0.08) 0%, rgba(15, 23, 42, 0.7) 100%)',
-            border: '1px solid rgba(16, 185, 129, 0.35)',
-            borderRadius: '8px',
-            padding: '18px 16px',
+            background: 'var(--bg-card)',
+            border: '1px solid var(--border-default)',
+            borderTop: '3px solid #145437',
+            borderRadius: '6px',
+            padding: '20px 18px',
             display: 'flex',
             flexDirection: 'column',
           }}
         >
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-            <span style={{ fontSize: '10.5px', fontWeight: 700, color: '#10B981', letterSpacing: '0.8px', textTransform: 'uppercase', fontFamily: 'monospace' }}>
-              ACT 3: THE REAL MOVE
+            <span style={{ fontSize: '11px', fontWeight: 700, color: '#145437', letterSpacing: '0.6px', textTransform: 'uppercase', fontFamily: 'var(--font-mono, monospace)' }}>
+              Act 3: The Real Move
             </span>
-            <span style={{ fontSize: '11px', color: '#A7F3D0', fontWeight: 600, background: 'rgba(16, 185, 129, 0.15)', padding: '2px 8px', borderRadius: '4px' }}>
+            <span style={{ fontSize: '11px', color: '#145437', fontWeight: 600, background: 'rgba(20, 84, 55, 0.1)', padding: '2px 8px', borderRadius: '4px', border: '1px solid rgba(20, 84, 55, 0.2)' }}>
               12:00 - 16:00 UTC
             </span>
           </div>
 
-          <h4 style={{ fontSize: '16px', fontWeight: 700, color: '#ECFDF5', margin: '0 0 6px' }}>
+          <h4 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 6px' }}>
             New York Overlap (Wall St.)
           </h4>
-          <p style={{ fontSize: '12.5px', color: '#94A3B8', margin: '0 0 14px', lineHeight: 1.5, flexGrow: 1 }}>
-            Both London and New York are active simultaneously. High-impact US macro data (CPI, NFP) drops. Maximum global liquidity powers huge 200–350 pip trend legs.
+          <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: '0 0 14px', lineHeight: 1.55, flexGrow: 1 }}>
+            Both London and Wall Street are trading together. US economic news (CPI, NFP) releases. Maximum volume drives the cleanest 200–350 pip trend expansions.
           </p>
 
-          <div style={{ background: 'rgba(15, 23, 42, 0.6)', border: '1px solid rgba(16, 185, 129, 0.25)', borderRadius: '6px', padding: '10px 12px', fontSize: '12px' }}>
-            <div style={{ fontWeight: 700, color: '#10B981', marginBottom: '3px' }}>Your Trader Strategy:</div>
-            <div style={{ color: '#CBD5E1' }}>Ride the confirmed trend. This is where algorithmic momentum runs with highest conviction. Take profits at key targets.</div>
+          <div style={{ background: 'var(--bg-surface-1)', border: '1px solid var(--border-default)', borderRadius: '6px', padding: '10px 12px', fontSize: '12px' }}>
+            <div style={{ fontWeight: 700, color: '#145437', marginBottom: '3px' }}>Your Strategy:</div>
+            <div style={{ color: 'var(--text-secondary)' }}>Ride the established trend. This window delivers high-conviction momentum runs with peak market liquidity.</div>
           </div>
         </div>
       </div>
 
-      {/* Visual 24-Hour Time Track Bar */}
-      <div style={{ background: '#0F172A', border: '1px solid #1E293B', borderRadius: '8px', padding: '16px 18px', marginBottom: '16px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#64748B', fontFamily: 'monospace', marginBottom: '8px' }}>
+      {/* 24-Hour Timeline Track in Soft Luxury Neutral Colors */}
+      <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-default)', borderRadius: '6px', padding: '16px 20px', marginBottom: '18px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono, monospace)', marginBottom: '8px' }}>
           <span>00:00 (Midnight)</span>
           <span>06:00 (Dawn)</span>
           <span>12:00 (Noon)</span>
@@ -470,27 +473,27 @@ export function SessionKillzonesDiagram() {
         </div>
 
         {/* 24-Hour Progress Track */}
-        <div style={{ width: '100%', height: '14px', background: '#1E293B', borderRadius: '7px', display: 'flex', overflow: 'hidden' }}>
-          <div title="Asian Range (00:00 - 06:00)" style={{ width: '25%', height: '100%', background: '#38BDF8' }} />
-          <div style={{ width: '4.16%', height: '100%', background: '#334155' }} />
-          <div title="London Open Killzone (07:00 - 10:00)" style={{ width: '12.5%', height: '100%', background: '#F59E0B' }} />
-          <div style={{ width: '8.33%', height: '100%', background: '#334155' }} />
-          <div title="New York Overlap (12:00 - 16:00)" style={{ width: '16.66%', height: '100%', background: '#10B981' }} />
-          <div style={{ width: '33.35%', height: '100%', background: '#1E293B' }} />
+        <div style={{ width: '100%', height: '12px', background: 'var(--bg-surface-2)', borderRadius: '6px', display: 'flex', overflow: 'hidden', border: '1px solid var(--border-subtle)' }}>
+          <div title="Asian Range (00:00 - 06:00)" style={{ width: '25%', height: '100%', background: '#60a5fa' }} />
+          <div style={{ width: '4.16%', height: '100%', background: 'transparent' }} />
+          <div title="London Open (07:00 - 10:00)" style={{ width: '12.5%', height: '100%', background: '#d97706' }} />
+          <div style={{ width: '8.33%', height: '100%', background: 'transparent' }} />
+          <div title="New York Overlap (12:00 - 16:00)" style={{ width: '16.66%', height: '100%', background: '#145437' }} />
+          <div style={{ width: '33.35%', height: '100%', background: 'transparent' }} />
         </div>
 
-        <div style={{ display: 'flex', gap: '18px', flexWrap: 'wrap', marginTop: '12px', fontSize: '11.5px' }}>
+        <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap', marginTop: '12px', fontSize: '12px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span style={{ width: '10px', height: '10px', borderRadius: '2px', background: '#38BDF8', display: 'inline-block' }} />
-            <span style={{ color: '#94A3B8' }}>Asian Accumulation (Quiet)</span>
+            <span style={{ width: '10px', height: '10px', borderRadius: '2px', background: '#60a5fa', display: 'inline-block' }} />
+            <span style={{ color: 'var(--text-secondary)' }}>Asian Accumulation (Quiet)</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span style={{ width: '10px', height: '10px', borderRadius: '2px', background: '#F59E0B', display: 'inline-block' }} />
-            <span style={{ color: '#94A3B8' }}>London Trap / Sweep (Volatility)</span>
+            <span style={{ width: '10px', height: '10px', borderRadius: '2px', background: '#d97706', display: 'inline-block' }} />
+            <span style={{ color: 'var(--text-secondary)' }}>London Sweep &amp; Trap (Volatility)</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span style={{ width: '10px', height: '10px', borderRadius: '2px', background: '#10B981', display: 'inline-block' }} />
-            <span style={{ color: '#94A3B8' }}>NY Overlap (Peak Trend Expansion)</span>
+            <span style={{ width: '10px', height: '10px', borderRadius: '2px', background: '#145437', display: 'inline-block' }} />
+            <span style={{ color: 'var(--text-secondary)' }}>New York Overlap (Peak Trend Expansion)</span>
           </div>
         </div>
       </div>
@@ -498,19 +501,22 @@ export function SessionKillzonesDiagram() {
       {/* Human-Friendly Golden Rule Callout */}
       <div
         style={{
-          background: 'rgba(212, 175, 55, 0.08)',
-          border: '1px solid rgba(212, 175, 55, 0.3)',
-          borderRadius: '8px',
-          padding: '14px 16px',
+          background: 'var(--bg-surface-2)',
+          borderLeft: '4px solid var(--accent-gold, #145437)',
+          borderTop: '1px solid var(--border-default)',
+          borderRight: '1px solid var(--border-default)',
+          borderBottom: '1px solid var(--border-default)',
+          borderRadius: '0 6px 6px 0',
+          padding: '14px 18px',
           display: 'flex',
           alignItems: 'center',
           gap: '12px',
-          fontSize: '13px',
-          color: '#E2E8F0',
-          lineHeight: 1.5,
+          fontSize: '13.5px',
+          color: 'var(--text-primary)',
+          lineHeight: 1.55,
         }}
       >
-        <span style={{ fontSize: '11px', fontWeight: 800, color: 'var(--accent-gold, #D4AF37)', background: 'rgba(212, 175, 55, 0.2)', padding: '2px 8px', borderRadius: '4px', textTransform: 'uppercase', flexShrink: 0 }}>
+        <span style={{ fontSize: '11px', fontWeight: 800, color: 'var(--text-gold, #775e26)', background: 'var(--accent-gold-subtle)', border: '1px solid var(--border-accent)', padding: '2px 8px', borderRadius: '4px', textTransform: 'uppercase', flexShrink: 0 }}>
           Golden Rule
         </span>
         <span>
