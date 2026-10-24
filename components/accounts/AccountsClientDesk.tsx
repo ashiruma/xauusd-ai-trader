@@ -244,8 +244,37 @@ export default function AccountsClientDesk({
             </div>
           </div>
 
+          <div style={{
+            background: 'var(--accent-gold-subtle)',
+            border: '1px solid var(--border-accent)',
+            borderRadius: '6px',
+            padding: '14px 18px',
+            marginBottom: '16px',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: '12px'
+          }}>
+            <div>
+              <div style={{ fontWeight: 700, color: 'var(--text-primary)', fontSize: '13.5px' }}>
+                Forex School Milestone 1 Unlocked
+              </div>
+              <div style={{ fontSize: '12.5px', color: 'var(--text-secondary)' }}>
+                Your MT5 account is connected. Lessons 3, 4, and 5 are ready for study.
+              </div>
+            </div>
+            <a
+              href="/academy"
+              className="btn btn-primary"
+              style={{ fontSize: '12.5px', padding: '6px 14px', textDecoration: 'none' }}
+            >
+              Continue to Forex School &rarr;
+            </a>
+          </div>
+
           <div style={{ fontSize: '12.5px', color: 'var(--text-muted)', lineHeight: 1.5 }}>
-            To view live market telemetry or adjust automated demo risk controls, visit the <a href="/overview" style={{ color: 'var(--accent-gold)', fontWeight: 600 }}>Overview</a> or <a href="/automation" style={{ color: 'var(--accent-gold)', fontWeight: 600 }}>Automation</a> desks.
+            To view live market telemetry or adjust automated demo risk controls, visit the <a href="/overview" style={{ color: 'var(--accent-gold)', fontWeight: 600 }}>Overview</a>, <a href="/automation" style={{ color: 'var(--accent-gold)', fontWeight: 600 }}>Automation</a> desks, or the <a href="/terminal" style={{ color: 'var(--accent-gold)', fontWeight: 600 }}>Live Trading Terminal</a>.
           </div>
         </div>
       ) : (

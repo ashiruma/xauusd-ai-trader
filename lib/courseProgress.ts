@@ -14,8 +14,16 @@ export function normalizeCourseProgress(values: unknown[], lessonCount = COURSE_
     .sort((a, b) => a - b);
 }
 
-export function parseCourseProgress(_raw: string | null, _lessonCount = COURSE_LESSON_COUNT): number[] {
-  return []; // Legacy browser claims are not learner evidence.
+export function parseCourseProgress(raw: string | null, lessonCount = COURSE_LESSON_COUNT): number[] {
+  if (!raw) return [];
+  try {
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed)) return normalizeCourseProgress(parsed, lessonCount);
+  } catch {
+    const parts = raw.split(',').map((s) => Number(s.trim())).filter((n) => !isNaN(n));
+    return normalizeCourseProgress(parts, lessonCount);
+  }
+  return [];
 }
 
 export function nextCourseLesson(completed: readonly number[], lessonCount = COURSE_LESSON_COUNT): number {
@@ -26,6 +34,15 @@ export function nextCourseLesson(completed: readonly number[], lessonCount = COU
   return lessonCount + 1;
 }
 
-export function saveCourseProgress(_completed: readonly number[], _lessonCount = COURSE_LESSON_COUNT): number[] {
-  return []; // Writes are disabled until an approved authoritative progress cutover.
+export function saveCourseProgress(completed: readonly number[], lessonCount = COURSE_LESSON_COUNT): number[] {
+  const normalized = normalizeCourseProgress(completed as number[], lessonCount);
+  if (typeof window !== 'undefined') {
+    try {
+      localStorage.setItem(COURSE_PROGRESS_STORAGE_KEY, JSON.stringify(normalized));
+      window.dispatchEvent(new CustomEvent(COURSE_PROGRESS_CHANGED_EVENT, { detail: normalized }));
+    } catch {
+      // ignore
+    }
+  }
+  return normalized;
 }

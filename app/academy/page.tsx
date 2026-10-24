@@ -72,7 +72,7 @@ export default function AcademyPage() {
           </div>
 
           <p style={{ fontSize: '16px', lineHeight: 1.7, color: 'var(--text-secondary)', maxWidth: '820px', marginBottom: '32px' }}>
-            Lessons 1 through 5 are open for instant public study. Lessons 6 through 30 carry no platform subscription fee when verified with our official Introducing Broker partner, JustMarkets. Non-custodial MT5 execution with disciplined risk sizing.
+            Lessons 1 and 2 are open for public foundation study. Link your JustMarkets account to unlock Lessons 3 through 5. Activate your live account with a minimum USD 50 deposit to unlock Lessons 6 through 30 and the Autonomous Live Trading Terminal. Zero platform subscription fees &mdash; 100% capital custody in your regulated broker account.
           </p>
         </header>
 
@@ -108,7 +108,7 @@ export default function AcademyPage() {
                 href="/accounts"
                 className="herbaria-btn-secondary"
               >
-                Unlock Gated Modules &rarr;
+                Link MT5 Account &rarr;
               </Link>
             </div>
           </div>
@@ -173,7 +173,7 @@ export default function AcademyPage() {
               </h3>
 
               <p style={{ fontSize: '13.5px', lineHeight: 1.6, color: 'var(--text-secondary)', flex: 1, margin: '0 0 16px' }}>
-                Currency pairs, bid/ask spreads, pip values, lot sizing, margin, leverage, and MT5 order types. Lessons 1&ndash;5 are open for instant public study.
+                Market structure, killzones, liquidity sweep wicks, lot sizing, and risk mechanics. Units 1&ndash;2 are open public access; Units 3&ndash;5 unlock upon account linking.
               </p>
 
               <div style={{ fontFamily: 'var(--font-herbaria-mono)', fontSize: '11px', color: 'var(--accent-gold)', borderTop: '1px solid var(--border-subtle)', paddingTop: '10px' }}>
@@ -205,11 +205,11 @@ export default function AcademyPage() {
               </h3>
 
               <p style={{ fontSize: '13.5px', lineHeight: 1.6, color: 'var(--text-secondary)', flex: 1, margin: '0 0 16px' }}>
-                Candlestick anatomy, market structure, support/resistance, multi-timeframe analysis, and session liquidity windows.
+                Fair Value Gaps, institutional order blocks, multi-timeframe alignment, and session expansion triggers. Gated behind active live account deposit ($50).
               </p>
 
               <div style={{ fontFamily: 'var(--font-herbaria-mono)', fontSize: '11px', color: 'var(--accent-gold)', borderTop: '1px solid var(--border-subtle)', paddingTop: '10px' }}>
-                Lessons 13&ndash;22 / Gated by IB Link
+                Lessons 13&ndash;22 / Min. $50 Deposit
               </div>
             </div>
 
@@ -289,12 +289,13 @@ export default function AcademyPage() {
               const isCompleted = completedLessons.includes(lesson.globalNum);
               const wordCount = lesson.content ? lesson.content.split(/\s+/).length : 500;
               const estReadingTime = `${Math.max(3, Math.ceil(wordCount / 180))} min read`;
-              const isPublic = lesson.globalNum <= 5;
+              const isPublic = lesson.globalNum <= 2;
+              const isLinkRequired = lesson.globalNum >= 3 && lesson.globalNum <= 5;
               const isSequenceLocked = lesson.globalNum > firstIncompleteLesson;
 
               let statusBadge = (
-                <span className="herbaria-badge-sharp" style={{ background: 'rgba(234, 177, 103, 0.12)', color: 'var(--hb-accent-citron)', border: '1px solid rgba(234, 177, 103, 0.3)' }}>
-                  PARTNER SUBSIDIZED
+                <span className="herbaria-badge-sharp" style={{ background: 'var(--accent-gold-subtle)', color: 'var(--accent-gold)', border: '1px solid var(--border-accent)' }}>
+                  MIN. $50 DEPOSIT
                 </span>
               );
 
@@ -320,6 +321,12 @@ export default function AcademyPage() {
                 statusBadge = (
                   <span className="herbaria-badge-sharp" style={{ background: 'var(--bg-surface-1)', color: 'var(--text-primary)', border: '1px solid var(--hb-hairline-cream)' }}>
                     PUBLIC ACCESS
+                  </span>
+                );
+              } else if (isLinkRequired) {
+                statusBadge = (
+                  <span className="herbaria-badge-sharp" style={{ background: 'rgba(56, 189, 248, 0.12)', color: '#38bdf8', border: '1px solid rgba(56, 189, 248, 0.35)' }}>
+                    MT5 LINK REQUIRED
                   </span>
                 );
               }
@@ -394,7 +401,7 @@ export default function AcademyPage() {
                           transition: 'background 0.2s ease'
                         }}
                       >
-                        {isCompleted ? 'Review Unit' : isPublic ? 'Study (Public)' : 'Study Unit'} &rarr;
+                        {isCompleted ? 'Review Unit' : isPublic ? 'Study (Public)' : isLinkRequired ? 'Study (Link MT5)' : 'Study (Deposit $50)'} &rarr;
                       </Link>
                     )}
                   </div>
@@ -424,7 +431,7 @@ export default function AcademyPage() {
               Zero Subscription Fees &mdash; Subsidized by JustMarkets
             </h3>
             <p style={{ fontSize: '13.5px', color: 'var(--text-secondary)', lineHeight: 1.6, margin: 0 }}>
-              Units 1 through 5 are open for instant public study. Units 6 through 30 carry no subscription fees when verified under our JustMarkets Introducing Broker partner agreement (code tohstb0d83).
+              Units 1 and 2 are open for public study. Link your JustMarkets MT5 account to unlock Units 3 through 5. Activate your live account with a minimum USD 50 deposit to unlock Units 6 through 30 and the Autonomous Live Trading Terminal. Zero platform subscription fees.
             </p>
           </div>
 

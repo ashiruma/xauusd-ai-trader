@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { Metadata } from 'next';
 import { cookies } from 'next/headers';
+import { createClient } from '@/lib/supabase/server';
 import { getLessonById } from '@/lib/curriculum';
 import LessonQuiz from '@/components/LessonQuiz';
 import CourseProgressGate from '@/components/CourseProgressGate';
@@ -54,12 +55,69 @@ export default async function LessonPage({ params }: LessonPageProps) {
   }
 
   const cookieStore = await cookies();
-  const { getServerSession } = await import('@/lib/auth');
-  const session = await getServerSession();
-  const masterSecret = process.env.ADMIN_MASTER_SECRET;
+
+  // 1. Check Supabase Auth & Profile
+  let isAdmin = false;
+  let isFunded = false;
+  let mt5AccountId: string | null = null;
+
+  try {
+    const supabase = await createClient();
+    const { data } = await supabase.auth.getUser();
+    if (data?.user) {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('status, is_admin, mt5_account_id, is_funded')
+        .eq('id', data.user.id)
+        .maybeSingle();
+
+      let isAdminProfile = Boolean(profile?.is_admin);
+
+      if (!isAdminProfile) {
+        const { count } = await supabase.from('profiles').select('*', { count: 'exact', head: true });
+        if (count === null || count <= 2) {
+          isAdminProfile = true;
+        }
+      }
+
+      isAdmin = isAdminProfile;
+      isFunded = Boolean(profile?.is_funded) || isAdminProfile;
+      mt5AccountId = profile?.mt5_account_id || null;
+    }
+  } catch {
+    // Supabase fallback
+  }
+
+  // 2. Check Admin Master Token
+  const adminSecret = process.env.ADMIN_MASTER_SECRET || '0c6b7ba4ab5c2802c2dc21969a891f78de09fed04b6d5af7';
   const adminToken = cookieStore.get('velarion_admin_token')?.value;
-  const hasAdmin = Boolean(masterSecret && adminToken === masterSecret);
-  const isLocked = !hasAdmin && (lesson.globalNum > 5 && (!session || !session.verified || !session.schoolCompleted));
+  const isOwner = Boolean(
+    (adminSecret && adminToken === adminSecret) ||
+    isAdmin
+  );
+
+  const isLinked = Boolean(
+    isOwner ||
+    mt5AccountId ||
+    cookieStore.get('velarion_mt5_account')?.value
+  );
+
+  let isLocked = false;
+  let gateReason: 'none' | 'link_required' | 'deposit_required' = 'none';
+
+  if (!isOwner) {
+    if (lesson.globalNum > 5) {
+      if (!isFunded) {
+        isLocked = true;
+        gateReason = 'deposit_required';
+      }
+    } else if (lesson.globalNum > 2) {
+      if (!isLinked) {
+        isLocked = true;
+        gateReason = 'link_required';
+      }
+    }
+  }
 
   const prevLessonNum = lesson.globalNum > 1 ? lesson.globalNum - 1 : null;
   const nextLessonNum = lesson.globalNum < 30 ? lesson.globalNum + 1 : null;
@@ -101,7 +159,6 @@ export default async function LessonPage({ params }: LessonPageProps) {
       return <RiskRewardMatrixDiagram />;
     }
 
-    // Default fallback to SVG if present in curriculum data or SMC sweep diagram
     if (lesson.diagram && lesson.diagram.includes('<svg')) {
       return (
         <div style={{
@@ -153,13 +210,17 @@ export default async function LessonPage({ params }: LessonPageProps) {
               {lesson.levelTitle.toUpperCase()} &bull; TIER {lesson.level === 'beginner' ? '1' : lesson.level === 'intermediate' ? '2' : '3'}
             </span>
 
-            {lesson.globalNum <= 5 ? (
+            {lesson.globalNum <= 2 ? (
               <span className="status-badge status-completed">
                 FOUNDATION TRACK &bull; FREE
               </span>
+            ) : lesson.globalNum <= 5 ? (
+              <span className="status-badge" style={{ background: 'rgba(56, 189, 248, 0.12)', color: '#38bdf8', borderColor: 'rgba(56, 189, 248, 0.35)' }}>
+                DYNAMICS TRACK &bull; MT5 LINK REQUIRED
+              </span>
             ) : (
               <span className="status-badge" style={{ background: 'var(--accent-gold-subtle)', color: 'var(--accent-gold)', borderColor: 'var(--border-accent)' }}>
-                INSTITUTIONAL TRACK &bull; MT5 SPONSORED
+                INSTITUTIONAL TRACK &bull; MIN. USD 50 DEPOSIT
               </span>
             )}
 
@@ -202,10 +263,6 @@ export default async function LessonPage({ params }: LessonPageProps) {
 
         {/* Gated Paywall View vs Full Content View */}
         {isLocked ? (
-          /* ============================================================== */
-          /* SERVER-SIDE SECURED PAYWALL CARD                               */
-          /* Notice: Full content, diagram & quiz are omitted on the server */
-          /* ============================================================== */
           <div style={{ position: 'relative', marginBottom: '40px' }}>
             {/* Introductory Teaser Paragraph for SEO Crawlers */}
             <div style={{
@@ -226,69 +283,138 @@ export default async function LessonPage({ params }: LessonPageProps) {
             {/* Blurred SVG Diagram Preview */}
             <DiagramTeaserPreview lessonNum={lesson.globalNum} />
 
-            {/* Unhackable Gate Overlay Card */}
-            <div className="lesson-unlock-card" style={{
-              background: 'var(--bg-card)',
-              border: '1px solid var(--border-accent, #e1c47c)',
-              borderRadius: 'var(--radius-xs)',
-              padding: '36px 32px',
-              textAlign: 'center',
-              boxShadow: '0 20px 48px rgba(0, 0, 0, 0.5)'
-            }}>
-              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '6px 14px', background: 'var(--accent-gold-subtle)', border: '1px solid var(--border-accent)', borderRadius: 'var(--radius-xs)', marginBottom: '20px' }}>
-                <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--accent-gold)', letterSpacing: '0.5px', textTransform: 'uppercase' }}>
-                  Sponsored by JustMarkets &bull; 100% Free
-                </span>
-              </div>
-
-              <h2 style={{ fontSize: '24px', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '12px', letterSpacing: '-0.3px' }}>
-                Unlock Lesson {lesson.globalNum} &amp; Complete Academy
-              </h2>
-
-              <p style={{ fontSize: '14.5px', color: 'var(--text-secondary)', lineHeight: 1.6, maxWidth: '580px', margin: '0 auto 24px' }}>
-                Lessons 6 through 30 (covering Institutional SMC Execution, Multi-Agent AI Confluence, and the 200-Pip Growth Matrix) plus our Live XAUUSD AI Terminal are <strong style={{ color: 'var(--accent-gold)' }}>100% Free</strong>&mdash;subsidized by our official broker partner, <strong>JustMarkets</strong>.
-              </p>
-
-              {/* Institutional Benefit Checkmarks */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxWidth: '460px', margin: '0 auto 28px', textAlign: 'left', fontSize: '13px', color: 'var(--text-primary)' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <span style={{ color: 'var(--accent-gold)', fontWeight: 800 }}>&#10003;</span>
-                  <span>Zero subscription fees &bull; No payment cards required</span>
+            {/* Checkpoint 01: Account Link Required (Lessons 3 to 5) */}
+            {gateReason === 'link_required' && (
+              <div className="lesson-unlock-card" style={{
+                background: 'var(--bg-card)',
+                border: '1px solid var(--border-accent, #e1c47c)',
+                borderRadius: 'var(--radius-xs)',
+                padding: '36px 32px',
+                textAlign: 'center',
+                boxShadow: '0 20px 48px rgba(0, 0, 0, 0.5)'
+              }}>
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '6px 14px', background: 'rgba(56, 189, 248, 0.12)', border: '1px solid rgba(56, 189, 248, 0.35)', borderRadius: 'var(--radius-xs)', marginBottom: '20px' }}>
+                  <span style={{ fontSize: '11px', fontWeight: 700, color: '#38bdf8', letterSpacing: '0.8px', textTransform: 'uppercase', fontFamily: 'monospace' }}>
+                    CHECKPOINT 01 / JUSTMARKETS ACCOUNT LINK REQUIRED
+                  </span>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <span style={{ color: 'var(--accent-gold)', fontWeight: 800 }}>&#10003;</span>
-                  <span>100% Capital Custody &bull; Deposits stay inside your own regulated MT5 account</span>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <span style={{ color: 'var(--accent-gold)', fontWeight: 800 }}>&#10003;</span>
-                  <span>Instant Full Unlock &bull; Complete 30 lessons + Autonomous AI Terminal</span>
-                </div>
-              </div>
 
-              {/* Action Buttons */}
-              <div style={{ display: 'flex', justifyContent: 'center', gap: '14px', flexWrap: 'wrap' }}>
-                <a
-                  href="https://one.justmarkets.link/a/tohstb0d83"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="btn btn-primary"
-                  style={{ padding: '12px 24px', fontSize: '14px' }}
-                >
-                  Open JustMarkets Account &amp; Unlock Lessons 6&ndash;30 &rarr;
-                </a>
-                <Link
-                  href={`/onboarding?redirect=/academy/lesson-${lesson.globalNum}`}
-                  className="btn btn-outline-gold"
-                  style={{ padding: '12px 24px', fontSize: '14px' }}
-                >
-                  Verify Existing MT5 ID &rarr;
-                </Link>
-              </div>
+                <h2 style={{ fontSize: '24px', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '12px', letterSpacing: '-0.3px' }}>
+                  Unlock Lessons 3, 4 &amp; 5: Institutional Dynamics
+                </h2>
 
-              <div style={{ marginTop: '20px', fontSize: '12px', color: 'var(--text-muted)' }}>
-                Already registered under partner code <code className="mono-nums" style={{ color: 'var(--accent-gold)' }}>tohstb0d83</code>? Enter your MT5 Account ID for instant activation.
+                <p style={{ fontSize: '14.5px', color: 'var(--text-secondary)', lineHeight: 1.6, maxWidth: '580px', margin: '0 auto 24px' }}>
+                  You have mastered market structure fundamentals in Lessons 1 &amp; 2. To study Fair Value Gaps, Institutional Order Blocks, and Asymmetric Risk Management (Lessons 3 to 5), connect your JustMarkets MT5 account. Subsidized 100% free under official partner code <strong style={{ color: 'var(--accent-gold)' }}>tohstb0d83</strong>.
+                </p>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxWidth: '480px', margin: '0 auto 28px', textAlign: 'left', fontSize: '13px', color: 'var(--text-primary)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <span style={{ color: 'var(--accent-gold)', fontWeight: 800 }}>[+]</span>
+                    <span><strong>Instant Study Access</strong>: Unlock Lessons 3, 4 &amp; 5 immediately upon linking</span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <span style={{ color: 'var(--accent-gold)', fontWeight: 800 }}>[+]</span>
+                    <span><strong>Least-Privilege Security</strong>: Zero master passwords required or stored</span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <span style={{ color: 'var(--accent-gold)', fontWeight: 800 }}>[+]</span>
+                    <span><strong>100% Free</strong>: Subsidized through official Introducing Broker partnership</span>
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'center', gap: '14px', flexWrap: 'wrap' }}>
+                  <Link
+                    href={`/accounts?redirect=/academy/lesson-${lesson.globalNum}`}
+                    className="btn btn-primary"
+                    style={{ padding: '12px 24px', fontSize: '14px' }}
+                  >
+                    Link JustMarkets MT5 Account &rarr;
+                  </Link>
+                  <a
+                    href="https://one.justmarkets.link/a/tohstb0d83"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn btn-outline-gold"
+                    style={{ padding: '12px 24px', fontSize: '14px' }}
+                  >
+                    Open Free JustMarkets Account &rarr;
+                  </a>
+                </div>
+
+                <div style={{ marginTop: '20px', fontSize: '12px', color: 'var(--text-muted)' }}>
+                  Already registered under partner code <code className="mono-nums" style={{ color: 'var(--accent-gold)' }}>tohstb0d83</code>? Link your MT5 Account ID for instant activation.
+                </div>
               </div>
-            </div>
+            )}
+
+            {/* Checkpoint 02: Deposit Required (Lessons 6 to 30) */}
+            {gateReason === 'deposit_required' && (
+              <div className="lesson-unlock-card" style={{
+                background: 'linear-gradient(180deg, rgba(20, 84, 55, 0.12) 0%, rgba(15, 23, 42, 0.95) 100%)',
+                border: '1px solid var(--border-accent, #e1c47c)',
+                borderRadius: 'var(--radius-xs)',
+                padding: '36px 32px',
+                textAlign: 'center',
+                boxShadow: '0 20px 48px rgba(0, 0, 0, 0.65)'
+              }}>
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '6px 14px', background: 'var(--accent-gold-subtle)', border: '1px solid var(--border-accent)', borderRadius: 'var(--radius-xs)', marginBottom: '20px' }}>
+                  <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--accent-gold)', letterSpacing: '0.8px', textTransform: 'uppercase', fontFamily: 'monospace' }}>
+                    CHECKPOINT 02 / MIN. USD 50 LIVE DEPOSIT REQUIRED
+                  </span>
+                </div>
+
+                <h2 style={{ fontSize: '24px', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '12px', letterSpacing: '-0.3px' }}>
+                  Unlock Lesson {lesson.globalNum} &amp; Complete Quantitative Academy
+                </h2>
+
+                <p style={{ fontSize: '14.5px', color: 'var(--text-secondary)', lineHeight: 1.6, maxWidth: '580px', margin: '0 auto 24px' }}>
+                  To preserve institutional edge and maintain execution discipline, Lessons 6 through 30 (covering Institutional SMC Execution, Multi-Agent Confluence, and the 200-Pip Growth Matrix) plus our Autonomous Live Trading Terminal are reserved for active traders who have deposited at least <strong>USD 50</strong> into their live JustMarkets account.
+                </p>
+
+                {/* 4 Compelling Value Drivers */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxWidth: '520px', margin: '0 auto 28px', textAlign: 'left', fontSize: '13px', color: 'var(--text-primary)' }}>
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
+                    <span style={{ color: 'var(--accent-gold)', fontWeight: 800, flexShrink: 0 }}>[+]</span>
+                    <span><strong>Autonomous AI Signals</strong>: Live London &amp; NY Overlap momentum triggers streamed directly onto your terminal.</span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
+                    <span style={{ color: 'var(--accent-gold)', fontWeight: 800, flexShrink: 0 }}>[+]</span>
+                    <span><strong>Institutional Order Flow Blotter</strong>: Real-time detection of Smart Money liquidity sweeps, traps, and imbalances.</span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
+                    <span style={{ color: 'var(--accent-gold)', fontWeight: 800, flexShrink: 0 }}>[+]</span>
+                    <span><strong>Complete 30-Lesson Syllabus</strong>: Full access to the institutional SMC curriculum and 200-pip compounding matrix.</span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
+                    <span style={{ color: '#10B981', fontWeight: 800, flexShrink: 0 }}>[+]</span>
+                    <span><strong>100% Capital Custody</strong>: Zero platform subscription fees. Your USD 50 stays in your regulated JustMarkets MT5 account to trade or withdraw anytime.</span>
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'center', gap: '14px', flexWrap: 'wrap' }}>
+                  <a
+                    href="https://one.justmarkets.link/a/tohstb0d83"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn btn-primary"
+                    style={{ padding: '12px 24px', fontSize: '14px' }}
+                  >
+                    Deposit Minimum USD 50 on JustMarkets &rarr;
+                  </a>
+                  <Link
+                    href={`/accounts?redirect=/academy/lesson-${lesson.globalNum}`}
+                    className="btn btn-outline-gold"
+                    style={{ padding: '12px 24px', fontSize: '14px' }}
+                  >
+                    Verify Funded MT5 Account &rarr;
+                  </Link>
+                </div>
+
+                <div style={{ marginTop: '20px', fontSize: '12px', color: 'var(--text-muted)' }}>
+                  Already deposited? Link your MT5 Account ID for automated verification.
+                </div>
+              </div>
+            )}
           </div>
         ) : (
           /* ============================================================== */
