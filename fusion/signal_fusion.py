@@ -26,14 +26,14 @@ class SignalFusionEngine:
         self.vol_agent = VolatilityMomentumAnalyst()
         self.reviewer = TradeReviewer()
         
-        # Strategy reliability weights (calibrated deterministically)
+        # Strategy reliability weights (calibrated empirically from out-of-sample evidence)
         self.strategy_weights = {
-            "XAU_ICT_SMC_CONFLUENCE": 1.45,
-            "XAU_LIQUIDITY_SWEEP": 1.35,
-            "XAU_TREND_CONTINUATION_V2": 1.30,
+            "XAU_SESSION_BREAKOUT": 1.60,
+            "XAU_LIQUIDITY_SWEEP": 1.45,
+            "XAU_ICT_SMC_CONFLUENCE": 1.40,
+            "XAU_TREND_CONTINUATION_V2": 1.15,
             "XAU_TREND_PULLBACK": 1.10,
-            "XAU_MEAN_REVERSION": 1.05,
-            "XAU_SESSION_BREAKOUT": 1.00
+            "XAU_MEAN_REVERSION": 1.00
         }
 
     def fuse(

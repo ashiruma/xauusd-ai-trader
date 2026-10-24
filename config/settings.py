@@ -81,11 +81,11 @@ class RiskConfig(BaseModel):
     
     # Active Profit Protection & Trailing Ratchet
     enable_break_even: bool = Field(default=True, description="Move SL to Break-Even after trade reaches verified profit threshold")
-    break_even_trigger_points: float = Field(default=80.0, description="Baseline points in profit before moving SL to BE ($0.80)")
-    break_even_lock_points: float = Field(default=25.0, description="Baseline points above entry to lock in when moving to BE ($0.25)")
+    break_even_trigger_points: float = Field(default=80.0, description="Points in profit before moving SL to BE (80 points = $0.80)")
+    break_even_lock_points: float = Field(default=25.0, description="Points above entry to lock in when moving to BE (25 points = $0.25)")
     enable_trailing_stop: bool = Field(default=True, description="Enable dynamic trailing stop")
-    trailing_trigger_points: float = Field(default=150.0, description="Baseline points in profit before activating trailing stop ($1.50)")
-    trailing_distance_points: float = Field(default=80.0, description="Baseline distance behind current price to maintain trailing SL ($0.80)")
+    trailing_trigger_points: float = Field(default=150.0, description="Points in profit before activating trailing stop (150 points = $1.50)")
+    trailing_distance_points: float = Field(default=80.0, description="Distance behind current price to maintain trailing SL (80 points = $0.80)")
 
     # Broker Onboarding & Account Policy
     min_deposit_onboarding_usd: float = Field(default=10.0, description="JustMarkets broker deposit threshold where supported ($10 on Standard and Standard Cent)")

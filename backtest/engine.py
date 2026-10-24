@@ -13,10 +13,12 @@ from data.models import Candle, OrderSide, TimeFrame, TradeRecord, Order, OrderS
 from data.feed import MarketDataEngine
 from state.market_state import MarketStateEngine
 from strategy.base import BaseStrategy
-from strategy.trend_pullback import TrendPullbackStrategy
 from strategy.session_breakout import SessionBreakoutStrategy
-from strategy.mean_reversion import MeanReversionStrategy
 from strategy.liquidity_sweep import LiquiditySweepStrategy
+from strategy.ict_smc_confluence import IctSmcConfluenceStrategy
+from strategy.trend_continuation_v2 import TrendContinuationV2Strategy
+from strategy.trend_pullback import TrendPullbackStrategy
+from strategy.mean_reversion import MeanReversionStrategy
 from ai.analyst import AIAnalyst
 from fusion.signal_fusion import SignalFusionEngine
 from risk.risk_engine import RiskEngine
@@ -41,9 +43,11 @@ class BacktestEngine:
         
         # Core engines
         self.strategies: List[BaseStrategy] = [
-            TrendPullbackStrategy(),
-            LiquiditySweepStrategy(),
             SessionBreakoutStrategy(),
+            LiquiditySweepStrategy(),
+            IctSmcConfluenceStrategy(),
+            TrendContinuationV2Strategy(),
+            TrendPullbackStrategy(),
             MeanReversionStrategy()
         ]
         self.ai_analyst = AIAnalyst()
@@ -184,8 +188,12 @@ class BacktestEngine:
                         candidate_setups.append(setup)
 
                 if candidate_setups:
-                    # Run AI analyst on candidate
-                    ai_decision = self.ai_analyst.analyze_setup(market_state, candidate_setups[0])
+                    # Pick primary candidate setup matching highest strategy weight in fusion engine
+                    primary_candidate = max(
+                        candidate_setups,
+                        key=lambda s: self.fusion_engine.strategy_weights.get(s.strategy_id, 1.0)
+                    )
+                    ai_decision = self.ai_analyst.analyze_setup(market_state, primary_candidate)
                     
                     # Signal fusion
                     fused_signal = self.fusion_engine.fuse(market_state, candidate_setups, ai_decision)

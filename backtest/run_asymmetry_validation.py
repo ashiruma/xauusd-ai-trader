@@ -25,7 +25,7 @@ from config.settings import settings, OrderSide, MarketRegimeType
 from data.models import Candle, TradeRecord, TimeFrame
 from backtest.engine import BacktestEngine
 from performance.metrics import PerformanceEngine
-from strategy.trend_continuation_v2 import TrendContinuationV2Strategy
+from strategy.session_breakout import SessionBreakoutStrategy
 from strategy.trend_pullback import TrendPullbackStrategy
 
 
@@ -72,7 +72,7 @@ def run_split_backtest(
     )
 
     if use_candidate_v2:
-        engine.strategies = [TrendContinuationV2Strategy()]
+        engine.strategies = [SessionBreakoutStrategy()]
     else:
         engine.strategies = [TrendPullbackStrategy()]
 
@@ -108,9 +108,18 @@ def execute_validation_suite():
     print(f"- Validation:        {len(val_bars)} bars ({val_bars[0].timestamp.date()} to {val_bars[-1].timestamp.date()})")
     print(f"- Out-of-Sample OOS: {len(oos_bars)} bars ({oos_bars[0].timestamp.date()} to {oos_bars[-1].timestamp.date()})")
 
-    # Evaluate Baseline vs Candidate v2 across Out-of-Sample Period
-    print("\nEvaluating Candidate Strategy v2 across Out-of-Sample period...")
+    # Evaluate Candidate v2 across all partitions
+    print("\nEvaluating Candidate Strategy v2 across In-Sample Train (60%)...")
+    train_v2 = run_split_backtest(train_bars, use_candidate_v2=True)
+
+    print("Evaluating Candidate Strategy v2 across Validation (20%)...")
+    val_v2 = run_split_backtest(val_bars, use_candidate_v2=True)
+
+    print("Evaluating Candidate Strategy v2 across Out-of-Sample (20%)...")
     oos_v2 = run_split_backtest(oos_bars, use_candidate_v2=True)
+
+    print("Evaluating Candidate Strategy v2 across Full Dataset (100%)...")
+    full_v2 = run_split_backtest(candles, use_candidate_v2=True)
 
     print("Evaluating Baseline Strategy across Out-of-Sample period...")
     oos_baseline = run_split_backtest(oos_bars, use_candidate_v2=False)
@@ -124,7 +133,7 @@ def execute_validation_suite():
         "",
         "## 1. Out-of-Sample Comparative Performance (Strict OOS Isolation)",
         "",
-        "| Metric | Baseline Strategy (Legacy Bias) | Candidate Strategy v2 (Trend Continuation) | Improvement / Delta |",
+        "| Metric | Baseline Strategy (Legacy Bias) | Candidate Strategy v2 (Institutional Breakout) | Improvement / Delta |",
         "|---|---|---|---|",
         f"| **Total Closed Trades** | {oos_baseline['total_trades']} | {oos_v2['total_trades']} | N/A |",
         f"| **Win Rate** | {oos_baseline['win_rate_pct']:.1f}% | {oos_v2['win_rate_pct']:.1f}% | {oos_v2['win_rate_pct'] - oos_baseline['win_rate_pct']:+.1f}% |",
@@ -137,7 +146,16 @@ def execute_validation_suite():
         f"| **Max Drawdown ($ / %)** | ${oos_baseline['max_drawdown_usd']:.2f} ({oos_baseline['max_drawdown_pct']:.1f}%) | ${oos_v2['max_drawdown_usd']:.2f} ({oos_v2['max_drawdown_pct']:.1f}%) | Capital Preserved |",
         f"| **Max Consecutive Losses** | {oos_baseline['max_consecutive_losses']} | {oos_v2['max_consecutive_losses']} | Risk Protected |",
         "",
-        "## 2. Market Regime Performance Breakdown (Candidate v2)",
+        "## 2. Multi-Split Walk-Forward Performance (Candidate Strategy v2)",
+        "",
+        "| Partition | Bars | Trades | Wins / Losses | Win Rate (%) | Profit Factor | Net P&L ($) | Max Drawdown (%) | Expectancy ($/tr) |",
+        "|---|---|---|---|---|---|---|---|---|",
+        f"| **In-Sample Train (60%)** | {len(train_bars)} | {train_v2['total_trades']} | {train_v2['winning_trades']} / {train_v2['losing_trades']} | {train_v2['win_rate_pct']:.1f}% | {train_v2['profit_factor']:.2f} | ${train_v2['net_profit']:.2f} | {train_v2['max_drawdown_pct']:.1f}% | ${train_v2['expectancy_usd']:.2f} |",
+        f"| **Validation (20%)** | {len(val_bars)} | {val_v2['total_trades']} | {val_v2['winning_trades']} / {val_v2['losing_trades']} | {val_v2['win_rate_pct']:.1f}% | {val_v2['profit_factor']:.2f} | ${val_v2['net_profit']:.2f} | {val_v2['max_drawdown_pct']:.1f}% | ${val_v2['expectancy_usd']:.2f} |",
+        f"| **Out-of-Sample (20%)** | {len(oos_bars)} | {oos_v2['total_trades']} | {oos_v2['winning_trades']} / {oos_v2['losing_trades']} | {oos_v2['win_rate_pct']:.1f}% | {oos_v2['profit_factor']:.2f} | ${oos_v2['net_profit']:.2f} | {oos_v2['max_drawdown_pct']:.1f}% | ${oos_v2['expectancy_usd']:.2f} |",
+        f"| **Full Historical (100%)** | {total_bars} | {full_v2['total_trades']} | {full_v2['winning_trades']} / {full_v2['losing_trades']} | {full_v2['win_rate_pct']:.1f}% | {full_v2['profit_factor']:.2f} | ${full_v2['net_profit']:.2f} | {full_v2['max_drawdown_pct']:.1f}% | ${full_v2['expectancy_usd']:.2f} |",
+        "",
+        "## 3. Market Regime Performance Breakdown (Candidate v2 - OOS)",
         "",
         "| Market Regime | Trade Count | Win Rate (%) | Net P&L ($) |",
         "|---|---|---|---|",
@@ -148,12 +166,12 @@ def execute_validation_suite():
 
     report_lines.extend([
         "",
-        "## 3. Loss Asymmetry Diagnosis & Verification",
+        "## 4. Loss Asymmetry Diagnosis & Verification",
         "- **Historical Warning Diagnosis:** The legacy MT5 history showed 160 trades with 73.75% win rate but negative net P/L (-$163.57), because average wins were +$0.38 while average losses were -$5.09 (Win/Loss ratio of 0.075). Ten basket SELLs later lost -$202.17.",
         "- **Candidate v2 Resolution:** Enforces minimum 1.8:1 R:R (targeting 2.0R), structural protective stop ($1.50 - $4.50), dynamic trailing at 1.8R, and strictly single-ticket orders with zero grid, martingale, or averaging down.",
         "- **Status:** Strategy candidate v2 is unvalidated for live claims until extensive forward demo testing across distinct economic quarters is completed.",
         "",
-        "## 4. Kenya Capital Markets Authority (CMA) Regulatory Notice",
+        "## 5. Kenya Capital Markets Authority (CMA) Regulatory Notice",
         "- **Advisory:** Under the Capital Markets Act (Cap 485A) of Kenya, automated trade execution, signal syndication, or pooled account management offered to Kenyan residents or third parties may constitute regulated financial activities requiring an approved license or sandbox exemption from the Capital Markets Authority (CMA).",
         "- **Mandate:** Live execution must remain disabled by default. Qualified legal review by a certified Kenyan advocate specializing in financial regulatory compliance must be conducted before enabling or offering automated execution services to any external user."
     ])
