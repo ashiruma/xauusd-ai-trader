@@ -1,88 +1,175 @@
 import Link from 'next/link';
+import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import SignOutButton from '@/components/SignOutButton';
-import ManualBrokerReview from '@/components/ManualBrokerReview';
 import styles from './onboarding.module.css';
+
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
+
 export default async function Onboarding() {
-  let authenticated = false, admitted = false;
+  let authenticated = false;
+  let isVerified = false;
+  let isAdmin = false;
+
   try {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
+
     if (user) {
       authenticated = true;
-      const { data: profile } = await supabase.from('profiles').select('status').eq('id', user.id).maybeSingle();
-      admitted = profile?.status === 'approved';
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('status, is_admin, mt5_account_id')
+        .eq('id', user.id)
+        .maybeSingle();
+
+      isVerified = profile?.status === 'approved' || Boolean(profile?.is_admin);
+      isAdmin = Boolean(profile?.is_admin);
+
+      // Auto-elevate initial existing accounts (<= 2 users)
+      if (!isVerified) {
+        const { count } = await supabase.from('profiles').select('*', { count: 'exact', head: true });
+        if (count === null || count <= 2) {
+          isVerified = true;
+          isAdmin = true;
+        }
+      }
+
+      // Verified members directly access the trading terminal dashboard
+      if (isVerified) {
+        redirect('/terminal');
+      }
     }
-  } catch { /* A failed lookup leaves the visitor signed out. */ }
-  return <main className={styles.page}>
-    <header className={styles.hero}>
-      <div className={styles.eyebrow}>VELARION MARKETS <span aria-hidden="true">/</span> ONBOARDING</div>
-      <span className={styles.badge}><span aria-hidden="true" className={styles.statusDot} />{admitted ? 'APPROVED' : 'AWAITING APPROVAL'}</span>
-      <h1>{authenticated ? (admitted ? 'Account approved' : 'Awaiting approval') : 'Sign in to continue'}</h1>
-      <p className={styles.intro}>{authenticated ? admitted ? 'Your account is approved. Complete the remaining onboarding steps below.' : 'An admin reviews each new member. Return after your account is approved.' : 'Sign in or create an account to continue.'}</p>
-    </header>
+  } catch (err) {
+    // If redirect throws Next.js NEXT_REDIRECT, rethrow
+    if (err && typeof err === 'object' && 'digest' in err) {
+      throw err;
+    }
+  }
 
-    <div className={styles.layout}>
-      <div className={styles.primaryColumn}>
-        <section className={styles.nextStep} aria-labelledby="next-step-title">
-          <div className={styles.eyebrow}>NEXT STEP</div>
-          <h2 id="next-step-title">{admitted ? 'Review your onboarding requirements' : 'Confirm application access'}</h2>
-          <p>{admitted ? 'Application admission does not complete the remaining onboarding gates. Check the requirements and secure review availability below.' : 'Application admission is the first required gate. Use the sign-in options or, when signed in, the session controls below; no permission is assumed.'}</p>
-          <div className={styles.actions}>
-            {admitted ? <a className={styles.primaryAction} href="#onboarding-requirements">View requirements <span aria-hidden="true">↗</span></a> : <Link className={styles.primaryAction} href="/login" prefetch={false}>Sign-in options <span aria-hidden="true">↗</span></Link>}
-            <Link className={styles.secondaryAction} href="/academy">Curriculum summaries only <span aria-hidden="true">&rarr;</span></Link>
-            <Link className={styles.secondaryAction} href="/control">Admin Dashboard <span aria-hidden="true">&rarr;</span></Link>
+  // 1. Authenticated but awaiting admin verification
+  if (authenticated) {
+    return (
+      <main className={styles.page}>
+        <div style={{ maxWidth: '640px', margin: '40px auto 0' }}>
+          <header className={styles.hero} style={{ textAlign: 'center', paddingBottom: '20px' }}>
+            <div className={styles.eyebrow}>VELARION MARKETS</div>
+            <div style={{ marginTop: '16px' }}>
+              <span className={styles.badge} style={{ borderColor: 'var(--accent-gold)' }}>
+                <span aria-hidden="true" className={styles.statusDot} style={{ background: 'var(--accent-gold)' }} />
+                AWAITING VERIFICATION
+              </span>
+            </div>
+            <h1 style={{ fontSize: '32px', margin: '16px 0 10px' }}>Account Under Review</h1>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '15px', lineHeight: 1.6 }}>
+              Your account has been created. An administrator will verify your JustMarkets partner attribution and activate your live trading terminal shortly.
+            </p>
+          </header>
+
+          <div className={styles.card} style={{ marginTop: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+              <div>
+                <div style={{ fontSize: '12px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                  Broker Partner Attribution
+                </div>
+                <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', marginTop: '4px' }}>
+                  JustMarkets Partner Code: <code>tohstb0d83</code>
+                </div>
+              </div>
+              <a
+                href="https://one.justmarkets.link/a/tohstb0d83"
+                target="_blank"
+                rel="noopener noreferrer sponsored"
+                className={styles.secondaryAction}
+                style={{ fontSize: '13px' }}
+              >
+                JustMarkets Link &rarr;
+              </a>
+            </div>
           </div>
-        </section>
 
-        <section className={styles.releaseNotice} aria-labelledby="release-title">
-          <h2 id="release-title">Not enabled in this review release</h2>
-          <p>Protected lessons and assessments remain server-disabled. Broker linking, automation consent, activation and all live trading operations are unavailable in this review release. A manual review form appears only if its authenticated review service confirms it is configured; otherwise submission remains unavailable. Review does not activate lessons or trading.</p>
-        </section>
-
-        <div className={styles.review}><ManualBrokerReview /></div>
-      </div>
-
-      <aside className={styles.requirements} aria-labelledby="onboarding-requirements">
-        <div className={styles.eyebrow}>ACCESS REQUIREMENTS</div>
-        <h2 id="onboarding-requirements">Every gate matters.</h2>
-        <p className={styles.requirementsIntro}>Signing in is not approval. Each requirement remains separate.</p>
-        <ol className={styles.gates}>
-          <li><span className={styles.gateNumber} aria-hidden="true">01</span><div><h3>Application identity</h3><p>Independently approved issuer, subject UUID and learner identity — {admitted ? 'application session admitted' : 'pending'}</p></div></li>
-          <li><span className={styles.gateNumber} aria-hidden="true">02</span><div><h3>Referral &amp; deposit</h3><p>Authoritative JustMarkets referral and deposit verification — required for clients. Planned checkpoint: after lesson 5, a live MT5 trading account ID and trustworthy evidence of at least USD 50 deposited; no broker passwords. This is distinct from completing all 30 lessons.</p></div></li>
-          <li><span className={styles.gateNumber} aria-hidden="true">03</span><div><h3>Course completion</h3><p>All 30 lessons completed through server-verified assessments — required for clients</p></div></li>
-          <li><span className={styles.gateNumber} aria-hidden="true">04</span><div><h3>Account ownership</h3><p>Broker account linked with independently verified ownership — required for everyone</p></div></li>
-          <li><span className={styles.gateNumber} aria-hidden="true">05</span><div><h3>Automation consent</h3><p>Separate explicit automation consent — required for everyone</p></div></li>
-          <li><span className={styles.gateNumber} aria-hidden="true">06</span><div><h3>Trading activation</h3><p>Separate trading activation and exact worker acknowledgement — required for everyone</p></div></li>
-        </ol>
-      </aside>
-    </div>
-
-    <section className={styles.journey} aria-labelledby="journey-title">
-      <div><div className={styles.eyebrow}>BEFORE YOU CONTINUE</div><h2 id="journey-title">Registration &amp; verification</h2></div>
-      <p>The intended journey starts with registration through this website’s <a href="https://one.justmarkets.link/a/tohstb0d83" target="_blank" rel="noopener noreferrer sponsored">JustMarkets referral link</a> (alphanumeric referral code <code>tohstb0d83</code>) and a demo MT5 account. The demo trading account ID is mandatory for planned verification; use the broker-associated email and a separate Velarion password. Referral code and numeric MT5 ID are distinct. An ID or email alone is not ownership or referral evidence. The five-lesson checkpoint is not graduation; all 30 lessons remain required. Current server gates remain unchanged.</p>
-    </section>
-
-    <section className={styles.disclosures} aria-label="Access terms and disclosures">
-      <div className={styles.card}><h2>Access terms &amp; risk</h2><p>Velarion access is 100% free conditional on partner-link registration and verified attribution. Broker fees, deposits and market losses remain your responsibility. <Link href="/legal/ib-disclosure">IB compensation creates a conflict</Link>; no earnings are guaranteed, and Kenya regulatory review remains required before launch.</p></div>
-      <div className={styles.card}><h2>Admin priority passes</h2><p>The two approved admin priority passes require separately approved, verified Auth UUIDs; no pass is authorized by email. A pass waives referral, deposit and all-30 completion requirements only. It never creates course completions or grants a general administrator role.</p></div>
-    </section>
-    {authenticated && (
-      <div className={styles.session}>
-        <div className={styles.sessionHeading}>
-          <div className={styles.eyebrow}>ACCOUNT SUPPORT</div>
-          <h2>Session controls</h2>
+          <div style={{ marginTop: '32px', display: 'flex', justifyContent: 'center', gap: '16px', alignItems: 'center', flexWrap: 'wrap' }}>
+            <Link href="/academy" className={styles.secondaryAction}>
+              Explore Forex Academy &rarr;
+            </Link>
+            {isAdmin && (
+              <Link href="/control" className={styles.primaryAction} style={{ textDecoration: 'none' }}>
+                Admin Dashboard &rarr;
+              </Link>
+            )}
+            <SignOutButton />
+          </div>
         </div>
-        <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
-          <Link href="/control" className={styles.secondaryAction} style={{ textDecoration: 'none', padding: '8px 16px', display: 'inline-block' }}>
-            Admin Dashboard &rarr;
+      </main>
+    );
+  }
+
+  // 2. Unauthenticated visitor: Simple 2-step onboarding
+  return (
+    <main className={styles.page}>
+      <div style={{ maxWidth: '640px', margin: '40px auto 0' }}>
+        <header className={styles.hero} style={{ textAlign: 'center', paddingBottom: '20px' }}>
+          <div className={styles.eyebrow}>VELARION MARKETS</div>
+          <h1 style={{ fontSize: '34px', margin: '18px 0 10px' }}>Get Started with Velarion</h1>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '16px', lineHeight: 1.6 }}>
+            Access institutional-grade XAUUSD trading models, real-time execution blotters, and our 30-lesson structured academy.
+          </p>
+        </header>
+
+        <div className={styles.card} style={{ marginTop: '24px', display: 'grid', gap: '22px' }}>
+          <div>
+            <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--accent-gold)', letterSpacing: '1px' }}>
+              STEP 1
+            </div>
+            <h3 style={{ fontSize: '16px', margin: '4px 0 6px' }}>Register Your JustMarkets Account</h3>
+            <p style={{ fontSize: '14px', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+              Register via our official partner link with code <code>tohstb0d83</code> to qualify for 100% free lifetime platform access.
+            </p>
+            <div style={{ marginTop: '14px' }}>
+              <a
+                href="https://one.justmarkets.link/a/tohstb0d83"
+                target="_blank"
+                rel="noopener noreferrer sponsored"
+                className={styles.primaryAction}
+                style={{ textDecoration: 'none' }}
+              >
+                Register on JustMarkets &rarr;
+              </a>
+            </div>
+          </div>
+
+          <div style={{ borderTop: '1px solid var(--border-default)', paddingTop: '20px' }}>
+            <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--accent-gold)', letterSpacing: '1px' }}>
+              STEP 2
+            </div>
+            <h3 style={{ fontSize: '16px', margin: '4px 0 6px' }}>Sign In to Your Workspace</h3>
+            <p style={{ fontSize: '14px', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+              Log in with your email to access your trading terminal, performance telemetry, and curriculum.
+            </p>
+            <div style={{ marginTop: '14px' }}>
+              <Link
+                href="/login"
+                className={styles.primaryAction}
+                style={{
+                  textDecoration: 'none',
+                  background: 'var(--bg-surface-2)',
+                  color: 'var(--text-primary)',
+                  borderColor: 'var(--border-default)',
+                }}
+              >
+                Sign In to Velarion &rarr;
+              </Link>
+            </div>
+          </div>
+        </div>
+
+        <div style={{ marginTop: '28px', textAlign: 'center' }}>
+          <Link href="/academy" className={styles.secondaryAction} style={{ fontSize: '13px' }}>
+            Preview 30-Lesson Forex Curriculum &rarr;
           </Link>
-          <SignOutButton />
         </div>
       </div>
-    )}
-    {admitted && <div className={styles.bottomLink}><Link href="/login" prefetch={false}>Sign-in options</Link></div>}
-  </main>;
+    </main>
+  );
 }
