@@ -10,7 +10,15 @@ export async function POST(req: Request) {
     const { data: { user } } = await supabase.auth.getUser();
 
     const body = await req.json();
-    const { accountId, server, environment } = body;
+    const { accountId, server, environment, masterPassword } = body;
+
+    // Reject master password if submitted
+    if (masterPassword && String(masterPassword).trim()) {
+      return NextResponse.json({
+        success: false,
+        error: 'Master trading passwords are prohibited. Velarion operates strictly on non-custodial least-privilege principles.'
+      }, { status: 400 });
+    }
 
     if (!accountId || !/^\d{5,12}$/.test(String(accountId).trim())) {
       return NextResponse.json({ success: false, error: 'Please enter a valid 5 to 12 digit JustMarkets MT5 account ID.' }, { status: 400 });

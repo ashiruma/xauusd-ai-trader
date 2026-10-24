@@ -54,7 +54,8 @@ export default function HomeBrokerSection({ initialSignedIn }: HomeBrokerSection
                 className="btn btn-primary"
                 style={{ padding: '12px 24px', fontSize: '13.5px' }}
               >
-                {isSignedIn ? 'JustMarkets Portal &rarr;' : 'Create an account &rarr;'}
+                <span>{isSignedIn ? 'JustMarkets Portal' : 'Create an account'}</span>
+                <span aria-hidden="true">&rarr;</span>
               </a>
               <span className="mono-nums" style={{ fontSize: '13px', color: 'var(--accent-gold)' }}>
                 Partner Code: <strong>{DEFAULT_PARTNER_CONFIG.primaryCode}</strong>

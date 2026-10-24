@@ -20,7 +20,6 @@ export default function AccountsClientDesk({
   const [server, setServer] = useState('JustMarkets-Demo3');
   const [environment, setEnvironment] = useState<'DEMO' | 'LIVE'>('DEMO');
   const [investorPassword, setInvestorPassword] = useState('');
-  const [masterPasswordInput, setMasterPasswordInput] = useState('');
   const [isLinked, setIsLinked] = useState(isInitiallyLinked);
   const [loading, setLoading] = useState(false);
   const [statusMessage, setStatusMessage] = useState<{ type: 'success' | 'error' | 'warning'; text: string } | null>(null);
@@ -28,15 +27,6 @@ export default function AccountsClientDesk({
   const handleLink = async (e: React.FormEvent) => {
     e.preventDefault();
     setStatusMessage(null);
-
-    // Client-side guard against master passwords
-    if (masterPasswordInput.trim()) {
-      setStatusMessage({
-        type: 'error',
-        text: 'Master password submission prohibited. Velarion adheres to least-privilege architecture. Leave master password blank and supply Investor password only if needed.',
-      });
-      return;
-    }
 
     if (!accountId.trim() || !/^\d{6,10}$/.test(accountId.trim())) {
       setStatusMessage({
@@ -56,7 +46,6 @@ export default function AccountsClientDesk({
           server,
           environment,
           investorPassword: investorPassword.trim() || undefined,
-          masterPassword: masterPasswordInput.trim() || undefined,
         }),
       });
 
@@ -293,7 +282,7 @@ export default function AccountsClientDesk({
               Connect JustMarkets MT5 Account
             </h2>
             <p style={{ fontSize: '13.5px', color: 'var(--text-secondary)', margin: 0 }}>
-              Enter your MT5 Account ID and select your server environment. To maintain zero-risk least privilege, do not enter a master trading password.
+              Enter your JustMarkets MT5 Account ID and select your server environment. Velarion operates strictly on non-custodial least privilege: master passwords are never required.
             </p>
           </div>
 
@@ -396,38 +385,13 @@ export default function AccountsClientDesk({
               />
             </div>
 
-            {/* Master Password Field (Purposely prohibited) */}
-            <div>
-              <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '4px' }}>
-                Master Trading Password (Do NOT Enter)
-              </label>
-              <input
-                type="password"
-                placeholder="Master passwords are strictly rejected"
-                value={masterPasswordInput}
-                onChange={(e) => setMasterPasswordInput(e.target.value)}
-                style={{
-                  width: '100%',
-                  padding: '10px 14px',
-                  fontSize: '13px',
-                  backgroundColor: 'var(--bg-surface-2)',
-                  border: '1px dashed var(--border-default)',
-                  borderRadius: '6px',
-                  color: 'var(--text-muted)',
-                }}
-              />
-              <span style={{ display: 'block', fontSize: '11px', color: 'var(--accent-red)', marginTop: '4px' }}>
-                Submitting a master trading password will be blocked with a 400 validation error.
-              </span>
-            </div>
-
             {/* Submit Button */}
             <div style={{ marginTop: '10px' }}>
               <button
                 type="submit"
                 disabled={loading}
                 style={{
-                  padding: '11px 24px',
+                  padding: '12px 26px',
                   fontSize: '13.5px',
                   fontWeight: 700,
                   backgroundColor: 'var(--accent-gold)',
@@ -437,10 +401,11 @@ export default function AccountsClientDesk({
                   cursor: loading ? 'not-allowed' : 'pointer',
                   display: 'inline-flex',
                   alignItems: 'center',
-                  gap: '6px',
+                  gap: '8px',
                 }}
               >
-                <span>{loading ? 'Linking Account...' : 'Link MT5 Account &rarr;'}</span>
+                <span>{loading ? 'Linking Account...' : 'Link MT5 Account'}</span>
+                {!loading && <span aria-hidden="true">&rarr;</span>}
               </button>
             </div>
 
